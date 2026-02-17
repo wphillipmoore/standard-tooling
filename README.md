@@ -59,3 +59,4 @@ The `--actions-compat` flag additionally syncs lint scripts to
 Tag releases on `main` using semantic versioning. Consuming repos pin to
 tags via `--ref`. The CI staleness gate compares against the latest tag
 by default.
+
