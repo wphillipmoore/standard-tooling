@@ -23,7 +23,7 @@ for docsite_dir in docs/sphinx docs/site; do
   fi
 done
 
-all_files=("${files[@]}" "${docsite_files[@]}")
+all_files=("${files[@]}" ${docsite_files[@]+"${docsite_files[@]}"})
 
 # CHANGELOG.md gets markdownlint only — no structural checks (no TOC,
 # multiple H2 headings are expected, heading hierarchy differs).
