@@ -36,7 +36,7 @@
 
 Hard gates (required status checks on `develop`):
 
-- Standards compliance (`.github/workflows/standards-gates.yml`):
+- Standards compliance (`.github/workflows/ci.yml`):
   - Repository profile validation (`scripts/lint/repo-profile.sh`)
   - Markdownlint (`scripts/lint/markdown-standards.sh`)
   - Commit message lint (`scripts/lint/commit-messages.sh`)
