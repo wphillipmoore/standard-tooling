@@ -23,7 +23,6 @@ if [[ -z "$owner" || -z "$project" ]]; then
   exit 1
 fi
 
-gh project item-list "$project" --owner "$owner" --format json --limit 9999 \
-  --jq '.items[].repository' \
-  | sort -u \
-  | sed 's|https://github.com/||'
+gh repo list "$owner" --json nameWithOwner,projectsV2 --limit 100 \
+  --jq ".[] | select(.projectsV2.Nodes | length > 0) | select(.projectsV2.Nodes[].number == $project) | .nameWithOwner" \
+  | sort
