@@ -7,3 +7,6 @@ Thumbs.db
 .env
 .env.*
 *.log
+
+# Python
+__pycache__/
