@@ -32,6 +32,10 @@ MUST:
 - Test scripts with shellcheck before committing.
 - Keep scripts portable across macOS and Linux.
 - Do not add repo-specific logic; scripts must work in any consuming repo.
+- **Release before sync**: consuming repos' CI checks tooling against the
+  latest tagged release, not `develop`. You must merge to `main` and tag a
+  new version **before** syncing consuming repos. Syncing from an unreleased
+  ref will cause CI failures in every consuming repo.
 
 ## Multi-Line Messages
 

@@ -53,6 +53,25 @@ shellcheck scripts/lint/*.sh scripts/dev/*.sh scripts/git-hooks/*  # Shell scrip
 - **`--ref TAG`**: Pin to a specific standard-tooling version
 - **`--actions-compat`**: Also sync lint scripts to `actions/standards-compliance/scripts/` (for standard-actions)
 
+### Deployment Before Sync (mandatory)
+
+Consuming repos' CI runs `sync-tooling.sh --check` against the
+**latest tagged release** (not `develop`). If you sync consuming
+repos before tagging a new release, their CI will fail because the
+tag still points to the old managed-files list.
+
+**Required ordering when changing managed scripts:**
+
+1. Merge changes to `standard-tooling` `develop` (feature PR).
+2. Create a release PR to `main`, merge it, and **tag the new
+   version** (e.g., `v1.0.5`).
+3. **Only then** sync consuming repos with
+   `sync-tooling.sh --fix`.
+
+Never sync consuming repos from `develop` or an unreleased ref
+unless you accept that their CI will fail until the release is
+tagged.
+
 ### Managed Files
 
 All git hooks, all lint scripts, `prepare_release.py`, `finalize_repo.sh`, and `sync-tooling.sh` itself are managed. Consuming repos must not modify these files directly.
