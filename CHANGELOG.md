@@ -1,10 +1,21 @@
 # Changelog
 
-## [develop-v1.1.0] - 2026-02-20
+## [develop-v1.1.1] - 2026-02-20
+
+### Miscellaneous Tasks
+
+- Merge main into release/1.1.1
+
+## [1.1.0] - 2026-02-20
+
+### Bug Fixes
+
+- Fix CHANGELOG.md formatting for markdownlint compliance
 
 ### Miscellaneous Tasks
 
 - Merge main into release/1.1.0
+- Prepare release 1.1.0
 
 ## [1.0.3] - 2026-02-19
 
@@ -19,6 +30,10 @@
 - *(ci)* Add category prefixes to CI job names (#31)
 - *(validate)* Add validate_local.sh dispatch architecture (#34)
 
+### Bug Fixes
+
+- *(lint)* Accept cross-repo issue references in PR linkage check (#36)
+
 ### Documentation
 
 - Document release-before-sync requirement (#20)
@@ -28,6 +43,7 @@
 ### Miscellaneous Tasks
 
 - Add commit.sh and submit-pr.sh to managed files list (#18)
+- Bump version to 1.1.1 (#37)
 
 ## [0.0.0-test] - 2026-02-17
 
