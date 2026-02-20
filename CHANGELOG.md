@@ -1,11 +1,14 @@
+# Changelog
+
 ## [develop-v1.1.0] - 2026-02-20
 
-### ⚙️ Miscellaneous Tasks
+### Miscellaneous Tasks
 
 - Merge main into release/1.1.0
+
 ## [1.0.3] - 2026-02-19
 
-### 🚀 Features
+### Features
 
 - Add add-to-project workflow for standards project
 - Add GitHub Project helper scripts for skill automation (#12)
@@ -16,36 +19,40 @@
 - *(ci)* Add category prefixes to CI job names (#31)
 - *(validate)* Add validate_local.sh dispatch architecture (#34)
 
-### 📚 Documentation
+### Documentation
 
 - Document release-before-sync requirement (#20)
 - Ban MEMORY.md usage in CLAUDE.md (#32)
 - Ban heredocs in shell commands (#33)
 
-### ⚙️ Miscellaneous Tasks
+### Miscellaneous Tasks
 
 - Add commit.sh and submit-pr.sh to managed files list (#18)
+
 ## [0.0.0-test] - 2026-02-17
 
-### 🚀 Features
+### Features
 
 - Add CI workflow, CLAUDE.md, and repository infrastructure (#6)
+
 ## [1.0.2] - 2026-02-17
 
-### 🐛 Bug Fixes
+### Bug Fixes
 
 - Prevent --actions-compat from leaking during self-update re-exec
+
 ## [1.0.1] - 2026-02-17
 
-### 📚 Documentation
+### Documentation
 
 - Add canonical source comment to repo-profile.sh
+
 ## [1.0.0] - 2026-02-17
 
-### 🚀 Features
+### Features
 
 - Initial scaffold with reconciled canonical scripts
 
-### 🐛 Bug Fixes
+### Bug Fixes
 
 - Handle empty docsite_files array with set -u
