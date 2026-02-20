@@ -14,7 +14,7 @@
 ## Testing
 
 - markdownlint
-- shellcheck
+- ci: shellcheck
 
 ## Notes
 
