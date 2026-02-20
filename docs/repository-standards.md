@@ -21,6 +21,7 @@
 - branching_model: library-release
 - release_model: tagged-release
 - supported_release_lines: 1
+- primary_language: shell
 
 ## Validation policy
 
