@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# Managed by standard-tooling — DO NOT EDIT in downstream repos.
+# Canonical source: https://github.com/wphillipmoore/standard-tooling
 set -euo pipefail
 
 # sync-tooling.sh — keep local copies of shared scripts in sync with
