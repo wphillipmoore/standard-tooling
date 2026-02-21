@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# Managed by standard-tooling — DO NOT EDIT in downstream repos.
+# Canonical source: https://github.com/wphillipmoore/standard-tooling
 """Automate release preparation: branch, changelog, PR, auto-merge.
 
 Shared script for library repositories using the library-release branching
