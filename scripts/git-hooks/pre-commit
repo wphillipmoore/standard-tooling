@@ -38,21 +38,21 @@ fi
 # Set allowed branch prefixes based on branching model.
 case "$branching_model" in
   docs-single-branch)
-    allowed_regex='^(feature|bugfix)/'
-    allowed_display="feature/* or bugfix/*"
+    allowed_regex='^(feature|bugfix|chore)/'
+    allowed_display="feature/*, bugfix/*, or chore/*"
     ;;
   application-promotion)
-    allowed_regex='^(feature|bugfix|hotfix|promotion)/'
-    allowed_display="feature/*, bugfix/*, hotfix/*, or promotion/*"
+    allowed_regex='^(feature|bugfix|hotfix|chore|promotion)/'
+    allowed_display="feature/*, bugfix/*, hotfix/*, chore/*, or promotion/*"
     ;;
   library-release)
-    allowed_regex='^(feature|bugfix|hotfix|release)/'
-    allowed_display="feature/*, bugfix/*, hotfix/*, or release/*"
+    allowed_regex='^(feature|bugfix|hotfix|chore|release)/'
+    allowed_display="feature/*, bugfix/*, hotfix/*, chore/*, or release/*"
     ;;
   "")
     echo "WARNING: branching_model not found in $profile_file; falling back to feature/*/bugfix/*." >&2
-    allowed_regex='^(feature|bugfix)/'
-    allowed_display="feature/* or bugfix/*"
+    allowed_regex='^(feature|bugfix|chore)/'
+    allowed_display="feature/*, bugfix/*, or chore/*"
     ;;
   *)
     echo "ERROR: unrecognized branching_model '$branching_model' in $profile_file." >&2
@@ -69,8 +69,8 @@ fi
 # Validate issue-number naming for work branches.
 # Format: {type}/{issue}-{description}
 # Exempt: release/* (automated by the publish workflow, no issue association).
-issue_required_regex='^(feature|bugfix|hotfix)/'
-issue_format_regex='^(feature|bugfix|hotfix)/[0-9]+-[a-z0-9][a-z0-9-]*$'
+issue_required_regex='^(feature|bugfix|hotfix|chore)/'
+issue_format_regex='^(feature|bugfix|hotfix|chore)/[0-9]+-[a-z0-9][a-z0-9-]*$'
 
 if [[ "$current_branch" =~ $issue_required_regex ]]; then
   if [[ ! "$current_branch" =~ $issue_format_regex ]]; then
