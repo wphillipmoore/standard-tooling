@@ -1,8 +1,11 @@
+# Changelog
+
 ## [develop-v1.1.2] - 2026-02-21
 
 ### ⚙️ Miscellaneous Tasks
 
 - Merge main into release/1.1.2
+
 ## [1.1.1] - 2026-02-20
 
 ### 🐛 Bug Fixes
@@ -13,6 +16,7 @@
 
 - Merge main into release/1.1.1
 - Prepare release 1.1.1
+
 ## [1.1.0] - 2026-02-20
 
 ### 🐛 Bug Fixes
@@ -23,6 +27,7 @@
 
 - Merge main into release/1.1.0
 - Prepare release 1.1.0
+
 ## [1.0.3] - 2026-02-19
 
 ### 🚀 Features
@@ -53,21 +58,25 @@
 - Add commit.sh and submit-pr.sh to managed files list (#18)
 - Bump version to 1.1.1 (#37)
 - *(ci)* Remove push trigger from CI workflow (#41)
+
 ## [0.0.0-test] - 2026-02-17
 
 ### 🚀 Features
 
 - Add CI workflow, CLAUDE.md, and repository infrastructure (#6)
+
 ## [1.0.2] - 2026-02-17
 
 ### 🐛 Bug Fixes
 
 - Prevent --actions-compat from leaking during self-update re-exec
+
 ## [1.0.1] - 2026-02-17
 
 ### 📚 Documentation
 
 - Add canonical source comment to repo-profile.sh
+
 ## [1.0.0] - 2026-02-17
 
 ### 🚀 Features
