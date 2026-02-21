@@ -1,3 +1,5 @@
+# Changelog
+
 ## [develop-v1.1.3] - 2026-02-21
 
 ### 🐛 Bug Fixes
@@ -9,6 +11,7 @@
 - Merge main into release/1.1.2
 - Prepare release 1.1.2
 - Merge main into release/1.1.3
+
 ## [1.1.1] - 2026-02-20
 
 ### 🐛 Bug Fixes
@@ -19,6 +22,7 @@
 
 - Merge main into release/1.1.1
 - Prepare release 1.1.1
+
 ## [1.1.0] - 2026-02-20
 
 ### 🐛 Bug Fixes
@@ -29,6 +33,7 @@
 
 - Merge main into release/1.1.0
 - Prepare release 1.1.0
+
 ## [1.0.3] - 2026-02-19
 
 ### 🚀 Features
@@ -61,21 +66,25 @@
 - Bump version to 1.1.1 (#37)
 - *(ci)* Remove push trigger from CI workflow (#41)
 - Bump version to 1.1.3 (#48)
+
 ## [0.0.0-test] - 2026-02-17
 
 ### 🚀 Features
 
 - Add CI workflow, CLAUDE.md, and repository infrastructure (#6)
+
 ## [1.0.2] - 2026-02-17
 
 ### 🐛 Bug Fixes
 
 - Prevent --actions-compat from leaking during self-update re-exec
+
 ## [1.0.1] - 2026-02-17
 
 ### 📚 Documentation
 
 - Add canonical source comment to repo-profile.sh
+
 ## [1.0.0] - 2026-02-17
 
 ### 🚀 Features
