@@ -63,3 +63,18 @@ if [[ ! "$current_branch" =~ $allowed_regex ]]; then
   echo "Rename the branch before committing." >&2
   exit 1
 fi
+
+# Validate issue-number naming for work branches.
+# Format: {type}/{issue}-{description}
+# Exempt: release/* (automated by the publish workflow, no issue association).
+issue_required_regex='^(feature|bugfix|hotfix)/'
+issue_format_regex='^(feature|bugfix|hotfix)/[0-9]+-[a-z0-9][a-z0-9-]*$'
+
+if [[ "$current_branch" =~ $issue_required_regex ]]; then
+  if [[ ! "$current_branch" =~ $issue_format_regex ]]; then
+    echo "ERROR: branch name must include a repo issue number ($current_branch)." >&2
+    echo "Expected format: {type}/{issue}-{description}" >&2
+    echo "Example: feature/42-add-caching" >&2
+    exit 1
+  fi
+fi
