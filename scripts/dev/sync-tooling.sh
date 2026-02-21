@@ -110,7 +110,7 @@ if [[ -n "$ref" ]]; then
 else
   # Discover the latest tag without a full clone.
   clone_ref="$(git ls-remote --tags --sort=-v:refname "$TOOLING_REPO" 'v*' \
-    | head -n 1 | sed 's|.*refs/tags/||')"
+    | head -n 1 | sed 's|.*refs/tags/||; s|\^{}$||')"
   if [[ -z "$clone_ref" ]]; then
     echo "ERROR: no tags found in $TOOLING_REPO" >&2
     exit 1

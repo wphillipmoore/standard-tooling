@@ -1,10 +1,16 @@
 # Changelog
 
-## [develop-v1.1.2] - 2026-02-21
+## [develop-v1.1.3] - 2026-02-21
+
+### 🐛 Bug Fixes
+
+- Fix CHANGELOG.md formatting for markdownlint compliance
 
 ### ⚙️ Miscellaneous Tasks
 
 - Merge main into release/1.1.2
+- Prepare release 1.1.2
+- Merge main into release/1.1.3
 
 ## [1.1.1] - 2026-02-20
 
@@ -46,6 +52,7 @@
 ### 🐛 Bug Fixes
 
 - *(lint)* Accept cross-repo issue references in PR linkage check (#36)
+- Strip ^{} suffix from dereferenced tags in sync-tooling.sh (#51)
 
 ### 📚 Documentation
 
@@ -58,6 +65,7 @@
 - Add commit.sh and submit-pr.sh to managed files list (#18)
 - Bump version to 1.1.1 (#37)
 - *(ci)* Remove push trigger from CI workflow (#41)
+- Bump version to 1.1.3 (#48)
 
 ## [0.0.0-test] - 2026-02-17
 
