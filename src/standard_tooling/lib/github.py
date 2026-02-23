@@ -20,9 +20,7 @@ def read_output(*args: str) -> str:
 
 def create_pr(*, base: str, title: str, body_file: str) -> str:
     """Create a pull request and return its URL."""
-    return read_output(
-        "pr", "create", "--base", base, "--title", title, "--body-file", body_file
-    )
+    return read_output("pr", "create", "--base", base, "--title", title, "--body-file", body_file)
 
 
 def auto_merge(ref: str, *, strategy: str, delete_branch: bool = True) -> None:

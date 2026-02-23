@@ -24,10 +24,15 @@ def main(argv: list[str] | None = None) -> int:
         f"| .nameWithOwner"
     )
     output = github.read_output(
-        "repo", "list", args.owner,
-        "--json", "nameWithOwner,projectsV2",
-        "--limit", "100",
-        "--jq", jq_filter,
+        "repo",
+        "list",
+        args.owner,
+        "--json",
+        "nameWithOwner,projectsV2",
+        "--limit",
+        "100",
+        "--jq",
+        jq_filter,
     )
     for repo in sorted(set(output.splitlines())):
         if repo:

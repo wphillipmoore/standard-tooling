@@ -22,8 +22,16 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
     existing = github.read_output(
-        "label", "list", "--repo", args.repo, "--search", args.label,
-        "--json", "name", "--jq", ".[].name",
+        "label",
+        "list",
+        "--repo",
+        args.repo,
+        "--search",
+        args.label,
+        "--json",
+        "name",
+        "--jq",
+        ".[].name",
     )
     if args.label in existing.splitlines():
         print(f"Label '{args.label}' already exists in {args.repo}")

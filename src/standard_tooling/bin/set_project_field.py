@@ -26,8 +26,15 @@ def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
 
     project_id = github.read_output(
-        "project", "view", args.project, "--owner", args.owner,
-        "--format", "json", "--jq", ".id",
+        "project",
+        "view",
+        args.project,
+        "--owner",
+        args.owner,
+        "--format",
+        "json",
+        "--jq",
+        ".id",
     )
 
     jq_filter = (
@@ -35,8 +42,15 @@ def main(argv: list[str] | None = None) -> int:
         f'| .id + " " + (.options[] | select(.name == "{args.value}") | .id)'
     )
     ids = github.read_output(
-        "project", "field-list", args.project, "--owner", args.owner,
-        "--format", "json", "--jq", jq_filter,
+        "project",
+        "field-list",
+        args.project,
+        "--owner",
+        args.owner,
+        "--format",
+        "json",
+        "--jq",
+        jq_filter,
     )
 
     parts = ids.split()
@@ -44,19 +58,22 @@ def main(argv: list[str] | None = None) -> int:
         print(f"Error: field '{args.field}' not found in project {args.project}", file=sys.stderr)
         return 1
     if len(parts) < 2:
-        print(
-            f"Error: option '{args.value}' not found in field '{args.field}'", file=sys.stderr
-        )
+        print(f"Error: option '{args.value}' not found in field '{args.field}'", file=sys.stderr)
         return 1
 
     field_id, option_id = parts[0], parts[1]
 
     github.run(
-        "project", "item-edit",
-        "--project-id", project_id,
-        "--id", args.item,
-        "--field-id", field_id,
-        "--single-select-option-id", option_id,
+        "project",
+        "item-edit",
+        "--project-id",
+        project_id,
+        "--id",
+        args.item,
+        "--field-id",
+        field_id,
+        "--single-select-option-id",
+        option_id,
     )
 
     print(f"Set {args.field}={args.value} on item {args.item}")

@@ -21,9 +21,7 @@ _ETERNAL_BY_MODEL: dict[str, list[str]] = {
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     """Parse command-line arguments."""
     parser = argparse.ArgumentParser(description="Finalize a repository after a PR merge.")
-    parser.add_argument(
-        "--target-branch", default="develop", help="Target branch to switch to"
-    )
+    parser.add_argument("--target-branch", default="develop", help="Target branch to switch to")
     parser.add_argument(
         "--dry-run", action="store_true", help="Show what would be done without making changes"
     )
