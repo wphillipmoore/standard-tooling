@@ -23,10 +23,19 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
       - name: Extract version
         id: version
         run: |
-          version=$(cat VERSION)
+          version=$(python3 -c "
+          import tomllib
+          from pathlib import Path
+          print(tomllib.loads(Path('pyproject.toml').read_text())['project']['version'])
+          ")
           echo "version=$version" >> "$GITHUB_OUTPUT"
           echo "tag=v$version" >> "$GITHUB_OUTPUT"
 
@@ -48,7 +57,7 @@ jobs:
           release-notes: |
             ## standard-tooling v${{ steps.version.outputs.version }}
 
-            Shared scripts and git hooks for all managed repositories.
+            Python package providing shared development tooling for all managed repositories.
 
             ## Links
 
@@ -62,13 +71,20 @@ jobs:
           app-id: ${{ secrets.APP_ID }}
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
 
+      - name: Set up uv
+        if: steps.tag_check.outputs.exists == 'false'
+        uses: astral-sh/setup-uv@v6
+
       - name: Version bump PR
         if: steps.tag_check.outputs.exists == 'false'
         uses: wphillipmoore/standard-actions/actions/publish/version-bump-pr@develop
         with:
           current-version: ${{ steps.version.outputs.version }}
-          version-file: VERSION
-          version-regex: '^.*$'
-          version-replacement: '{version}'
-          develop-version-command: cat
+          version-file: pyproject.toml
+          version-regex: '^(version\s*=\s*\").*(\"\s*)$'
+          version-replacement: '\g<1>{version}\2'
+          version-regex-multiline: "true"
+          develop-version-command: python3 -c "import sys, tomllib; print(tomllib.loads(sys.stdin.read())['project']['version'])"
+          post-bump-command: uv lock
+          extra-files: uv.lock
           app-token: ${{ steps.app-token.outputs.token }}
