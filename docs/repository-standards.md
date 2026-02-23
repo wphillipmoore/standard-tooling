@@ -21,35 +21,37 @@
 - branching_model: library-release
 - release_model: tagged-release
 - supported_release_lines: 1
-- primary_language: shell
+- primary_language: python
 
 ## Validation policy
 
-- canonical_local_validation_command: scripts/lint/markdown-standards.sh
-- validation_required: yes (markdownlint required)
+- canonical_local_validation_command: st-validate-local
+- validation_required: yes (markdownlint, ruff, mypy, pytest required)
 
 ## External tooling dependencies
 
 - markdownlint (markdownlint-cli)
 - shellcheck
+- uv
 
 ## CI gates
 
 Hard gates (required status checks on `develop`):
 
 - Standards compliance (`.github/workflows/ci.yml`):
-  - Repository profile validation (`scripts/lint/repo-profile.sh`)
-  - Markdownlint (`scripts/lint/markdown-standards.sh`)
-  - Commit message lint (`scripts/lint/commit-messages.sh`)
-  - Issue linkage validation (`scripts/lint/pr-issue-linkage.sh`)
-  - Shellcheck on all `.sh` scripts
+  - Repository profile validation (`repo-profile`)
+  - Markdownlint (`markdown-standards`)
+  - Commit message lint (CI validator)
+  - Issue linkage validation (`pr-issue-linkage`)
+  - Shellcheck on all bash scripts
+  - Python lint, type-check, and tests
 
 Local hard gates (pre-commit hooks):
 
-- Branch naming enforcement (`scripts/git-hooks/pre-commit`):
+- Branch naming enforcement (`scripts/lib/git-hooks/pre-commit`):
   branching-model-aware prefix validation.
-- Commit message lint (`scripts/git-hooks/commit-msg`): Conventional Commits
-  required, co-author trailer validation enforced.
+- Commit message lint (`scripts/lib/git-hooks/commit-msg`): Conventional Commits
+  required.
 
 ## Commit and PR scripts
 
@@ -59,7 +61,7 @@ Do not construct commit messages or PR bodies manually.
 ### Committing
 
 ```bash
-scripts/dev/commit.sh \
+st-commit \
   --type TYPE --message MESSAGE --agent AGENT \
   [--scope SCOPE] [--body BODY]
 ```
@@ -76,7 +78,7 @@ The script resolves the correct `Co-Authored-By` identity from the
 ### Submitting PRs
 
 ```bash
-scripts/dev/submit-pr.sh \
+st-submit-pr \
   --issue NUMBER --summary TEXT \
   [--linkage KEYWORD] [--title TEXT] \
   [--notes TEXT] [--docs-only] [--dry-run]

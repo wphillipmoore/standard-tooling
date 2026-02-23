@@ -1,0 +1,55 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "standard-tooling"
+version = "1.2.0"
+description = "Shared development tooling for managed repositories"
+requires-python = ">=3.12,<4.0"
+dependencies = []
+
+[project.scripts]
+st-commit = "standard_tooling.bin.commit:main"
+st-submit-pr = "standard_tooling.bin.submit_pr:main"
+st-prepare-release = "standard_tooling.bin.prepare_release:main"
+st-finalize-repo = "standard_tooling.bin.finalize_repo:main"
+st-validate-local = "standard_tooling.bin.validate_local:main"
+st-ensure-label = "standard_tooling.bin.ensure_label:main"
+st-list-project-repos = "standard_tooling.bin.list_project_repos:main"
+st-set-project-field = "standard_tooling.bin.set_project_field:main"
+
+[dependency-groups]
+dev = ["ruff", "mypy", "pytest", "pytest-cov", "pip-audit", "pip-licenses"]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "S", "B", "A", "C4", "SIM", "TCH", "ARG", "PTH", "ERA"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101", "ARG"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "if __name__ == .__main__.",
+    "if TYPE_CHECKING:",
+    "pragma: no cover",
+]

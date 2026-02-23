@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# Managed by standard-tooling — DO NOT EDIT in downstream repos.
+# Canonical source: https://github.com/wphillipmoore/standard-tooling
+set -euo pipefail
+
+# Find commit-message validator: prefer PATH, fall back to relative location.
+if command -v commit-message >/dev/null 2>&1; then
+  commit-message "$1"
+else
+  repo_root="$(git rev-parse --show-toplevel)"
+  "$repo_root/scripts/bin/commit-message" "$1"
+fi

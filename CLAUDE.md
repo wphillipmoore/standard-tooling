@@ -41,7 +41,10 @@ This repository uses two complementary approaches for AI agent guidance:
 
 ## Project Overview
 
-This is the canonical source for shared scripts used across all managed repositories: lint scripts, git hooks, and development automation. Changes here propagate to consuming repositories via `sync-tooling.sh`.
+This is a Python package providing shared development tooling for all managed
+repositories: CLI tools for commits, PRs, releases, and validation; bash
+validators and git hooks consumed via PATH from a sibling checkout (local) or
+CI checkout (GitHub Actions).
 
 **Project name**: standard-tooling
 
@@ -53,83 +56,120 @@ This is the canonical source for shared scripts used across all managed reposito
 
 ### Environment Setup
 
-- **Git hooks**: `git config core.hooksPath scripts/git-hooks` (required before committing)
-- **markdownlint**: `npm install --global markdownlint-cli`
-- **shellcheck**: `brew install shellcheck`
+```bash
+uv sync --group dev                                    # Install package + dev deps
+git config core.hooksPath scripts/lib/git-hooks        # Enable git hooks
+export PATH="$(pwd)/.venv/bin:$(pwd)/scripts/bin:$PATH" # Put tools on PATH
+```
 
 ### Validation
 
 ```bash
-scripts/lint/markdown-standards.sh   # Canonical validation (markdownlint + structural checks)
-shellcheck scripts/lint/*.sh scripts/dev/*.sh scripts/git-hooks/*  # Shell script lint
+uv run ruff check src/ tests/                          # Lint Python
+uv run ruff format --check .                           # Check formatting
+uv run mypy src/                                       # Type check
+uv run pytest tests/ -v                                # Run tests
+shellcheck scripts/bin/* scripts/lib/git-hooks/*       # Shell script lint
+```
+
+### Quick full validation
+
+```bash
+uv run st-validate-local                               # Runs all checks
 ```
 
 ## Architecture
 
-### Script Categories
+### Python Package (`src/standard_tooling/`)
 
-- **`scripts/git-hooks/`** — Pre-commit (branch naming) and commit-msg (conventional commits, co-author validation) hooks
-- **`scripts/lint/`** — Validation scripts for markdown, commit messages, co-author trailers, PR issue linkage, and repository profiles
-- **`scripts/dev/`** — Development automation: `sync-tooling.sh` (sync mechanism), `prepare_release.py` (release prep), `finalize_repo.sh` (post-merge cleanup)
+CLI tools installed as `st-*` console scripts:
 
-### Sync Mechanism
+- **`st-commit`** — Construct standards-compliant conventional commits with co-author resolution
+- **`st-submit-pr`** — Create standards-compliant PRs with auto-merge
+- **`st-prepare-release`** — Automate release preparation (branch, changelog, PR)
+- **`st-finalize-repo`** — Post-merge cleanup (branch deletion, remote pruning)
+- **`st-validate-local`** — Driver for pre-PR local validation
+- **`st-ensure-label`** — Idempotent GitHub label creation
+- **`st-list-project-repos`** — List repos linked to a GitHub Project
+- **`st-set-project-field`** — Set single-select field on GitHub Project item
 
-`sync-tooling.sh` keeps consuming repositories synchronized with this canonical source:
+Shared libraries under `src/standard_tooling/lib/`:
 
-- **`--check`** (default): Reports whether local copies are stale
-- **`--fix`**: Updates local copies from this repository
-- **`--ref TAG`**: Pin to a specific standard-tooling version
-- **`--actions-compat`**: Also sync lint scripts to `actions/standards-compliance/scripts/` (for standard-actions)
+- **`git.py`** — Git subprocess wrappers
+- **`github.py`** — gh CLI subprocess wrappers
+- **`repo_profile.py`** — Parse `docs/repository-standards.md`
 
-### Deployment Before Sync (mandatory)
+### Bash Scripts (`scripts/bin/`)
 
-Consuming repos' CI runs `sync-tooling.sh --check` against the
-**latest tagged release** (not `develop`). If you sync consuming
-repos before tagging a new release, their CI will fail because the
-tag still points to the old managed-files list.
+Grandfathered validators consumed via PATH (no `.sh` extensions):
 
-**Required ordering when changing managed scripts:**
+- `markdown-standards` — markdownlint + structural checks
+- `repo-profile` — repository profile validation
+- `pr-issue-linkage` — PR body issue linkage validation
+- `commit-message` — single commit message validation
+- `validate-local-common` — shared validation checks (shellcheck, markdownlint, repo-profile)
+- `validate-local-python` — Python-specific validation
+- `validate-local-go` — Go-specific validation
+- `validate-local-java` — Java-specific validation
 
-1. Merge changes to `standard-tooling` `develop` (feature PR).
-2. Create a release PR to `main`, merge it, and **tag the new
-   version** (e.g., `v1.0.5`).
-3. **Only then** sync consuming repos with
-   `sync-tooling.sh --fix`.
+### Git Hooks (`scripts/lib/git-hooks/`)
 
-Never sync consuming repos from `develop` or an unreleased ref
-unless you accept that their CI will fail until the release is
-tagged.
+Consumed via `git config core.hooksPath scripts/lib/git-hooks`:
 
-### Managed Files
+- `pre-commit` — Branch naming enforcement
+- `commit-msg` — Conventional Commits validation
 
-All git hooks, all lint scripts, `prepare_release.py`, `finalize_repo.sh`, and `sync-tooling.sh` itself are managed. Consuming repos must not modify these files directly.
+### Consumption Model
+
+**Local development** (any consuming repo):
+
+```bash
+cd ../standard-tooling && uv sync
+export PATH="../standard-tooling/.venv/bin:../standard-tooling/scripts/bin:$PATH"
+git config core.hooksPath ../standard-tooling/scripts/lib/git-hooks
+```
+
+**CI (GitHub Actions)**:
+
+```yaml
+- uses: actions/checkout@v4
+  with:
+    repository: wphillipmoore/standard-tooling
+    ref: v1.2
+    path: .standard-tooling
+
+- name: Set up standard-tooling
+  run: |
+    cd .standard-tooling && uv sync --frozen
+    echo "$GITHUB_WORKSPACE/.standard-tooling/.venv/bin" >> "$GITHUB_PATH"
+    echo "$GITHUB_WORKSPACE/.standard-tooling/scripts/bin" >> "$GITHUB_PATH"
+```
 
 ### Key Constraints
 
 - **Portability**: Scripts must work on both macOS and Linux
-- **shellcheck clean**: All scripts must pass shellcheck
+- **shellcheck clean**: All bash scripts must pass shellcheck
 - **No repo-specific logic**: Scripts must work in any consuming repository
-- **`skip-sync-check`**: This repo uses `skip-sync-check: "true"` in CI because it IS the canonical tooling source — staleness detection would be circular
 
 ## Branching and PR Workflow
 
 - **Protected branches**: `main`, `develop` — no direct commits (enforced by pre-commit hook)
-- **Branch naming**: `feature/*`, `bugfix/*`, or `hotfix/*` only
-- **Feature/bugfix PRs** target `develop` with squash merge: `gh pr merge --auto --squash --delete-branch`
-- **Release PRs** target `main` with regular merge: `gh pr merge --auto --merge --delete-branch`
+- **Branch naming**: `feature/*`, `bugfix/*`, `hotfix/*`, `chore/*`, or `release/*` only
+- **Feature/bugfix PRs** target `develop` with squash merge
+- **Release PRs** target `main` with regular merge
 - **Pre-flight**: Always check branch with `git status -sb` before modifying files. If on `develop`, create a `feature/*` branch first.
 
 ## Commit and PR Scripts
 
-**NEVER use raw `git commit`** — always use `scripts/dev/commit.sh`.
-**NEVER use raw `gh pr create`** — always use `scripts/dev/submit-pr.sh`.
+**NEVER use raw `git commit`** — always use `st-commit`.
+**NEVER use raw `gh pr create`** — always use `st-submit-pr`.
 
 ### Committing
 
 ```bash
-scripts/dev/commit.sh --type feat --scope lint --message "add new check" --agent claude
-scripts/dev/commit.sh --type fix --message "correct regex pattern" --agent claude
-scripts/dev/commit.sh --type docs --message "update README" --body "Expanded usage section" --agent claude
+st-commit --type feat --scope lint --message "add new check" --agent claude
+st-commit --type fix --message "correct regex pattern" --agent claude
+st-commit --type docs --message "update README" --body "Expanded usage section" --agent claude
 ```
 
 - `--type` (required): `feat|fix|docs|style|refactor|test|chore|ci|build`
@@ -141,9 +181,9 @@ scripts/dev/commit.sh --type docs --message "update README" --body "Expanded usa
 ### Submitting PRs
 
 ```bash
-scripts/dev/submit-pr.sh --issue 42 --summary "Add new lint check for X"
-scripts/dev/submit-pr.sh --issue 42 --linkage Ref --summary "Update docs" --docs-only
-scripts/dev/submit-pr.sh --issue 42 --summary "Fix regex bug" --notes "Tested on macOS and Linux"
+st-submit-pr --issue 42 --summary "Add new lint check for X"
+st-submit-pr --issue 42 --linkage Ref --summary "Update docs" --docs-only
+st-submit-pr --issue 42 --summary "Fix regex bug" --notes "Tested on macOS and Linux"
 ```
 
 - `--issue` (required): GitHub issue number (just the number)

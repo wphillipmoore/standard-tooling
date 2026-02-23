@@ -27,15 +27,15 @@ MUST:
 
 ## Working Rules
 
-- This repository holds shared tooling scripts. Changes here propagate to
-  all consuming repositories via `sync-tooling.sh`.
+- This repository is a Python package providing shared tooling scripts.
+  Consumers resolve tools via PATH (from a sibling checkout locally,
+  or a CI checkout in workflows).
 - Test scripts with shellcheck before committing.
 - Keep scripts portable across macOS and Linux.
 - Do not add repo-specific logic; scripts must work in any consuming repo.
-- **Release before sync**: consuming repos' CI checks tooling against the
-  latest tagged release, not `develop`. You must merge to `main` and tag a
-  new version **before** syncing consuming repos. Syncing from an unreleased
-  ref will cause CI failures in every consuming repo.
+- **Release before consuming**: consuming repos' CI checks out
+  standard-tooling at a pinned tag. You must merge to `main` and tag a
+  new version **before** updating consuming repos.
 
 ## Shell command policy
 
