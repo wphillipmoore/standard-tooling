@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # Managed by standard-tooling — DO NOT EDIT in downstream repos.
 # Canonical source: https://github.com/wphillipmoore/standard-tooling
-# validate_local_common.sh — shared checks run for ALL repos.
+# validate-local-common — shared checks run for ALL repos.
 set -euo pipefail
 
-repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+repo_root="$(git rev-parse --show-toplevel)"
 
 run() {
   echo "Running: $*"
@@ -23,15 +23,20 @@ if [[ ${#missing[@]} -gt 0 ]]; then
 fi
 
 # -- repo profile validation -------------------------------------------------
+# Prefer PATH-based command, fall back to known locations.
 
-if [[ -f "$repo_root/scripts/lint/repo-profile.sh" ]]; then
-  run "$repo_root/scripts/lint/repo-profile.sh"
+if command -v repo-profile >/dev/null 2>&1; then
+  run repo-profile
+elif [[ -f "$repo_root/scripts/bin/repo-profile" ]]; then
+  run "$repo_root/scripts/bin/repo-profile"
 fi
 
 # -- markdown lint -----------------------------------------------------------
 
-if [[ -f "$repo_root/scripts/lint/markdown-standards.sh" ]]; then
-  run "$repo_root/scripts/lint/markdown-standards.sh"
+if command -v markdown-standards >/dev/null 2>&1; then
+  run markdown-standards
+elif [[ -f "$repo_root/scripts/bin/markdown-standards" ]]; then
+  run "$repo_root/scripts/bin/markdown-standards"
 fi
 
 # -- shellcheck on all shell scripts -----------------------------------------
@@ -40,8 +45,7 @@ shell_files=()
 while IFS= read -r f; do
   shell_files+=("$f")
 done < <(
-  find "$repo_root/scripts" -type f -name '*.sh' 2>/dev/null
-  find "$repo_root/scripts/git-hooks" -type f 2>/dev/null
+  find "$repo_root/scripts" -type f \( -name '*.sh' -o -path '*/git-hooks/*' -o -path '*/bin/*' \) 2>/dev/null
 )
 
 if [[ ${#shell_files[@]} -gt 0 ]]; then

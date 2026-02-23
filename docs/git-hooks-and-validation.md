@@ -7,13 +7,11 @@
   - [Enabling Hooks](#enabling-hooks)
   - [pre-commit](#pre-commit)
   - [commit-msg](#commit-msg)
-- [Lint Scripts](#lint-scripts)
-  - [commit-message.sh](#commit-messagesh)
-  - [co-author.sh](#co-authorsh)
-  - [commit-messages.sh](#commit-messagessh)
-  - [repo-profile.sh](#repo-profilesh)
-  - [markdown-standards.sh](#markdown-standardssh)
-  - [pr-issue-linkage.sh](#pr-issue-linkagesh)
+- [Validators](#validators)
+  - [commit-message](#commit-message)
+  - [repo-profile](#repo-profile)
+  - [markdown-standards](#markdown-standards)
+  - [pr-issue-linkage](#pr-issue-linkage)
 - [Validation Matrix](#validation-matrix)
 - [Configuration Points](#configuration-points)
 - [Exit Code Conventions](#exit-code-conventions)
@@ -22,17 +20,17 @@
 ## Overview
 
 This repository enforces code quality through two complementary
-entry points that share a common set of lint scripts:
+entry points that share a common set of validators:
 
 - **Git hooks** run locally on every commit, providing
   immediate feedback before code reaches the remote.
-- **CI workflows** run the same lint scripts on pull requests,
+- **CI workflows** run the same validators on pull requests,
   ensuring standards are enforced even when hooks are not
   installed.
 
-All hooks and lint scripts are managed by standard-tooling.
-Consuming repositories receive them via `sync-tooling.sh` and
-must not modify them directly.
+All hooks and validators are managed by standard-tooling.
+Consuming repositories resolve them via PATH from a sibling
+checkout (local) or CI checkout (GitHub Actions).
 
 ## Git Hooks
 
@@ -41,7 +39,7 @@ must not modify them directly.
 Point Git at the managed hooks directory:
 
 ```bash
-git config core.hooksPath scripts/git-hooks
+git config core.hooksPath scripts/lib/git-hooks
 ```
 
 This must be run once per clone. It is not persisted across
@@ -93,18 +91,12 @@ The full pattern:
 
 ### commit-msg
 
-The commit-msg hook dispatches to two lint scripts in order:
+The commit-msg hook validates the commit message using the
+`commit-message` validator (Conventional Commits format).
 
-1. `scripts/lint/commit-message.sh` — validates Conventional
-   Commits format
-2. `scripts/lint/co-author.sh` — validates Co-Authored-By
-   trailers
+## Validators
 
-Both must pass for the commit to proceed.
-
-## Lint Scripts
-
-### commit-message.sh
+### commit-message
 
 Validates that the commit subject line follows Conventional
 Commits format.
@@ -120,38 +112,7 @@ Commits format.
 Merge commits (subject starting with `Merge`) bypass
 validation entirely.
 
-### co-author.sh
-
-Validates that any `Co-Authored-By` trailers in the commit
-message match an approved identity listed in the repository
-profile.
-
-**Input**: path to the commit message file.
-
-**Behavior**:
-
-- If the commit has no `Co-Authored-By` trailers, it passes
-  (human-only commits are always valid).
-- If trailers are present, each one must match an entry from
-  `docs/repository-standards.md` under lines matching
-  `^- Co-Authored-By:`.
-- Whitespace is normalized before comparison.
-
-### commit-messages.sh
-
-CI variant of commit message validation. Checks all non-merge
-commits in a range rather than a single commit.
-
-**Usage**: `commit-messages.sh <base-ref> <head-ref>`
-
-**COMMIT_CUTOFF_SHA**: Environment variable that excludes
-legacy commits predating the Conventional Commits convention.
-Commits at or before this SHA are skipped during validation.
-
-Bare branch names are resolved to `origin/` automatically
-when the local branch does not exist.
-
-### repo-profile.sh
+### repo-profile
 
 Validates that `docs/repository-standards.md` contains all
 six required attributes with non-placeholder values.
@@ -168,7 +129,7 @@ six required attributes with non-placeholder values.
 Values containing `<`, `>`, or `|` are rejected as
 placeholders.
 
-### markdown-standards.sh
+### markdown-standards
 
 Validates markdown files using markdownlint and structural
 checks.
@@ -191,7 +152,7 @@ checks.
 Code blocks (fenced with `` ``` `` or `~~~`) are excluded
 from structural analysis.
 
-### pr-issue-linkage.sh
+### pr-issue-linkage
 
 CI-only script that validates pull request bodies contain
 issue linkage.
@@ -221,8 +182,6 @@ The following table shows where each validation runs:
 | Branch prefix          | yes        |            |    |
 | Issue number in branch | yes        |            |    |
 | Conventional Commits   |            | yes        | yes|
-| Co-author trailers     |            | yes        |    |
-| Commit messages range  |            |            | yes|
 | Repository profile     |            |            | yes|
 | Markdown standards     |            |            | yes|
 | PR issue linkage       |            |            | yes|
@@ -235,21 +194,16 @@ is the primary configuration surface. It controls:
 - **`branching_model`**: Determines which branch prefixes
   the pre-commit hook allows.
 - **`Co-Authored-By` entries**: Defines approved AI agent
-  identities for the co-author trailer check.
-- **Six required attributes**: Validated by
-  `repo-profile.sh` in CI.
+  identities for co-author trailer resolution.
+- **Six required attributes**: Validated by `repo-profile`
+  in CI.
 
 **`.markdownlint.yaml`** — Controls markdownlint rules.
-When present, `markdown-standards.sh` passes it via
-`--config`.
-
-**`COMMIT_CUTOFF_SHA`** — Environment variable used by
-`commit-messages.sh` to exclude legacy commits from
-Conventional Commits validation.
+When present, `markdown-standards` passes it via `--config`.
 
 ## Exit Code Conventions
 
-All hooks and lint scripts follow a consistent exit code
+All hooks and validators follow a consistent exit code
 scheme:
 
 - **`0`** — Validation passed.
@@ -293,14 +247,6 @@ Commits."`** — The commit subject line does not match the
 required pattern. Use the format
 `<type>(optional-scope): <description>`.
 
-**`"ERROR: unapproved co-author trailer"`** — A
-`Co-Authored-By` trailer does not match any approved
-identity in `docs/repository-standards.md`.
-
-**`"ERROR: no approved co-author identities found"`** —
-The repository profile exists but contains no
-`Co-Authored-By` entries. Add approved identities.
-
 **`"ERROR: repository profile missing required attribute"`**
 — One of the six required attributes is not present in
 `docs/repository-standards.md`.
@@ -332,7 +278,3 @@ typically indicates a misconfigured hook.
 **`"ERROR: repository profile not found"`** — The file
 `docs/repository-standards.md` does not exist. Create it
 with the required attributes.
-
-**`"ERROR: base and head refs are required."`** —
-`commit-messages.sh` was called without both ref
-arguments. Usage: `commit-messages.sh <base> <head>`.

@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # Managed by standard-tooling — DO NOT EDIT in downstream repos.
 # Canonical source: https://github.com/wphillipmoore/standard-tooling
-# validate_local_python.sh — Python-specific local validation checks.
+# validate-local-python — Python-specific local validation checks.
 set -euo pipefail
 
-repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+repo_root="$(git rev-parse --show-toplevel)"
 
 run() {
   echo "Running: $*"
