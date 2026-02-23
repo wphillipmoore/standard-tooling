@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Shared scripts for git hooks, linting, and development automation">
+        <meta name="description" content="Shared development tooling for git hooks, validation, and automation">
       
       
       
@@ -14,7 +14,7 @@
         <link rel="prev" href="../commit/">
       
       
-        <link rel="next" href="../sync-tooling/">
+        <link rel="next" href="../prepare-release/">
       
       
         
@@ -25,7 +25,7 @@
     
     
       
-        <title>submit-pr.sh - Standard Tooling</title>
+        <title>st-submit-pr - Standard Tooling</title>
       
     
     
@@ -76,7 +76,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#submit-prsh" class="md-skip">
+        <a href="#st-submit-pr" class="md-skip">
           Skip to content
         </a>
       
@@ -114,7 +114,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              submit-pr.sh
+              st-submit-pr
             
           </span>
         </div>
@@ -637,7 +637,7 @@
   <span class="md-ellipsis">
     
   
-    Lint Scripts
+    Bash Validators
   
 
     
@@ -653,7 +653,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Lint Scripts
+    Bash Validators
   
 
           </label>
@@ -673,63 +673,7 @@
   <span class="md-ellipsis">
     
   
-    commit-message.sh
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../lint/co-author/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    co-author.sh
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../lint/commit-messages/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    commit-messages.sh
+    commit-message
   
 
     
@@ -757,7 +701,7 @@
   <span class="md-ellipsis">
     
   
-    repo-profile.sh
+    repo-profile
   
 
     
@@ -785,7 +729,7 @@
   <span class="md-ellipsis">
     
   
-    markdown-standards.sh
+    markdown-standards
   
 
     
@@ -813,7 +757,7 @@
   <span class="md-ellipsis">
     
   
-    pr-issue-linkage.sh
+    pr-issue-linkage
   
 
     
@@ -870,7 +814,7 @@
   <span class="md-ellipsis">
     
   
-    Dev Scripts
+    CLI Tools
   
 
     
@@ -886,7 +830,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Dev Scripts
+    CLI Tools
   
 
           </label>
@@ -906,7 +850,7 @@
   <span class="md-ellipsis">
     
   
-    commit.sh
+    st-commit
   
 
     
@@ -943,7 +887,7 @@
   <span class="md-ellipsis">
     
   
-    submit-pr.sh
+    st-submit-pr
   
 
     
@@ -961,7 +905,7 @@
   <span class="md-ellipsis">
     
   
-    submit-pr.sh
+    st-submit-pr
   
 
     
@@ -1074,34 +1018,6 @@
   
   
     <li class="md-nav__item">
-      <a href="../sync-tooling/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    sync-tooling.sh
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../prepare-release/" class="md-nav__link">
         
   
@@ -1109,7 +1025,7 @@
   <span class="md-ellipsis">
     
   
-    prepare_release.py
+    st-prepare-release
   
 
     
@@ -1137,7 +1053,7 @@
   <span class="md-ellipsis">
     
   
-    finalize_repo.sh
+    st-finalize-repo
   
 
     
@@ -1165,7 +1081,7 @@
   <span class="md-ellipsis">
     
   
-    validate_local.sh
+    st-validate-local
   
 
     
@@ -1452,18 +1368,19 @@
 
 
 
-<h1 id="submit-prsh">submit-pr.sh<a class="headerlink" href="#submit-prsh" title="Permanent link">&para;</a></h1>
-<p><strong>Path:</strong> <code>scripts/dev/submit-pr.sh</code></p>
-<p>Wrapper script that creates standards-compliant pull requests with
+<h1 id="st-submit-pr">st-submit-pr<a class="headerlink" href="#st-submit-pr" title="Permanent link">&para;</a></h1>
+<p><strong>Installed as:</strong> <code>st-submit-pr</code> (Python console script)</p>
+<p><strong>Source:</strong> <code>src/standard_tooling/submit_pr.py</code></p>
+<p>Wrapper that creates standards-compliant pull requests with
 proper issue linkage, testing sections, and auto-merge configuration.</p>
 <div class="admonition warning">
 <p class="admonition-title">Required for AI agents</p>
-<p>AI agents <strong>must</strong> use this script instead of raw
-<code>gh pr create</code>. The script populates the PR template and
+<p>AI agents <strong>must</strong> use this tool instead of raw
+<code>gh pr create</code>. The tool populates the PR template and
 configures auto-merge automatically.</p>
 </div>
 <h2 id="usage">Usage<a class="headerlink" href="#usage" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>scripts/dev/submit-pr.sh<span class="w"> </span><span class="se">\</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>st-submit-pr<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span>--issue<span class="w"> </span>NUMBER<span class="w"> </span>--summary<span class="w"> </span>TEXT<span class="w"> </span><span class="o">[</span>options<span class="o">]</span>
 </code></pre></div>
 <h2 id="arguments">Arguments<a class="headerlink" href="#arguments" title="Permanent link">&para;</a></h2>
@@ -1517,16 +1434,16 @@ configures auto-merge automatically.</p>
 <p><code>Fixes</code>, <code>Closes</code>, <code>Resolves</code>, <code>Ref</code></p>
 <h2 id="examples">Examples<a class="headerlink" href="#examples" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># Standard PR</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>scripts/dev/submit-pr.sh<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>st-submit-pr<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span>--issue<span class="w"> </span><span class="m">42</span><span class="w"> </span>--summary<span class="w"> </span><span class="s2">&quot;Add new lint check for X&quot;</span>
 <a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>
 <a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="c1"># Docs-only PR with Ref linkage</span>
-<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>scripts/dev/submit-pr.sh<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>st-submit-pr<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">  </span>--issue<span class="w"> </span><span class="m">42</span><span class="w"> </span>--linkage<span class="w"> </span>Ref<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">  </span>--summary<span class="w"> </span><span class="s2">&quot;Update docs&quot;</span><span class="w"> </span>--docs-only
 <a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>
 <a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="c1"># Dry run to preview</span>
-<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>scripts/dev/submit-pr.sh<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>st-submit-pr<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="w">  </span>--issue<span class="w"> </span><span class="m">42</span><span class="w"> </span>--summary<span class="w"> </span><span class="s2">&quot;Fix regex bug&quot;</span><span class="w"> </span>--dry-run
 </code></pre></div>
 <h2 id="behavior">Behavior<a class="headerlink" href="#behavior" title="Permanent link">&para;</a></h2>

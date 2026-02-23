@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Shared scripts for git hooks, linting, and development automation">
+        <meta name="description" content="Shared development tooling for git hooks, validation, and automation">
       
       
       
@@ -25,7 +25,7 @@
     
     
       
-        <title>pr-issue-linkage.sh - Standard Tooling</title>
+        <title>pr-issue-linkage - Standard Tooling</title>
       
     
     
@@ -76,7 +76,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#pr-issue-linkagesh" class="md-skip">
+        <a href="#pr-issue-linkage" class="md-skip">
           Skip to content
         </a>
       
@@ -114,7 +114,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              pr-issue-linkage.sh
+              pr-issue-linkage
             
           </span>
         </div>
@@ -639,7 +639,7 @@
   <span class="md-ellipsis">
     
   
-    Lint Scripts
+    Bash Validators
   
 
     
@@ -655,7 +655,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Lint Scripts
+    Bash Validators
   
 
           </label>
@@ -675,63 +675,7 @@
   <span class="md-ellipsis">
     
   
-    commit-message.sh
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../co-author/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    co-author.sh
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../commit-messages/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    commit-messages.sh
+    commit-message
   
 
     
@@ -759,7 +703,7 @@
   <span class="md-ellipsis">
     
   
-    repo-profile.sh
+    repo-profile
   
 
     
@@ -787,7 +731,7 @@
   <span class="md-ellipsis">
     
   
-    markdown-standards.sh
+    markdown-standards
   
 
     
@@ -824,7 +768,7 @@
   <span class="md-ellipsis">
     
   
-    pr-issue-linkage.sh
+    pr-issue-linkage
   
 
     
@@ -842,7 +786,7 @@
   <span class="md-ellipsis">
     
   
-    pr-issue-linkage.sh
+    pr-issue-linkage
   
 
     
@@ -961,7 +905,7 @@
   <span class="md-ellipsis">
     
   
-    Dev Scripts
+    CLI Tools
   
 
     
@@ -977,7 +921,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Dev Scripts
+    CLI Tools
   
 
           </label>
@@ -997,7 +941,7 @@
   <span class="md-ellipsis">
     
   
-    commit.sh
+    st-commit
   
 
     
@@ -1025,35 +969,7 @@
   <span class="md-ellipsis">
     
   
-    submit-pr.sh
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../dev/sync-tooling/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    sync-tooling.sh
+    st-submit-pr
   
 
     
@@ -1081,7 +997,7 @@
   <span class="md-ellipsis">
     
   
-    prepare_release.py
+    st-prepare-release
   
 
     
@@ -1109,7 +1025,7 @@
   <span class="md-ellipsis">
     
   
-    finalize_repo.sh
+    st-finalize-repo
   
 
     
@@ -1137,7 +1053,7 @@
   <span class="md-ellipsis">
     
   
-    validate_local.sh
+    st-validate-local
   
 
     
@@ -1396,8 +1312,8 @@
 
 
 
-<h1 id="pr-issue-linkagesh">pr-issue-linkage.sh<a class="headerlink" href="#pr-issue-linkagesh" title="Permanent link">&para;</a></h1>
-<p><strong>Path:</strong> <code>scripts/lint/pr-issue-linkage.sh</code></p>
+<h1 id="pr-issue-linkage">pr-issue-linkage<a class="headerlink" href="#pr-issue-linkage" title="Permanent link">&para;</a></h1>
+<p><strong>Path:</strong> <code>scripts/bin/pr-issue-linkage</code></p>
 <p>Validates that a pull request body contains issue linkage. Runs in
 CI using the GitHub event payload.</p>
 <h2 id="usage">Usage<a class="headerlink" href="#usage" title="Permanent link">&para;</a></h2>

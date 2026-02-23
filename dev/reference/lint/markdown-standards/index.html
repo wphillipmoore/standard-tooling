@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Shared scripts for git hooks, linting, and development automation">
+        <meta name="description" content="Shared development tooling for git hooks, validation, and automation">
       
       
       
@@ -25,7 +25,7 @@
     
     
       
-        <title>markdown-standards.sh - Standard Tooling</title>
+        <title>markdown-standards - Standard Tooling</title>
       
     
     
@@ -76,7 +76,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#markdown-standardssh" class="md-skip">
+        <a href="#markdown-standards" class="md-skip">
           Skip to content
         </a>
       
@@ -114,7 +114,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              markdown-standards.sh
+              markdown-standards
             
           </span>
         </div>
@@ -639,7 +639,7 @@
   <span class="md-ellipsis">
     
   
-    Lint Scripts
+    Bash Validators
   
 
     
@@ -655,7 +655,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Lint Scripts
+    Bash Validators
   
 
           </label>
@@ -675,63 +675,7 @@
   <span class="md-ellipsis">
     
   
-    commit-message.sh
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../co-author/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    co-author.sh
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../commit-messages/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    commit-messages.sh
+    commit-message
   
 
     
@@ -759,7 +703,7 @@
   <span class="md-ellipsis">
     
   
-    repo-profile.sh
+    repo-profile
   
 
     
@@ -796,7 +740,7 @@
   <span class="md-ellipsis">
     
   
-    markdown-standards.sh
+    markdown-standards
   
 
     
@@ -814,7 +758,7 @@
   <span class="md-ellipsis">
     
   
-    markdown-standards.sh
+    markdown-standards
   
 
     
@@ -956,7 +900,7 @@
   <span class="md-ellipsis">
     
   
-    pr-issue-linkage.sh
+    pr-issue-linkage
   
 
     
@@ -1011,7 +955,7 @@
   <span class="md-ellipsis">
     
   
-    Dev Scripts
+    CLI Tools
   
 
     
@@ -1027,7 +971,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Dev Scripts
+    CLI Tools
   
 
           </label>
@@ -1047,7 +991,7 @@
   <span class="md-ellipsis">
     
   
-    commit.sh
+    st-commit
   
 
     
@@ -1075,35 +1019,7 @@
   <span class="md-ellipsis">
     
   
-    submit-pr.sh
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../dev/sync-tooling/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    sync-tooling.sh
+    st-submit-pr
   
 
     
@@ -1131,7 +1047,7 @@
   <span class="md-ellipsis">
     
   
-    prepare_release.py
+    st-prepare-release
   
 
     
@@ -1159,7 +1075,7 @@
   <span class="md-ellipsis">
     
   
-    finalize_repo.sh
+    st-finalize-repo
   
 
     
@@ -1187,7 +1103,7 @@
   <span class="md-ellipsis">
     
   
-    validate_local.sh
+    st-validate-local
   
 
     
@@ -1496,12 +1412,12 @@
 
 
 
-<h1 id="markdown-standardssh">markdown-standards.sh<a class="headerlink" href="#markdown-standardssh" title="Permanent link">&para;</a></h1>
-<p><strong>Path:</strong> <code>scripts/lint/markdown-standards.sh</code></p>
+<h1 id="markdown-standards">markdown-standards<a class="headerlink" href="#markdown-standards" title="Permanent link">&para;</a></h1>
+<p><strong>Path:</strong> <code>scripts/bin/markdown-standards</code></p>
 <p>Validates markdown files using markdownlint and structural checks.
 Applies different levels of validation depending on file location.</p>
 <h2 id="usage">Usage<a class="headerlink" href="#usage" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>scripts/lint/markdown-standards.sh
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>markdown-standards
 </code></pre></div>
 <p>Run from the repository root. No arguments required.</p>
 <h2 id="file-discovery">File Discovery<a class="headerlink" href="#file-discovery" title="Permanent link">&para;</a></h2>

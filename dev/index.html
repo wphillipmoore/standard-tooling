@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Shared scripts for git hooks, linting, and development automation">
+        <meta name="description" content="Shared development tooling for git hooks, validation, and automation">
       
       
       
@@ -411,10 +411,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#script-categories" class="md-nav__link">
+  <a href="#components" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Script Categories
+        Components
       
     </span>
   </a>
@@ -444,10 +444,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#managed-files" class="md-nav__link">
+  <a href="#quick-links" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Managed Files
+        Quick Links
       
     </span>
   </a>
@@ -715,7 +715,7 @@
   <span class="md-ellipsis">
     
   
-    Lint Scripts
+    Bash Validators
   
 
     
@@ -731,7 +731,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Lint Scripts
+    Bash Validators
   
 
           </label>
@@ -751,63 +751,7 @@
   <span class="md-ellipsis">
     
   
-    commit-message.sh
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="reference/lint/co-author/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    co-author.sh
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="reference/lint/commit-messages/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    commit-messages.sh
+    commit-message
   
 
     
@@ -835,7 +779,7 @@
   <span class="md-ellipsis">
     
   
-    repo-profile.sh
+    repo-profile
   
 
     
@@ -863,7 +807,7 @@
   <span class="md-ellipsis">
     
   
-    markdown-standards.sh
+    markdown-standards
   
 
     
@@ -891,7 +835,7 @@
   <span class="md-ellipsis">
     
   
-    pr-issue-linkage.sh
+    pr-issue-linkage
   
 
     
@@ -943,7 +887,7 @@
   <span class="md-ellipsis">
     
   
-    Dev Scripts
+    CLI Tools
   
 
     
@@ -959,7 +903,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Dev Scripts
+    CLI Tools
   
 
           </label>
@@ -979,7 +923,7 @@
   <span class="md-ellipsis">
     
   
-    commit.sh
+    st-commit
   
 
     
@@ -1007,35 +951,7 @@
   <span class="md-ellipsis">
     
   
-    submit-pr.sh
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="reference/dev/sync-tooling/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    sync-tooling.sh
+    st-submit-pr
   
 
     
@@ -1063,7 +979,7 @@
   <span class="md-ellipsis">
     
   
-    prepare_release.py
+    st-prepare-release
   
 
     
@@ -1091,7 +1007,7 @@
   <span class="md-ellipsis">
     
   
-    finalize_repo.sh
+    st-finalize-repo
   
 
     
@@ -1119,7 +1035,7 @@
   <span class="md-ellipsis">
     
   
-    validate_local.sh
+    st-validate-local
   
 
     
@@ -1318,10 +1234,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#script-categories" class="md-nav__link">
+  <a href="#components" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Script Categories
+        Components
       
     </span>
   </a>
@@ -1351,10 +1267,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#managed-files" class="md-nav__link">
+  <a href="#quick-links" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Managed Files
+        Quick Links
       
     </span>
   </a>
@@ -1379,63 +1295,44 @@
 
 
 <h1 id="standard-tooling">Standard Tooling<a class="headerlink" href="#standard-tooling" title="Permanent link">&para;</a></h1>
-<p>Standard-tooling is the canonical source for shared scripts used across all
-managed repositories. It provides git hooks, lint scripts, and development
-automation that enforce consistent standards.</p>
-<h2 id="script-categories">Script Categories<a class="headerlink" href="#script-categories" title="Permanent link">&para;</a></h2>
-<table>
-<thead>
-<tr>
-<th>Category</th>
-<th>Path</th>
-<th>Purpose</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>Git Hooks</strong></td>
-<td><code>scripts/git-hooks/</code></td>
-<td>Branch naming, commit-msg checks</td>
-</tr>
-<tr>
-<td><strong>Lint Scripts</strong></td>
-<td><code>scripts/lint/</code></td>
-<td>Markdown, commit, co-author, PR</td>
-</tr>
-<tr>
-<td><strong>Dev Scripts</strong></td>
-<td><code>scripts/dev/</code></td>
-<td>Commit, PR, sync, release, finalization</td>
-</tr>
-</tbody>
-</table>
+<p>Standard-tooling is a Python package and script collection providing shared
+development tooling for all managed repositories. It delivers CLI tools for
+commits, PRs, releases, and validation alongside bash validators and git hooks
+-- all consumed via PATH.</p>
+<h2 id="components">Components<a class="headerlink" href="#components" title="Permanent link">&para;</a></h2>
+<p><strong>Python CLI tools</strong> (<code>src/standard_tooling/</code>):
+<code>st-commit</code>, <code>st-submit-pr</code>, <code>st-prepare-release</code>,
+<code>st-finalize-repo</code>, <code>st-validate-local</code></p>
+<p><strong>Bash validators</strong> (<code>scripts/bin/</code>):
+<code>commit-message</code>, <code>repo-profile</code>, <code>markdown-standards</code>,
+<code>pr-issue-linkage</code>, validation drivers</p>
+<p><strong>Git hooks</strong> (<code>scripts/lib/git-hooks/</code>):
+Branch naming enforcement, commit message validation</p>
 <h2 id="design-principles">Design Principles<a class="headerlink" href="#design-principles" title="Permanent link">&para;</a></h2>
 <ul>
 <li><strong>Portability</strong> -- scripts run on both macOS and Linux</li>
 <li><strong>shellcheck clean</strong> -- all shell scripts pass shellcheck</li>
 <li><strong>No repo-specific logic</strong> -- every script works in any consuming
   repository</li>
-<li><strong>Single source of truth</strong> -- consuming repos sync from this
-  repository via <code>sync-tooling.sh</code> and must not modify managed files
-  directly</li>
+<li><strong>PATH-based consumption</strong> -- consuming repos add standard-tooling to
+  PATH rather than copying files</li>
 </ul>
 <h2 id="how-it-works">How It Works<a class="headerlink" href="#how-it-works" title="Permanent link">&para;</a></h2>
 <ol>
-<li>This repository defines the canonical version of each managed
-   script.</li>
-<li>Consuming repos run <code>sync-tooling.sh --check</code> in CI to detect
-   drift.</li>
-<li>When scripts change, a new version is tagged and consumers run
-   <code>sync-tooling.sh --fix</code> to update.</li>
+<li>Standard-tooling is cloned as a sibling directory (local development)
+   or checked out in CI (GitHub Actions).</li>
+<li>The Python package is installed via <code>uv sync</code>, making <code>st-*</code> CLI
+   tools available in <code>.venv/bin/</code>.</li>
+<li>Both <code>.venv/bin/</code> and <code>scripts/bin/</code> are added to PATH.</li>
+<li>Git hooks are configured to point at <code>scripts/lib/git-hooks/</code>.</li>
+<li>Consuming repos call tools by bare name -- no file copying or syncing.</li>
 </ol>
-<h2 id="managed-files">Managed Files<a class="headerlink" href="#managed-files" title="Permanent link">&para;</a></h2>
-<p>Standard-tooling currently manages 18 files:</p>
+<h2 id="quick-links">Quick Links<a class="headerlink" href="#quick-links" title="Permanent link">&para;</a></h2>
 <ul>
-<li>2 git hooks (<code>pre-commit</code>, <code>commit-msg</code>)</li>
-<li>6 lint scripts</li>
-<li>10 dev scripts (including language-specific validation variants)</li>
+<li><a href="getting-started/">Getting Started</a> -- set up a consuming repository</li>
+<li><a href="reference/">Script Reference</a> -- documentation for each tool</li>
+<li><a href="guides/validation-matrix/">Validation Matrix</a> -- which checks run where</li>
 </ul>
-<p>See the <a href="reference/">Script Reference</a> for the full list.</p>
 
 
 

@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Shared scripts for git hooks, linting, and development automation">
+        <meta name="description" content="Shared development tooling for git hooks, validation, and automation">
       
       
       
@@ -25,7 +25,7 @@
     
     
       
-        <title>validate_local.sh - Standard Tooling</title>
+        <title>st-validate-local - Standard Tooling</title>
       
     
     
@@ -76,7 +76,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#validate_localsh" class="md-skip">
+        <a href="#st-validate-local" class="md-skip">
           Skip to content
         </a>
       
@@ -114,7 +114,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              validate_local.sh
+              st-validate-local
             
           </span>
         </div>
@@ -637,7 +637,7 @@
   <span class="md-ellipsis">
     
   
-    Lint Scripts
+    Bash Validators
   
 
     
@@ -653,7 +653,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Lint Scripts
+    Bash Validators
   
 
           </label>
@@ -673,63 +673,7 @@
   <span class="md-ellipsis">
     
   
-    commit-message.sh
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../lint/co-author/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    co-author.sh
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../lint/commit-messages/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    commit-messages.sh
+    commit-message
   
 
     
@@ -757,7 +701,7 @@
   <span class="md-ellipsis">
     
   
-    repo-profile.sh
+    repo-profile
   
 
     
@@ -785,7 +729,7 @@
   <span class="md-ellipsis">
     
   
-    markdown-standards.sh
+    markdown-standards
   
 
     
@@ -813,7 +757,7 @@
   <span class="md-ellipsis">
     
   
-    pr-issue-linkage.sh
+    pr-issue-linkage
   
 
     
@@ -870,7 +814,7 @@
   <span class="md-ellipsis">
     
   
-    Dev Scripts
+    CLI Tools
   
 
     
@@ -886,7 +830,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Dev Scripts
+    CLI Tools
   
 
           </label>
@@ -906,7 +850,7 @@
   <span class="md-ellipsis">
     
   
-    commit.sh
+    st-commit
   
 
     
@@ -934,35 +878,7 @@
   <span class="md-ellipsis">
     
   
-    submit-pr.sh
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../sync-tooling/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    sync-tooling.sh
+    st-submit-pr
   
 
     
@@ -990,7 +906,7 @@
   <span class="md-ellipsis">
     
   
-    prepare_release.py
+    st-prepare-release
   
 
     
@@ -1018,7 +934,7 @@
   <span class="md-ellipsis">
     
   
-    finalize_repo.sh
+    st-finalize-repo
   
 
     
@@ -1055,7 +971,7 @@
   <span class="md-ellipsis">
     
   
-    validate_local.sh
+    st-validate-local
   
 
     
@@ -1073,7 +989,7 @@
   <span class="md-ellipsis">
     
   
-    validate_local.sh
+    st-validate-local
   
 
     
@@ -1156,17 +1072,6 @@
         
       </ul>
     </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#language-validation-scripts" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Language Validation Scripts
-      
-    </span>
-  </a>
   
 </li>
       
@@ -1436,17 +1341,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#language-validation-scripts" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Language Validation Scripts
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#exit-codes" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1474,25 +1368,26 @@
 
 
 
-<h1 id="validate_localsh">validate_local.sh<a class="headerlink" href="#validate_localsh" title="Permanent link">&para;</a></h1>
-<p><strong>Path:</strong> <code>scripts/dev/validate_local.sh</code></p>
+<h1 id="st-validate-local">st-validate-local<a class="headerlink" href="#st-validate-local" title="Permanent link">&para;</a></h1>
+<p><strong>Installed as:</strong> <code>st-validate-local</code> (Python console script)</p>
+<p><strong>Source:</strong> <code>src/standard_tooling/validate_local.py</code></p>
 <p>Shared driver for pre-PR local validation. Orchestrates common checks
 and language-specific validation based on the repository profile.</p>
 <h2 id="usage">Usage<a class="headerlink" href="#usage" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>scripts/dev/validate_local.sh
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>st-validate-local
 </code></pre></div>
 <p>Run from the repository root. No arguments required.</p>
 <h2 id="behavior">Behavior<a class="headerlink" href="#behavior" title="Permanent link">&para;</a></h2>
-<p>The script reads <code>primary_language</code> from
+<p>The tool reads <code>primary_language</code> from
 <code>docs/repository-standards.md</code> and runs up to three validation
 stages:</p>
 <h3 id="1-common-checks-always">1. Common Checks (always)<a class="headerlink" href="#1-common-checks-always" title="Permanent link">&para;</a></h3>
-<p>Runs <code>scripts/dev/validate_local_common.sh</code> if present. This script
+<p>Runs <code>validate-local-common</code> (resolved via PATH). This script
 contains checks shared across all repositories (markdown linting,
-shellcheck, etc.).</p>
+shellcheck, repo-profile validation).</p>
 <h3 id="2-language-specific-checks">2. Language-Specific Checks<a class="headerlink" href="#2-language-specific-checks" title="Permanent link">&para;</a></h3>
 <p>If <code>primary_language</code> is set and not <code>none</code>, runs the corresponding
-script:</p>
+validation script (resolved via PATH):</p>
 <table>
 <thead>
 <tr>
@@ -1503,36 +1398,29 @@ script:</p>
 <tbody>
 <tr>
 <td><code>python</code></td>
-<td><code>validate_local_python.sh</code></td>
+<td><code>validate-local-python</code></td>
 </tr>
 <tr>
 <td><code>go</code></td>
-<td><code>validate_local_go.sh</code></td>
+<td><code>validate-local-go</code></td>
 </tr>
 <tr>
 <td><code>java</code></td>
-<td><code>validate_local_java.sh</code></td>
+<td><code>validate-local-java</code></td>
 </tr>
 </tbody>
 </table>
 <h3 id="3-custom-checks">3. Custom Checks<a class="headerlink" href="#3-custom-checks" title="Permanent link">&para;</a></h3>
-<p>Runs <code>scripts/dev/validate_local_custom.sh</code> if present. This is a
+<p>Runs <code>validate-local-custom</code> if present on PATH or at
+<code>scripts/bin/validate-local-custom</code> in the repository. This is a
 repo-specific escape hatch for validation that does not fit the
 common or language-specific scripts.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p><code>validate_local_custom.sh</code> is <strong>not</strong> a managed file. Consuming
-repos can create and maintain it freely.</p>
+<p><code>validate-local-custom</code> is <strong>not</strong> part of standard-tooling.
+Consuming repos create and maintain it in their own
+<code>scripts/bin/</code> directory.</p>
 </div>
-<h2 id="language-validation-scripts">Language Validation Scripts<a class="headerlink" href="#language-validation-scripts" title="Permanent link">&para;</a></h2>
-<p>The language-specific scripts are managed files synced by
-<code>sync-tooling.sh</code>:</p>
-<ul>
-<li><code>validate_local_common.sh</code></li>
-<li><code>validate_local_python.sh</code></li>
-<li><code>validate_local_go.sh</code></li>
-<li><code>validate_local_java.sh</code></li>
-</ul>
 <h2 id="exit-codes">Exit Codes<a class="headerlink" href="#exit-codes" title="Permanent link">&para;</a></h2>
 <table>
 <thead>

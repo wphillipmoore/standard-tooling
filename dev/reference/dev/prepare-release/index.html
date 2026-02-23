@@ -6,12 +6,12 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Shared scripts for git hooks, linting, and development automation">
+        <meta name="description" content="Shared development tooling for git hooks, validation, and automation">
       
       
       
       
-        <link rel="prev" href="../sync-tooling/">
+        <link rel="prev" href="../submit-pr/">
       
       
         <link rel="next" href="../finalize-repo/">
@@ -25,7 +25,7 @@
     
     
       
-        <title>prepare_release.py - Standard Tooling</title>
+        <title>st-prepare-release - Standard Tooling</title>
       
     
     
@@ -76,7 +76,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#prepare_releasepy" class="md-skip">
+        <a href="#st-prepare-release" class="md-skip">
           Skip to content
         </a>
       
@@ -114,7 +114,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              prepare_release.py
+              st-prepare-release
             
           </span>
         </div>
@@ -637,7 +637,7 @@
   <span class="md-ellipsis">
     
   
-    Lint Scripts
+    Bash Validators
   
 
     
@@ -653,7 +653,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Lint Scripts
+    Bash Validators
   
 
           </label>
@@ -673,63 +673,7 @@
   <span class="md-ellipsis">
     
   
-    commit-message.sh
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../lint/co-author/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    co-author.sh
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../lint/commit-messages/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    commit-messages.sh
+    commit-message
   
 
     
@@ -757,7 +701,7 @@
   <span class="md-ellipsis">
     
   
-    repo-profile.sh
+    repo-profile
   
 
     
@@ -785,7 +729,7 @@
   <span class="md-ellipsis">
     
   
-    markdown-standards.sh
+    markdown-standards
   
 
     
@@ -813,7 +757,7 @@
   <span class="md-ellipsis">
     
   
-    pr-issue-linkage.sh
+    pr-issue-linkage
   
 
     
@@ -870,7 +814,7 @@
   <span class="md-ellipsis">
     
   
-    Dev Scripts
+    CLI Tools
   
 
     
@@ -886,7 +830,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Dev Scripts
+    CLI Tools
   
 
           </label>
@@ -906,7 +850,7 @@
   <span class="md-ellipsis">
     
   
-    commit.sh
+    st-commit
   
 
     
@@ -934,35 +878,7 @@
   <span class="md-ellipsis">
     
   
-    submit-pr.sh
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../sync-tooling/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    sync-tooling.sh
+    st-submit-pr
   
 
     
@@ -999,7 +915,7 @@
   <span class="md-ellipsis">
     
   
-    prepare_release.py
+    st-prepare-release
   
 
     
@@ -1017,7 +933,7 @@
   <span class="md-ellipsis">
     
   
-    prepare_release.py
+    st-prepare-release
   
 
     
@@ -1131,7 +1047,7 @@
   <span class="md-ellipsis">
     
   
-    finalize_repo.sh
+    st-finalize-repo
   
 
     
@@ -1159,7 +1075,7 @@
   <span class="md-ellipsis">
     
   
-    validate_local.sh
+    st-validate-local
   
 
     
@@ -1440,13 +1356,14 @@
 
 
 
-<h1 id="prepare_releasepy">prepare_release.py<a class="headerlink" href="#prepare_releasepy" title="Permanent link">&para;</a></h1>
-<p><strong>Path:</strong> <code>scripts/dev/prepare_release.py</code></p>
+<h1 id="st-prepare-release">st-prepare-release<a class="headerlink" href="#st-prepare-release" title="Permanent link">&para;</a></h1>
+<p><strong>Installed as:</strong> <code>st-prepare-release</code> (Python console script)</p>
+<p><strong>Source:</strong> <code>src/standard_tooling/prepare_release.py</code></p>
 <p>Automates release preparation for library repositories: creates a
 release branch, generates the changelog, creates a PR to main, and
 enables auto-merge.</p>
 <h2 id="usage">Usage<a class="headerlink" href="#usage" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>scripts/dev/prepare_release.py<span class="w"> </span>--issue<span class="w"> </span><span class="m">42</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>st-prepare-release<span class="w"> </span>--issue<span class="w"> </span><span class="m">42</span>
 </code></pre></div>
 <h2 id="arguments">Arguments<a class="headerlink" href="#arguments" title="Permanent link">&para;</a></h2>
 <table>
@@ -1473,7 +1390,7 @@ enables auto-merge.</p>
 <li>Required tools: <code>gh</code>, <code>git-cliff</code>, <code>markdownlint</code></li>
 </ul>
 <h2 id="ecosystem-detection">Ecosystem Detection<a class="headerlink" href="#ecosystem-detection" title="Permanent link">&para;</a></h2>
-<p>The script auto-detects the project ecosystem to find the version:</p>
+<p>The tool auto-detects the project ecosystem to find the version:</p>
 <table>
 <thead>
 <tr>

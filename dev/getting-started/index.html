@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Shared scripts for git hooks, linting, and development automation">
+        <meta name="description" content="Shared development tooling for git hooks, validation, and automation">
       
       
       
@@ -474,10 +474,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#2-sync-scripts-into-your-repository" class="md-nav__link">
+  <a href="#2-install-the-python-package" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2. Sync scripts into your repository
+        2. Install the Python package
       
     </span>
   </a>
@@ -485,10 +485,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#3-configure-git-hooks" class="md-nav__link">
+  <a href="#3-add-standard-tooling-to-path" class="md-nav__link">
     <span class="md-ellipsis">
       
-        3. Configure git hooks
+        3. Add standard-tooling to PATH
       
     </span>
   </a>
@@ -496,10 +496,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#4-create-a-repository-profile" class="md-nav__link">
+  <a href="#4-configure-git-hooks" class="md-nav__link">
     <span class="md-ellipsis">
       
-        4. Create a repository profile
+        4. Configure git hooks
       
     </span>
   </a>
@@ -507,10 +507,21 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#5-verify" class="md-nav__link">
+  <a href="#5-create-a-repository-profile" class="md-nav__link">
     <span class="md-ellipsis">
       
-        5. Verify
+        5. Create a repository profile
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6-verify" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Verify
       
     </span>
   </a>
@@ -767,7 +778,7 @@
   <span class="md-ellipsis">
     
   
-    Lint Scripts
+    Bash Validators
   
 
     
@@ -783,7 +794,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Lint Scripts
+    Bash Validators
   
 
           </label>
@@ -803,63 +814,7 @@
   <span class="md-ellipsis">
     
   
-    commit-message.sh
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../reference/lint/co-author/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    co-author.sh
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../reference/lint/commit-messages/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    commit-messages.sh
+    commit-message
   
 
     
@@ -887,7 +842,7 @@
   <span class="md-ellipsis">
     
   
-    repo-profile.sh
+    repo-profile
   
 
     
@@ -915,7 +870,7 @@
   <span class="md-ellipsis">
     
   
-    markdown-standards.sh
+    markdown-standards
   
 
     
@@ -943,7 +898,7 @@
   <span class="md-ellipsis">
     
   
-    pr-issue-linkage.sh
+    pr-issue-linkage
   
 
     
@@ -995,7 +950,7 @@
   <span class="md-ellipsis">
     
   
-    Dev Scripts
+    CLI Tools
   
 
     
@@ -1011,7 +966,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Dev Scripts
+    CLI Tools
   
 
           </label>
@@ -1031,7 +986,7 @@
   <span class="md-ellipsis">
     
   
-    commit.sh
+    st-commit
   
 
     
@@ -1059,35 +1014,7 @@
   <span class="md-ellipsis">
     
   
-    submit-pr.sh
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../reference/dev/sync-tooling/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    sync-tooling.sh
+    st-submit-pr
   
 
     
@@ -1115,7 +1042,7 @@
   <span class="md-ellipsis">
     
   
-    prepare_release.py
+    st-prepare-release
   
 
     
@@ -1143,7 +1070,7 @@
   <span class="md-ellipsis">
     
   
-    finalize_repo.sh
+    st-finalize-repo
   
 
     
@@ -1171,7 +1098,7 @@
   <span class="md-ellipsis">
     
   
-    validate_local.sh
+    st-validate-local
   
 
     
@@ -1404,10 +1331,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#2-sync-scripts-into-your-repository" class="md-nav__link">
+  <a href="#2-install-the-python-package" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2. Sync scripts into your repository
+        2. Install the Python package
       
     </span>
   </a>
@@ -1415,10 +1342,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#3-configure-git-hooks" class="md-nav__link">
+  <a href="#3-add-standard-tooling-to-path" class="md-nav__link">
     <span class="md-ellipsis">
       
-        3. Configure git hooks
+        3. Add standard-tooling to PATH
       
     </span>
   </a>
@@ -1426,10 +1353,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#4-create-a-repository-profile" class="md-nav__link">
+  <a href="#4-configure-git-hooks" class="md-nav__link">
     <span class="md-ellipsis">
       
-        4. Create a repository profile
+        4. Configure git hooks
       
     </span>
   </a>
@@ -1437,10 +1364,21 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#5-verify" class="md-nav__link">
+  <a href="#5-create-a-repository-profile" class="md-nav__link">
     <span class="md-ellipsis">
       
-        5. Verify
+        5. Create a repository profile
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6-verify" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Verify
       
     </span>
   </a>
@@ -1481,57 +1419,65 @@
 
 
 <h1 id="getting-started">Getting Started<a class="headerlink" href="#getting-started" title="Permanent link">&para;</a></h1>
-<p>This guide covers setting up a consuming repository to use standard-tooling
-scripts.</p>
+<p>This guide covers setting up a consuming repository to use standard-tooling.</p>
 <h2 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">&para;</a></h2>
 <ul>
 <li>Git</li>
 <li>Bash (macOS or Linux)</li>
+<li><a href="https://docs.astral.sh/uv/">uv</a>: Python package manager</li>
 <li><a href="https://github.com/igorshubovych/markdownlint-cli">markdownlint-cli</a>:
   <code>npm install --global markdownlint-cli</code></li>
 <li><a href="https://www.shellcheck.net/">shellcheck</a>: <code>brew install shellcheck</code></li>
 </ul>
 <h2 id="initial-setup">Initial Setup<a class="headerlink" href="#initial-setup" title="Permanent link">&para;</a></h2>
 <h3 id="1-clone-standard-tooling">1. Clone standard-tooling<a class="headerlink" href="#1-clone-standard-tooling" title="Permanent link">&para;</a></h3>
+<p>Clone standard-tooling as a sibling directory alongside your repository:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/wphillipmoore/standard-tooling.git
 </code></pre></div>
-<h3 id="2-sync-scripts-into-your-repository">2. Sync scripts into your repository<a class="headerlink" href="#2-sync-scripts-into-your-repository" title="Permanent link">&para;</a></h3>
-<p>From your consuming repository root:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>path/to/standard-tooling/scripts/dev/sync-tooling.sh<span class="w"> </span>--fix<span class="w"> </span>--ref<span class="w"> </span>v1.1.5
+<h3 id="2-install-the-python-package">2. Install the Python package<a class="headerlink" href="#2-install-the-python-package" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nb">cd</span><span class="w"> </span>standard-tooling
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>uv<span class="w"> </span>sync
 </code></pre></div>
-<p>This copies all managed files into your repository at the expected paths.</p>
-<h3 id="3-configure-git-hooks">3. Configure git hooks<a class="headerlink" href="#3-configure-git-hooks" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>git<span class="w"> </span>config<span class="w"> </span>core.hooksPath<span class="w"> </span>scripts/git-hooks
+<p>This installs the <code>st-*</code> CLI tools into <code>.venv/bin/</code>.</p>
+<h3 id="3-add-standard-tooling-to-path">3. Add standard-tooling to PATH<a class="headerlink" href="#3-add-standard-tooling-to-path" title="Permanent link">&para;</a></h3>
+<p>From your consuming repository:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">PATH</span><span class="o">=</span><span class="s2">&quot;../standard-tooling/.venv/bin:../standard-tooling/scripts/bin:</span><span class="nv">$PATH</span><span class="s2">&quot;</span>
+</code></pre></div>
+<p>This makes both the Python CLI tools (<code>st-commit</code>, <code>st-submit-pr</code>, etc.)
+and bash validators (<code>repo-profile</code>, <code>markdown-standards</code>, etc.) available
+by bare name.</p>
+<h3 id="4-configure-git-hooks">4. Configure git hooks<a class="headerlink" href="#4-configure-git-hooks" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>git<span class="w"> </span>config<span class="w"> </span>core.hooksPath<span class="w"> </span>../standard-tooling/scripts/lib/git-hooks
 </code></pre></div>
 <p>This tells git to use the standard-tooling hooks for branch naming and commit
 message validation.</p>
-<h3 id="4-create-a-repository-profile">4. Create a repository profile<a class="headerlink" href="#4-create-a-repository-profile" title="Permanent link">&para;</a></h3>
+<h3 id="5-create-a-repository-profile">5. Create a repository profile<a class="headerlink" href="#5-create-a-repository-profile" title="Permanent link">&para;</a></h3>
 <p>Create <code>docs/repository-standards.md</code> with the required attributes:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="gh"># Repository Standards</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="gu">## Table of Contents</span>
-<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>
-<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="k">-</span><span class="w"> </span>[<span class="nt">Repository profile</span>](<span class="na">#repository-profile</span>)
-<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>
-<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="gu">## Repository profile</span>
-<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>
-<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="k">-</span><span class="w"> </span>repository_type: &lt;application|library|tooling|documentation&gt;
-<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="k">-</span><span class="w"> </span>versioning_scheme: &lt;semver|calver|none&gt;
-<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="k">-</span><span class="w"> </span>branching_model: &lt;library-release|application-promotion|docs-single-branch&gt;
-<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="k">-</span><span class="w"> </span>release_model: &lt;tagged-release|continuous-deploy|none&gt;
-<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="k">-</span><span class="w"> </span>supported_release_lines: &lt;number&gt;
-<a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a><span class="k">-</span><span class="w"> </span>primary_language: &lt;python|go|java|shell|none&gt;
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="gh"># Repository Standards</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="gu">## Table of Contents</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="k">-</span><span class="w"> </span>[<span class="nt">Repository profile</span>](<span class="na">#repository-profile</span>)
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="gu">## Repository profile</span>
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="k">-</span><span class="w"> </span>repository_type: &lt;application|library|tooling|documentation&gt;
+<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="k">-</span><span class="w"> </span>versioning_scheme: &lt;semver|calver|none&gt;
+<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="k">-</span><span class="w"> </span>branching_model: &lt;library-release|application-promotion|docs-single-branch&gt;
+<a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a><span class="k">-</span><span class="w"> </span>release_model: &lt;tagged-release|continuous-deploy|none&gt;
+<a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a><span class="k">-</span><span class="w"> </span>supported_release_lines: &lt;number&gt;
+<a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a><span class="k">-</span><span class="w"> </span>primary_language: &lt;python|go|java|shell|none&gt;
 </code></pre></div>
-<h3 id="5-verify">5. Verify<a class="headerlink" href="#5-verify" title="Permanent link">&para;</a></h3>
-<p>Run the markdown linter to confirm everything is wired up:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>scripts/lint/markdown-standards.sh
+<h3 id="6-verify">6. Verify<a class="headerlink" href="#6-verify" title="Permanent link">&para;</a></h3>
+<p>Run a validator to confirm everything is wired up:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>repo-profile
 </code></pre></div>
 <h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
 <ul>
 <li>Read the <a href="../guides/consuming-repo-setup/">Consuming Repo Setup</a> guide for
-  detailed onboarding instructions</li>
+  detailed onboarding instructions including CI configuration</li>
 <li>See the <a href="../reference/">Script Reference</a> for documentation on each
-  managed script</li>
+  tool</li>
 <li>Review the <a href="../guides/validation-matrix/">Validation Matrix</a> to understand
   which checks run where</li>
 </ul>

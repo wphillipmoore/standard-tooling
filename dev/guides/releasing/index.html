@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Shared scripts for git hooks, linting, and development automation">
+        <meta name="description" content="Shared development tooling for git hooks, validation, and automation">
       
       
       
@@ -624,7 +624,7 @@
   <span class="md-ellipsis">
     
   
-    Lint Scripts
+    Bash Validators
   
 
     
@@ -640,7 +640,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Lint Scripts
+    Bash Validators
   
 
           </label>
@@ -660,63 +660,7 @@
   <span class="md-ellipsis">
     
   
-    commit-message.sh
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../reference/lint/co-author/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    co-author.sh
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../reference/lint/commit-messages/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    commit-messages.sh
+    commit-message
   
 
     
@@ -744,7 +688,7 @@
   <span class="md-ellipsis">
     
   
-    repo-profile.sh
+    repo-profile
   
 
     
@@ -772,7 +716,7 @@
   <span class="md-ellipsis">
     
   
-    markdown-standards.sh
+    markdown-standards
   
 
     
@@ -800,7 +744,7 @@
   <span class="md-ellipsis">
     
   
-    pr-issue-linkage.sh
+    pr-issue-linkage
   
 
     
@@ -852,7 +796,7 @@
   <span class="md-ellipsis">
     
   
-    Dev Scripts
+    CLI Tools
   
 
     
@@ -868,7 +812,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Dev Scripts
+    CLI Tools
   
 
           </label>
@@ -888,7 +832,7 @@
   <span class="md-ellipsis">
     
   
-    commit.sh
+    st-commit
   
 
     
@@ -916,35 +860,7 @@
   <span class="md-ellipsis">
     
   
-    submit-pr.sh
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../reference/dev/sync-tooling/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    sync-tooling.sh
+    st-submit-pr
   
 
     
@@ -972,7 +888,7 @@
   <span class="md-ellipsis">
     
   
-    prepare_release.py
+    st-prepare-release
   
 
     
@@ -1000,7 +916,7 @@
   <span class="md-ellipsis">
     
   
-    finalize_repo.sh
+    st-finalize-repo
   
 
     
@@ -1028,7 +944,7 @@
   <span class="md-ellipsis">
     
   
-    validate_local.sh
+    st-validate-local
   
 
     
@@ -1271,10 +1187,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#3-tag-the-release" class="md-nav__link">
+  <a href="#3-post-merge-automation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        3. Tag the Release
+        3. Post-Merge Automation
       
     </span>
   </a>
@@ -1298,30 +1214,13 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#sync-ordering" class="md-nav__link">
+  <a href="#consuming-repo-updates" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Sync Ordering
+        Consuming Repo Updates
       
     </span>
   </a>
-  
-    <nav class="md-nav" aria-label="Sync Ordering">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#syncing-consuming-repos" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Syncing Consuming Repos
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -1424,10 +1323,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#3-tag-the-release" class="md-nav__link">
+  <a href="#3-post-merge-automation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        3. Tag the Release
+        3. Post-Merge Automation
       
     </span>
   </a>
@@ -1451,30 +1350,13 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#sync-ordering" class="md-nav__link">
+  <a href="#consuming-repo-updates" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Sync Ordering
+        Consuming Repo Updates
       
     </span>
   </a>
-  
-    <nav class="md-nav" aria-label="Sync Ordering">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#syncing-consuming-repos" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Syncing Consuming Repos
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -1518,65 +1400,53 @@
 
 
 <h1 id="releasing">Releasing<a class="headerlink" href="#releasing" title="Permanent link">&para;</a></h1>
-<p>This guide covers the release workflow for standard-tooling and the
-required ordering for syncing consuming repositories.</p>
+<p>This guide covers the release workflow for standard-tooling.</p>
 <h2 id="release-workflow">Release Workflow<a class="headerlink" href="#release-workflow" title="Permanent link">&para;</a></h2>
 <h3 id="1-develop-changes">1. Develop Changes<a class="headerlink" href="#1-develop-changes" title="Permanent link">&para;</a></h3>
 <p>All changes start as feature PRs targeting <code>develop</code>:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>git<span class="w"> </span>checkout<span class="w"> </span>-b<span class="w"> </span>feature/42-add-new-check
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="c1"># ... make changes ...</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>scripts/dev/commit.sh<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>st-commit<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span>--type<span class="w"> </span>feat<span class="w"> </span>--message<span class="w"> </span><span class="s2">&quot;add new check&quot;</span><span class="w"> </span>--agent<span class="w"> </span>claude
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>scripts/dev/submit-pr.sh<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>st-submit-pr<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">  </span>--issue<span class="w"> </span><span class="m">42</span><span class="w"> </span>--summary<span class="w"> </span><span class="s2">&quot;Add new check&quot;</span>
 </code></pre></div>
 <h3 id="2-prepare-the-release">2. Prepare the Release<a class="headerlink" href="#2-prepare-the-release" title="Permanent link">&para;</a></h3>
 <p>Once <code>develop</code> has all changes for the release, run:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>scripts/dev/prepare_release.py<span class="w"> </span>--issue<span class="w"> </span><span class="m">50</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>st-prepare-release<span class="w"> </span>--issue<span class="w"> </span><span class="m">50</span>
 </code></pre></div>
-<p>This script:</p>
+<p>This tool:</p>
 <ul>
 <li>Creates a <code>release/{version}</code> branch from develop</li>
 <li>Merges main to incorporate prior release history</li>
 <li>Generates the changelog via git-cliff</li>
 <li>Creates a PR to main with auto-merge enabled</li>
 </ul>
-<h3 id="3-tag-the-release">3. Tag the Release<a class="headerlink" href="#3-tag-the-release" title="Permanent link">&para;</a></h3>
-<p>After the release PR merges to main, create and push the tag:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>git<span class="w"> </span>checkout<span class="w"> </span>main
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>git<span class="w"> </span>pull
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>git<span class="w"> </span>tag<span class="w"> </span>v1.2.0
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>git<span class="w"> </span>push<span class="w"> </span>origin<span class="w"> </span>v1.2.0
-</code></pre></div>
+<h3 id="3-post-merge-automation">3. Post-Merge Automation<a class="headerlink" href="#3-post-merge-automation" title="Permanent link">&para;</a></h3>
+<p>After the release PR merges to main, CI automation handles:</p>
+<ul>
+<li>Creating and pushing the <code>v{version}</code> tag</li>
+<li>Creating the GitHub Release</li>
+<li>Publishing the package artifact</li>
+<li>Deploying documentation</li>
+<li>Creating an automated version bump PR to develop</li>
+</ul>
 <h3 id="4-finalize">4. Finalize<a class="headerlink" href="#4-finalize" title="Permanent link">&para;</a></h3>
 <p>Clean up local state:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>scripts/dev/finalize_repo.sh
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>st-finalize-repo
 </code></pre></div>
-<h2 id="sync-ordering">Sync Ordering<a class="headerlink" href="#sync-ordering" title="Permanent link">&para;</a></h2>
-<div class="admonition warning">
-<p class="admonition-title">Critical: tag before syncing</p>
-<p>Consuming repos' CI runs <code>sync-tooling.sh --check</code> against the
-<strong>latest tagged release</strong>. If you sync consuming repos before
-tagging, their CI will fail because the tag still points to the
-old managed-files list.</p>
-</div>
-<p><strong>Required ordering:</strong></p>
-<ol>
-<li>Merge changes to <code>develop</code> (feature PR)</li>
-<li>Create a release PR to <code>main</code>, merge it, and <strong>tag the new
-   version</strong></li>
-<li><strong>Only then</strong> sync consuming repos</li>
-</ol>
-<h3 id="syncing-consuming-repos">Syncing Consuming Repos<a class="headerlink" href="#syncing-consuming-repos" title="Permanent link">&para;</a></h3>
-<p>After tagging:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nb">cd</span><span class="w"> </span>path/to/consuming-repo
-<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>scripts/dev/sync-tooling.sh<span class="w"> </span>--fix
+<h2 id="consuming-repo-updates">Consuming Repo Updates<a class="headerlink" href="#consuming-repo-updates" title="Permanent link">&para;</a></h2>
+<p>Standard-tooling is consumed via PATH, so consuming repos pick up
+updates automatically when their sibling checkout is updated:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nb">cd</span><span class="w"> </span>../standard-tooling
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>git<span class="w"> </span>pull
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>uv<span class="w"> </span>sync
 </code></pre></div>
-<p>For repos that use <code>standard-actions</code>:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>scripts/dev/sync-tooling.sh<span class="w"> </span>--fix<span class="w"> </span>--actions-compat
-</code></pre></div>
+<p>For CI, consuming repos use <code>standard-actions</code> which pins to a
+<code>standard-tooling-ref</code>. After tagging a new release, update the
+default ref in the <code>standards-compliance</code> action.</p>
 <h2 id="version-detection">Version Detection<a class="headerlink" href="#version-detection" title="Permanent link">&para;</a></h2>
-<p><code>prepare_release.py</code> auto-detects the version from the project
+<p><code>st-prepare-release</code> auto-detects the version from the project
 ecosystem:</p>
 <table>
 <thead>
@@ -1604,12 +1474,10 @@ ecosystem:</p>
 </tr>
 </tbody>
 </table>
-<p>Standard-tooling uses the <code>VERSION</code> file at the repository root.</p>
 <h2 id="documentation-deployment">Documentation Deployment<a class="headerlink" href="#documentation-deployment" title="Permanent link">&para;</a></h2>
 <p>The documentation site deploys automatically on pushes to <code>develop</code>
 and <code>main</code> via <code>.github/workflows/docs.yml</code>. The version displayed
-in the site is derived from <code>VERSION</code> using <code>cut -d. -f1,2</code>
-(major.minor).</p>
+in the site is derived from the project version using major.minor.</p>
 
 
 
