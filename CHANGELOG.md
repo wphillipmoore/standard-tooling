@@ -9,13 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Bug fixes
 
-- fix CHANGELOG.md formatting for markdownlint compliance
-- fix CHANGELOG.md formatting for markdownlint compliance
-- fix CHANGELOG.md formatting for markdownlint compliance
-- fix CHANGELOG.md formatting for markdownlint compliance
-- validate CHANGELOG.md with markdownlint before committing (#55)
-- allow merge commits through commit-msg hook (#57)
 - update add-to-project action to v1.0.2 (#64)
+- read version from pyproject.toml in publish and docs workflows (#82)
 
 ### Documentation
 
@@ -25,7 +20,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Features
 
-- annotate synced scripts with provenance comments (#58)
 - add chore/ as allowed branch prefix in pre-commit hook (#66)
 - restructure as Python package with PATH-based consumption (#73)
 - add commit-messages range validator for CI (#76)
@@ -37,6 +31,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Testing
 
 - achieve 100% line and branch coverage for all Python modules (#74)
+
+## [1.1.4] - 2026-02-21
+
+### Bug fixes
+
+- fix CHANGELOG.md formatting for markdownlint compliance
+- fix CHANGELOG.md formatting for markdownlint compliance
+- fix CHANGELOG.md formatting for markdownlint compliance
+- fix CHANGELOG.md formatting for markdownlint compliance
+- validate CHANGELOG.md with markdownlint before committing (#55)
+- allow merge commits through commit-msg hook (#57)
+
+### Features
+
+- annotate synced scripts with provenance comments (#58)
 
 ## [1.1.3] - 2026-02-21
 
