@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
-## [1.1.4] - 2026-02-21
+## [1.2.0] - 2026-02-23
 
 ### Bug fixes
 
@@ -15,10 +15,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - fix CHANGELOG.md formatting for markdownlint compliance
 - validate CHANGELOG.md with markdownlint before committing (#55)
 - allow merge commits through commit-msg hook (#57)
+- update add-to-project action to v1.0.2 (#64)
+
+### Documentation
+
+- document git hooks and validation rules (#71)
+- add MkDocs documentation site (#72)
+- update documentation site for PATH-based architecture (#79)
 
 ### Features
 
 - annotate synced scripts with provenance comments (#58)
+- add chore/ as allowed branch prefix in pre-commit hook (#66)
+- restructure as Python package with PATH-based consumption (#73)
+- add commit-messages range validator for CI (#76)
+
+### Refactoring
+
+- remove commit-messages range validator (#77)
+
+### Testing
+
+- achieve 100% line and branch coverage for all Python modules (#74)
 
 ## [1.1.3] - 2026-02-21
 
