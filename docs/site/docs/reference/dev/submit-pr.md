@@ -1,19 +1,21 @@
-# submit-pr.sh
+# st-submit-pr
 
-**Path:** `scripts/dev/submit-pr.sh`
+**Installed as:** `st-submit-pr` (Python console script)
 
-Wrapper script that creates standards-compliant pull requests with
+**Source:** `src/standard_tooling/submit_pr.py`
+
+Wrapper that creates standards-compliant pull requests with
 proper issue linkage, testing sections, and auto-merge configuration.
 
 !!! warning "Required for AI agents"
-    AI agents **must** use this script instead of raw
-    `gh pr create`. The script populates the PR template and
+    AI agents **must** use this tool instead of raw
+    `gh pr create`. The tool populates the PR template and
     configures auto-merge automatically.
 
 ## Usage
 
 ```bash
-scripts/dev/submit-pr.sh \
+st-submit-pr \
   --issue NUMBER --summary TEXT [options]
 ```
 
@@ -37,16 +39,16 @@ scripts/dev/submit-pr.sh \
 
 ```bash
 # Standard PR
-scripts/dev/submit-pr.sh \
+st-submit-pr \
   --issue 42 --summary "Add new lint check for X"
 
 # Docs-only PR with Ref linkage
-scripts/dev/submit-pr.sh \
+st-submit-pr \
   --issue 42 --linkage Ref \
   --summary "Update docs" --docs-only
 
 # Dry run to preview
-scripts/dev/submit-pr.sh \
+st-submit-pr \
   --issue 42 --summary "Fix regex bug" --dry-run
 ```
 

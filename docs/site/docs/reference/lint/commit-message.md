@@ -1,6 +1,6 @@
-# commit-message.sh
+# commit-message
 
-**Path:** `scripts/lint/commit-message.sh`
+**Path:** `scripts/bin/commit-message`
 
 Validates that a single commit message follows the
 [Conventional Commits](https://www.conventionalcommits.org/)
@@ -9,7 +9,7 @@ specification.
 ## Usage
 
 ```bash
-scripts/lint/commit-message.sh <commit-message-file>
+commit-message <commit-message-file>
 ```
 
 This script is typically called by the `commit-msg` git hook, not

@@ -1,6 +1,6 @@
-# markdown-standards.sh
+# markdown-standards
 
-**Path:** `scripts/lint/markdown-standards.sh`
+**Path:** `scripts/bin/markdown-standards`
 
 Validates markdown files using markdownlint and structural checks.
 Applies different levels of validation depending on file location.
@@ -8,7 +8,7 @@ Applies different levels of validation depending on file location.
 ## Usage
 
 ```bash
-scripts/lint/markdown-standards.sh
+markdown-standards
 ```
 
 Run from the repository root. No arguments required.

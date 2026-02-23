@@ -1,16 +1,22 @@
 # Standard Tooling
 
-Standard-tooling is the canonical source for shared scripts used across all
-managed repositories. It provides git hooks, lint scripts, and development
-automation that enforce consistent standards.
+Standard-tooling is a Python package and script collection providing shared
+development tooling for all managed repositories. It delivers CLI tools for
+commits, PRs, releases, and validation alongside bash validators and git hooks
+-- all consumed via PATH.
 
-## Script Categories
+## Components
 
-| Category | Path | Purpose |
-| -------- | ---- | ------- |
-| **Git Hooks** | `scripts/git-hooks/` | Branch naming, commit-msg checks |
-| **Lint Scripts** | `scripts/lint/` | Markdown, commit, co-author, PR |
-| **Dev Scripts** | `scripts/dev/` | Commit, PR, sync, release, finalization |
+**Python CLI tools** (`src/standard_tooling/`):
+`st-commit`, `st-submit-pr`, `st-prepare-release`,
+`st-finalize-repo`, `st-validate-local`
+
+**Bash validators** (`scripts/bin/`):
+`commit-message`, `repo-profile`, `markdown-standards`,
+`pr-issue-linkage`, validation drivers
+
+**Git hooks** (`scripts/lib/git-hooks/`):
+Branch naming enforcement, commit message validation
 
 ## Design Principles
 
@@ -18,25 +24,21 @@ automation that enforce consistent standards.
 - **shellcheck clean** -- all shell scripts pass shellcheck
 - **No repo-specific logic** -- every script works in any consuming
   repository
-- **Single source of truth** -- consuming repos sync from this
-  repository via `sync-tooling.sh` and must not modify managed files
-  directly
+- **PATH-based consumption** -- consuming repos add standard-tooling to
+  PATH rather than copying files
 
 ## How It Works
 
-1. This repository defines the canonical version of each managed
-   script.
-2. Consuming repos run `sync-tooling.sh --check` in CI to detect
-   drift.
-3. When scripts change, a new version is tagged and consumers run
-   `sync-tooling.sh --fix` to update.
+1. Standard-tooling is cloned as a sibling directory (local development)
+   or checked out in CI (GitHub Actions).
+2. The Python package is installed via `uv sync`, making `st-*` CLI
+   tools available in `.venv/bin/`.
+3. Both `.venv/bin/` and `scripts/bin/` are added to PATH.
+4. Git hooks are configured to point at `scripts/lib/git-hooks/`.
+5. Consuming repos call tools by bare name -- no file copying or syncing.
 
-## Managed Files
+## Quick Links
 
-Standard-tooling currently manages 18 files:
-
-- 2 git hooks (`pre-commit`, `commit-msg`)
-- 6 lint scripts
-- 10 dev scripts (including language-specific validation variants)
-
-See the [Script Reference](reference/index.md) for the full list.
+- [Getting Started](getting-started.md) -- set up a consuming repository
+- [Script Reference](reference/index.md) -- documentation for each tool
+- [Validation Matrix](guides/validation-matrix.md) -- which checks run where

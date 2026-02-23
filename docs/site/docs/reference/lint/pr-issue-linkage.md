@@ -1,6 +1,6 @@
-# pr-issue-linkage.sh
+# pr-issue-linkage
 
-**Path:** `scripts/lint/pr-issue-linkage.sh`
+**Path:** `scripts/bin/pr-issue-linkage`
 
 Validates that a pull request body contains issue linkage. Runs in
 CI using the GitHub event payload.

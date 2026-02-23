@@ -1,28 +1,28 @@
 # commit-msg
 
-**Path:** `scripts/git-hooks/commit-msg`
+**Path:** `scripts/lib/git-hooks/commit-msg`
 
-Dispatches commit message validation to the lint scripts. This hook
-runs automatically on every commit when git hooks are configured.
+Validates commit messages on every commit when git hooks are configured.
 
 ## Behavior
 
-The hook calls two scripts in sequence, passing the commit message
-file path:
+The hook calls the `commit-message` validator, passing the commit message
+file path. The validator is resolved via PATH -- either from the
+repository's own `scripts/bin/` (for standard-tooling itself) or from the
+standard-tooling sibling checkout.
 
-1. **`scripts/lint/commit-message.sh`** -- validates Conventional
-   Commits format
-2. **`scripts/lint/co-author.sh`** -- validates Co-Authored-By
-   trailers
-
-If either script fails, the commit is rejected.
+If the validator fails, the commit is rejected.
 
 ## Setup
 
-Configure git to use the standard hooks directory:
+Configure git to use the standard-tooling hooks directory:
 
 ```bash
-git config core.hooksPath scripts/git-hooks
+# For standard-tooling itself:
+git config core.hooksPath scripts/lib/git-hooks
+
+# For consuming repos (sibling checkout):
+git config core.hooksPath ../standard-tooling/scripts/lib/git-hooks
 ```
 
 ## Exit Codes
@@ -30,4 +30,4 @@ git config core.hooksPath scripts/git-hooks
 | Code | Meaning |
 | ---- | ------- |
 | 0 | Commit message is valid |
-| 1 | Validation failure (from either lint script) |
+| 1 | Validation failure |

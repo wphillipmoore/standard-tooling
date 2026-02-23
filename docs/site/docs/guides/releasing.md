@@ -1,7 +1,6 @@
 # Releasing
 
-This guide covers the release workflow for standard-tooling and the
-required ordering for syncing consuming repositories.
+This guide covers the release workflow for standard-tooling.
 
 ## Release Workflow
 
@@ -12,9 +11,9 @@ All changes start as feature PRs targeting `develop`:
 ```bash
 git checkout -b feature/42-add-new-check
 # ... make changes ...
-scripts/dev/commit.sh \
+st-commit \
   --type feat --message "add new check" --agent claude
-scripts/dev/submit-pr.sh \
+st-submit-pr \
   --issue 42 --summary "Add new check"
 ```
 
@@ -23,68 +22,52 @@ scripts/dev/submit-pr.sh \
 Once `develop` has all changes for the release, run:
 
 ```bash
-scripts/dev/prepare_release.py --issue 50
+st-prepare-release --issue 50
 ```
 
-This script:
+This tool:
 
 - Creates a `release/{version}` branch from develop
 - Merges main to incorporate prior release history
 - Generates the changelog via git-cliff
 - Creates a PR to main with auto-merge enabled
 
-### 3. Tag the Release
+### 3. Post-Merge Automation
 
-After the release PR merges to main, create and push the tag:
+After the release PR merges to main, CI automation handles:
 
-```bash
-git checkout main
-git pull
-git tag v1.2.0
-git push origin v1.2.0
-```
+- Creating and pushing the `v{version}` tag
+- Creating the GitHub Release
+- Publishing the package artifact
+- Deploying documentation
+- Creating an automated version bump PR to develop
 
 ### 4. Finalize
 
 Clean up local state:
 
 ```bash
-scripts/dev/finalize_repo.sh
+st-finalize-repo
 ```
 
-## Sync Ordering
+## Consuming Repo Updates
 
-!!! warning "Critical: tag before syncing"
-    Consuming repos' CI runs `sync-tooling.sh --check` against the
-    **latest tagged release**. If you sync consuming repos before
-    tagging, their CI will fail because the tag still points to the
-    old managed-files list.
-
-**Required ordering:**
-
-1. Merge changes to `develop` (feature PR)
-2. Create a release PR to `main`, merge it, and **tag the new
-   version**
-3. **Only then** sync consuming repos
-
-### Syncing Consuming Repos
-
-After tagging:
+Standard-tooling is consumed via PATH, so consuming repos pick up
+updates automatically when their sibling checkout is updated:
 
 ```bash
-cd path/to/consuming-repo
-scripts/dev/sync-tooling.sh --fix
+cd ../standard-tooling
+git pull
+uv sync
 ```
 
-For repos that use `standard-actions`:
-
-```bash
-scripts/dev/sync-tooling.sh --fix --actions-compat
-```
+For CI, consuming repos use `standard-actions` which pins to a
+`standard-tooling-ref`. After tagging a new release, update the
+default ref in the `standards-compliance` action.
 
 ## Version Detection
 
-`prepare_release.py` auto-detects the version from the project
+`st-prepare-release` auto-detects the version from the project
 ecosystem:
 
 | Ecosystem | Source |
@@ -94,11 +77,8 @@ ecosystem:
 | Go | `**/version.go` |
 | Fallback | `VERSION` file |
 
-Standard-tooling uses the `VERSION` file at the repository root.
-
 ## Documentation Deployment
 
 The documentation site deploys automatically on pushes to `develop`
 and `main` via `.github/workflows/docs.yml`. The version displayed
-in the site is derived from `VERSION` using `cut -d. -f1,2`
-(major.minor).
+in the site is derived from the project version using major.minor.

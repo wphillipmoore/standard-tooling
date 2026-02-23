@@ -1,18 +1,20 @@
-# commit.sh
+# st-commit
 
-**Path:** `scripts/dev/commit.sh`
+**Installed as:** `st-commit` (Python console script)
 
-Wrapper script that constructs standards-compliant commit messages
+**Source:** `src/standard_tooling/commit.py`
+
+Wrapper that constructs standards-compliant commit messages
 with correct Conventional Commits format and Co-Authored-By trailers.
 
 !!! warning "Required for AI agents"
-    AI agents **must** use this script instead of raw `git commit`.
-    The script resolves the correct co-author identity automatically.
+    AI agents **must** use this tool instead of raw `git commit`.
+    The tool resolves the correct co-author identity automatically.
 
 ## Usage
 
 ```bash
-scripts/dev/commit.sh \
+st-commit \
   --type TYPE --message MESSAGE --agent AGENT [options]
 ```
 
@@ -35,17 +37,17 @@ scripts/dev/commit.sh \
 
 ```bash
 # Feature with scope
-scripts/dev/commit.sh \
+st-commit \
   --type feat --scope lint \
   --message "add new check" --agent claude
 
 # Bug fix
-scripts/dev/commit.sh \
+st-commit \
   --type fix \
   --message "correct regex pattern" --agent claude
 
 # Documentation with body
-scripts/dev/commit.sh \
+st-commit \
   --type docs --message "update README" \
   --body "Expanded usage section" --agent claude
 ```
