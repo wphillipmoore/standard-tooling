@@ -1,7 +1,7 @@
 # Consuming Repo Setup
 
 This guide walks through end-to-end onboarding of a new repository to
-use standard-tooling managed scripts.
+use standard-tooling via PATH-based consumption.
 
 ## Prerequisites
 
@@ -10,7 +10,7 @@ Install the required tools:
 **macOS:**
 
 ```bash
-brew install shellcheck
+brew install shellcheck uv
 npm install --global markdownlint-cli
 ```
 
@@ -19,21 +19,39 @@ npm install --global markdownlint-cli
 ```bash
 sudo apt-get install shellcheck
 npm install --global markdownlint-cli
+# Install uv: https://docs.astral.sh/uv/getting-started/installation/
 ```
 
 ## Step 1: Clone Standard-Tooling
 
-Clone the canonical source alongside your repository:
+Clone the canonical source as a sibling directory:
 
 ```bash
+cd ..
 git clone \
   https://github.com/wphillipmoore/standard-tooling.git
+cd standard-tooling
+uv sync
+cd ../your-repo
 ```
 
-## Step 2: Create the Repository Profile
+## Step 2: Configure PATH and Hooks
+
+Add standard-tooling to PATH and configure git hooks:
+
+```bash
+export PATH="../standard-tooling/.venv/bin:../standard-tooling/scripts/bin:$PATH"
+git config core.hooksPath ../standard-tooling/scripts/lib/git-hooks
+```
+
+!!! tip
+    Add the PATH export to your shell profile or project's setup
+    documentation so it persists across sessions.
+
+## Step 3: Create the Repository Profile
 
 Create `docs/repository-standards.md` in your repository. This file
-is read by multiple scripts for configuration.
+is read by multiple validators for configuration.
 
 Required sections:
 
@@ -60,44 +78,24 @@ Required sections:
 - primary_language: python
 ```
 
-## Step 3: Sync Managed Files
+## Step 4: Add CI Workflow
 
-Run the sync script to copy all managed files:
+Use the `standard-actions` composite action in your CI workflow:
 
-```bash
-path/to/standard-tooling/scripts/dev/sync-tooling.sh \
-  --fix --ref v1.1.5
+```yaml
+- name: Validate standards
+  uses: wphillipmoore/standard-actions/actions/standards-compliance@develop
 ```
 
-This creates:
+The action checks out standard-tooling, adds it to PATH, and runs:
 
-- `scripts/git-hooks/pre-commit` and `commit-msg`
-- `scripts/lint/*.sh` (6 lint scripts)
-- `scripts/dev/*.sh` and `*.py` (10 dev scripts)
-
-## Step 4: Configure Git Hooks
-
-```bash
-git config core.hooksPath scripts/git-hooks
-```
-
-!!! tip
-    Add this to your project's setup documentation so all
-    contributors configure hooks.
-
-## Step 5: Add CI Workflow
-
-Create `.github/workflows/ci.yml` with the standard checks:
-
-- `scripts/lint/repo-profile.sh`
-- `scripts/lint/markdown-standards.sh`
-- `scripts/lint/commit-messages.sh` with base and head refs
-- `scripts/lint/pr-issue-linkage.sh`
-- `sync-tooling.sh --check`
+- `repo-profile` -- validates the repository profile
+- `markdown-standards` -- validates markdown formatting
+- `pr-issue-linkage` -- validates PR issue linkage (on PRs only)
 
 See `standard-actions` for reusable workflow actions.
 
-## Step 6: Create Markdownlint Config
+## Step 5: Create Markdownlint Config
 
 Create `.markdownlint.yaml` at the repository root:
 
@@ -107,33 +105,42 @@ no-duplicate-heading:
   siblings_only: true
 ```
 
-## Step 7: Verify
+## Step 6: Verify
 
 ```bash
 # Verify repo profile
-scripts/lint/repo-profile.sh
+repo-profile
 
 # Verify markdown
-scripts/lint/markdown-standards.sh
+markdown-standards
 
 # Verify hooks work
 git checkout -b feature/1-test-setup
 echo "test" >> test.txt
 git add test.txt
-scripts/dev/commit.sh \
+st-commit \
   --type chore --message "test setup" --agent claude
 ```
 
 ## Keeping Up to Date
 
-When standard-tooling releases a new version:
+Standard-tooling is consumed via PATH, so updates are picked up
+automatically when you pull the latest version:
 
 ```bash
-# See what changed
-scripts/dev/sync-tooling.sh --check
-
-# Update to new version
-scripts/dev/sync-tooling.sh --fix --ref v1.2.0
+cd ../standard-tooling
+git pull
+uv sync
 ```
 
-See the [Releasing](releasing.md) guide for the full workflow.
+For CI, the `standard-actions` composite action pins to a
+`standard-tooling-ref` (default: `develop`). To pin to a stable
+release, set the input:
+
+```yaml
+- uses: wphillipmoore/standard-actions/actions/standards-compliance@develop
+  with:
+    standard-tooling-ref: v1.2
+```
+
+See the [Releasing](releasing.md) guide for the full release workflow.

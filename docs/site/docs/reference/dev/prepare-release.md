@@ -1,6 +1,8 @@
-# prepare_release.py
+# st-prepare-release
 
-**Path:** `scripts/dev/prepare_release.py`
+**Installed as:** `st-prepare-release` (Python console script)
+
+**Source:** `src/standard_tooling/prepare_release.py`
 
 Automates release preparation for library repositories: creates a
 release branch, generates the changelog, creates a PR to main, and
@@ -9,7 +11,7 @@ enables auto-merge.
 ## Usage
 
 ```bash
-scripts/dev/prepare_release.py --issue 42
+st-prepare-release --issue 42
 ```
 
 ## Arguments
@@ -27,7 +29,7 @@ scripts/dev/prepare_release.py --issue 42
 
 ## Ecosystem Detection
 
-The script auto-detects the project ecosystem to find the version:
+The tool auto-detects the project ecosystem to find the version:
 
 | Ecosystem | Version Source |
 | --------- | -------------- |

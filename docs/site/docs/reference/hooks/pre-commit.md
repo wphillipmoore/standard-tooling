@@ -1,6 +1,6 @@
 # pre-commit
 
-**Path:** `scripts/git-hooks/pre-commit`
+**Path:** `scripts/lib/git-hooks/pre-commit`
 
 Enforces branch naming conventions before allowing a commit. Reads the
 `branching_model` attribute from `docs/repository-standards.md` to

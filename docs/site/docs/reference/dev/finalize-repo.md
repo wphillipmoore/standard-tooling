@@ -1,6 +1,8 @@
-# finalize_repo.sh
+# st-finalize-repo
 
-**Path:** `scripts/dev/finalize_repo.sh`
+**Installed as:** `st-finalize-repo` (Python console script)
+
+**Source:** `src/standard_tooling/finalize_repo.py`
 
 Cleans up a repository after a PR merge: switches to the target
 branch, fast-forward pulls, deletes merged local branches, and
@@ -9,7 +11,7 @@ prunes remote tracking references.
 ## Usage
 
 ```bash
-scripts/dev/finalize_repo.sh [--target-branch BRANCH] [--dry-run]
+st-finalize-repo [--target-branch BRANCH] [--dry-run]
 ```
 
 ## Arguments

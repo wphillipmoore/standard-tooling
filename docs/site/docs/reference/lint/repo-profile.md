@@ -1,6 +1,6 @@
-# repo-profile.sh
+# repo-profile
 
-**Path:** `scripts/lint/repo-profile.sh`
+**Path:** `scripts/bin/repo-profile`
 
 Validates that `docs/repository-standards.md` contains all required
 repository profile attributes with non-placeholder values.
@@ -8,7 +8,7 @@ repository profile attributes with non-placeholder values.
 ## Usage
 
 ```bash
-scripts/lint/repo-profile.sh
+repo-profile
 ```
 
 Run from the repository root. The script reads
