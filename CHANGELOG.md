@@ -5,6 +5,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.2.0] - 2026-02-23
+
+### Bug fixes
+
+- update add-to-project action to v1.0.2 (#64)
+- read version from pyproject.toml in publish and docs workflows (#82)
+
+### Documentation
+
+- document git hooks and validation rules (#71)
+- add MkDocs documentation site (#72)
+- update documentation site for PATH-based architecture (#79)
+
+### Features
+
+- add chore/ as allowed branch prefix in pre-commit hook (#66)
+- restructure as Python package with PATH-based consumption (#73)
+- add commit-messages range validator for CI (#76)
+
+### Refactoring
+
+- remove commit-messages range validator (#77)
+
+### Testing
+
+- achieve 100% line and branch coverage for all Python modules (#74)
+
 ## [1.1.4] - 2026-02-21
 
 ### Bug fixes
