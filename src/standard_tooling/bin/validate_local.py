@@ -8,25 +8,47 @@ Reads primary_language from docs/repository-standards.md, then runs:
 
 from __future__ import annotations
 
+import os
 import shutil
 import subprocess
 import sys
+from typing import TYPE_CHECKING
 
 from standard_tooling.lib import git, repo_profile
 
+if TYPE_CHECKING:
+    from pathlib import Path
 
-def _run_validator(name: str) -> bool:
-    """Run a PATH-based validator script. Return True on success."""
-    path = shutil.which(name)
+
+def _find_validator(name: str, scripts_bin: Path) -> str | None:
+    """Locate a validator by *name*.
+
+    Search order:
+      1. PATH (via ``shutil.which``)
+      2. The repository's own ``scripts/bin/`` directory
+    """
+    on_path = shutil.which(name)
+    if on_path is not None:
+        return on_path
+    local = scripts_bin / name
+    if local.is_file() and os.access(local, os.X_OK):
+        return str(local)
+    return None
+
+
+def _run_validator(name: str, scripts_bin: Path) -> bool:
+    """Run a validator script. Return True on success, True (skip) if not found."""
+    path = _find_validator(name, scripts_bin)
     if path is None:
-        return True  # Not found means skip
-    print(f"Running: {name}")
+        return True
+    print(f"Running: {path}")
     result = subprocess.run((path,), check=False)  # noqa: S603
     return result.returncode == 0
 
 
 def main(argv: list[str] | None = None) -> int:  # noqa: ARG001
     root = git.repo_root()
+    scripts_bin = root / "scripts" / "bin"
 
     try:
         profile = repo_profile.read_profile(root)
@@ -40,17 +62,18 @@ def main(argv: list[str] | None = None) -> int:  # noqa: ARG001
     print("=" * 40)
     print()
 
-    if not _run_validator("validate-local-common"):
+    if not _run_validator("validate-local-common", scripts_bin):
         return 1
 
     if primary_language and primary_language != "none":
         print()
-        if not _run_validator(f"validate-local-{primary_language}"):
+        if not _run_validator(f"validate-local-{primary_language}", scripts_bin):
             return 1
 
-    if shutil.which("validate-local-custom"):
+    custom = _find_validator("validate-local-custom", scripts_bin)
+    if custom is not None:
         print()
-        if not _run_validator("validate-local-custom"):
+        if not _run_validator("validate-local-custom", scripts_bin):
             return 1
 
     print()

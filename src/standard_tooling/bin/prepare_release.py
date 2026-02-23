@@ -39,9 +39,7 @@ def _detect_maven() -> str | None:
     if not path.is_file():
         return None
     text = path.read_text(encoding="utf-8")
-    match = re.search(
-        r"<artifactId>[^<]+</artifactId>\s*<version>([^<]+)</version>", text
-    )
+    match = re.search(r"<artifactId>[^<]+</artifactId>\s*<version>([^<]+)</version>", text)
     return match.group(1) if match else None
 
 
@@ -142,8 +140,12 @@ def _merge_main(version: str) -> None:
     print("Merging main into release branch...")
     git.run("fetch", "origin", "main")
     git.run(
-        "merge", "origin/main", "-X", "ours",
-        "-m", f"chore: merge main into release/{version}",
+        "merge",
+        "origin/main",
+        "-X",
+        "ours",
+        "-m",
+        f"chore: merge main into release/{version}",
     )
 
 
@@ -154,9 +156,7 @@ def _generate_changelog(version: str) -> None:
     print(f"Generating changelog with boundary tag: {tag}")
     subprocess.run(("git-cliff", "--tag", tag, "-o", "CHANGELOG.md"), check=True)  # noqa: S603, S607
     changelog = Path("CHANGELOG.md")
-    changelog.write_text(
-        changelog.read_text(encoding="utf-8").rstrip() + "\n", encoding="utf-8"
-    )
+    changelog.write_text(changelog.read_text(encoding="utf-8").rstrip() + "\n", encoding="utf-8")
     result = subprocess.run(  # noqa: S603, S607
         ("markdownlint", "CHANGELOG.md"), capture_output=True, text=True
     )
@@ -184,8 +184,7 @@ def _create_pr(version: str, issue: int) -> str:
     print("Creating pull request to main...")
     title = f"release: {version}"
     body = (
-        f"## Summary\n\nRelease {version}\n\n"
-        f"Ref #{issue}\n\nGenerated with `st-prepare-release`\n"
+        f"## Summary\n\nRelease {version}\n\nRef #{issue}\n\nGenerated with `st-prepare-release`\n"
     )
     with tempfile.NamedTemporaryFile(mode="w", suffix=".md", delete=False) as f:
         f.write(body)
@@ -205,7 +204,9 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     """Parse command-line arguments."""
     parser = argparse.ArgumentParser(description="Prepare a release.")
     parser.add_argument(
-        "--issue", type=int, required=True,
+        "--issue",
+        type=int,
+        required=True,
         help="GitHub issue number for release tracking (used for PR linkage).",
     )
     return parser.parse_args(argv)
