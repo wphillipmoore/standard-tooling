@@ -17,11 +17,17 @@ jobs:
     name: "deploy: docs"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - name: Checkout code
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
 
       - name: Deploy docs
         uses: wphillipmoore/standard-actions/actions/docs-deploy@develop
         with:
-          version-command: cat VERSION | cut -d. -f1,2
+          version-command: python3 -c "import tomllib; from pathlib import Path; v=tomllib.loads(Path('pyproject.toml').read_text())['project']['version']; print('.'.join(v.split('.')[:2]))"
