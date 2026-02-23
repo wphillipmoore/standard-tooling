@@ -3,59 +3,80 @@
 ## Table of Contents
 
 - [Purpose](#purpose)
-- [Shared scripts](#shared-scripts)
-- [Sync mechanism](#sync-mechanism)
+- [Installation](#installation)
+- [CLI tools](#cli-tools)
+- [Bash validators](#bash-validators)
+- [Git hooks](#git-hooks)
 - [Releasing](#releasing)
 
 ## Purpose
 
-Canonical source for shared scripts used across all repositories. Consuming
-repos copy these scripts and use `sync-tooling.sh` to keep them up to date.
+Shared development tooling for all managed repositories. Structured as a
+Python package with CLI entry points (`st-*`) and grandfathered bash
+validators, consumed via PATH from a sibling checkout (local) or CI checkout
+(GitHub Actions).
 
-## Shared scripts
+## Installation
 
-### Git hooks (local-only)
-
-- `scripts/git-hooks/commit-msg` — Conventional Commits + co-author validation
-- `scripts/git-hooks/pre-commit` — branch naming enforcement
-
-### Lint scripts (hooks + CI)
-
-- `scripts/lint/co-author.sh` — co-author trailer validation
-- `scripts/lint/commit-message.sh` — single commit message validation
-- `scripts/lint/commit-messages.sh` — commit range validation (CI)
-- `scripts/lint/markdown-standards.sh` — markdownlint + structural checks
-- `scripts/lint/pr-issue-linkage.sh` — PR body issue linkage validation
-- `scripts/lint/repo-profile.sh` — repository profile validation
-
-### Dev scripts
-
-- `scripts/dev/sync-tooling.sh` — sync mechanism (see below)
-- `scripts/dev/prepare_release.py` — automated release preparation
-- `scripts/dev/finalize_repo.sh` — post-merge cleanup
-
-## Sync mechanism
-
-Each consuming repo copies `scripts/dev/sync-tooling.sh` from this
-repository. The script compares local copies against the canonical versions
-here and can auto-fix drift.
+### Local development
 
 ```bash
-# Check for staleness (CI gate)
-scripts/dev/sync-tooling.sh --check
-
-# Auto-fix stale copies
-scripts/dev/sync-tooling.sh --fix
-
-# Sync to a specific tag
-scripts/dev/sync-tooling.sh --fix --ref v1.0.0
+cd standard-tooling
+uv sync --group dev
+export PATH="$(pwd)/.venv/bin:$(pwd)/scripts/bin:$PATH"
+git config core.hooksPath scripts/lib/git-hooks
 ```
 
-The `--actions-compat` flag additionally syncs lint scripts to
-`actions/standards-compliance/scripts/` for standard-actions.
+### CI (GitHub Actions)
+
+```yaml
+- uses: actions/checkout@v4
+  with:
+    repository: wphillipmoore/standard-tooling
+    ref: v1.2
+    path: .standard-tooling
+
+- name: Set up standard-tooling
+  run: |
+    cd .standard-tooling && uv sync --frozen
+    echo "$GITHUB_WORKSPACE/.standard-tooling/.venv/bin" >> "$GITHUB_PATH"
+    echo "$GITHUB_WORKSPACE/.standard-tooling/scripts/bin" >> "$GITHUB_PATH"
+```
+
+## CLI tools
+
+- `st-commit` — Standards-compliant conventional commits
+- `st-submit-pr` — Standards-compliant PR creation with auto-merge
+- `st-prepare-release` — Automated release preparation
+- `st-finalize-repo` — Post-merge cleanup
+- `st-validate-local` — Pre-PR local validation driver
+- `st-ensure-label` — Idempotent GitHub label creation
+- `st-list-project-repos` — List repos linked to a GitHub Project
+- `st-set-project-field` — Set field on a GitHub Project item
+
+## Bash validators
+
+Grandfathered bash scripts in `scripts/bin/` consumed via PATH:
+
+- `markdown-standards` — markdownlint + structural checks
+- `repo-profile` — repository profile validation
+- `pr-issue-linkage` — PR body issue linkage validation
+- `commit-message` — single commit message validation
+- `validate-local-common` — shared checks for all repos
+- `validate-local-python` — Python-specific validation
+- `validate-local-go` — Go-specific validation
+- `validate-local-java` — Java-specific validation
+
+## Git hooks
+
+Consumed via `git config core.hooksPath scripts/lib/git-hooks`:
+
+- `pre-commit` — branch naming enforcement
+- `commit-msg` — Conventional Commits validation
 
 ## Releasing
 
-Tag releases on `main` using semantic versioning. Consuming repos pin to
-tags via `--ref`. The CI staleness gate compares against the latest tag
-by default.
+Tag releases on `main` using semantic versioning. The release process
+publishes both a full tag (`v1.2.0`) and a rolling `v{major}.{minor}` tag
+(`v1.2`) that always points to the latest patch. Consuming repos pin to the
+`v{major}.{minor}` tag in CI.
