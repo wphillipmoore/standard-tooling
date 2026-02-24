@@ -7,6 +7,7 @@ Supported ecosystems:
   - Python: reads version from pyproject.toml
   - Maven:  reads version from pom.xml
   - Go:     reads version from **/version.go
+  - Ruby:   reads version from **/version.rb
   - VERSION file: reads version from VERSION (fallback)
 """
 
@@ -54,6 +55,17 @@ def _detect_go() -> str | None:
     return None
 
 
+def _detect_ruby() -> str | None:
+    if not Path("Gemfile").is_file():
+        return None
+    for path in Path().rglob("version.rb"):
+        text = path.read_text(encoding="utf-8")
+        match = re.search(r"VERSION\s*=\s*['\"]([^'\"]+)['\"]", text)
+        if match:
+            return match.group(1)
+    return None
+
+
 def _detect_version_file() -> str | None:
     path = Path("VERSION")
     if not path.is_file():
@@ -74,6 +86,7 @@ _DETECTORS: list[tuple[str, _Detector]] = [
     ("python", _detect_python),
     ("maven", _detect_maven),
     ("go", _detect_go),
+    ("ruby", _detect_ruby),
     ("version-file", _detect_version_file),
 ]
 
@@ -89,6 +102,7 @@ def detect_ecosystem() -> tuple[str, str]:
         "  - pyproject.toml with version (Python)\n"
         "  - pom.xml with version (Maven)\n"
         "  - go.mod + **/version.go (Go)\n"
+        "  - Gemfile + **/version.rb (Ruby)\n"
         "  - VERSION file with MAJOR.MINOR.PATCH"
     )
     raise SystemExit(msg)

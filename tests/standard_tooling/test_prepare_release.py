@@ -12,6 +12,7 @@ from standard_tooling.bin.prepare_release import (
     _detect_go,
     _detect_maven,
     _detect_python,
+    _detect_ruby,
     _detect_version_file,
     _ensure_clean_tree,
     _ensure_develop_up_to_date,
@@ -91,6 +92,40 @@ def test_detect_go_no_version_in_file(tmp_path: Path, monkeypatch: pytest.Monkey
     assert _detect_go() is None
 
 
+def test_detect_ruby(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / "Gemfile").write_text('source "https://rubygems.org"\n')
+    lib = tmp_path / "lib" / "mq" / "rest" / "admin"
+    lib.mkdir(parents=True)
+    (lib / "version.rb").write_text(
+        'module MQ\n  module REST\n    module Admin\n      VERSION = "1.3.0"\n    end\n  end\nend\n'
+    )
+    assert _detect_ruby() == "1.3.0"
+
+
+def test_detect_ruby_single_quotes(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / "Gemfile").write_text('source "https://rubygems.org"\n')
+    lib = tmp_path / "lib"
+    lib.mkdir()
+    (lib / "version.rb").write_text("module Foo\n  VERSION = '2.0.0'\nend\n")
+    assert _detect_ruby() == "2.0.0"
+
+
+def test_detect_ruby_no_gemfile(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.chdir(tmp_path)
+    assert _detect_ruby() is None
+
+
+def test_detect_ruby_no_version_in_file(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / "Gemfile").write_text('source "https://rubygems.org"\n')
+    lib = tmp_path / "lib"
+    lib.mkdir()
+    (lib / "version.rb").write_text("module Foo\nend\n")
+    assert _detect_ruby() is None
+
+
 def test_detect_version_file(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.chdir(tmp_path)
     (tmp_path / "VERSION").write_text("2.3.4\n")
@@ -114,6 +149,17 @@ def test_detect_ecosystem_python(tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     (tmp_path / "pyproject.toml").write_text('version = "1.0.0"\n')
     name, version = detect_ecosystem()
     assert name == "python"
+    assert version == "1.0.0"
+
+
+def test_detect_ecosystem_ruby(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / "Gemfile").write_text('source "https://rubygems.org"\n')
+    lib = tmp_path / "lib"
+    lib.mkdir()
+    (lib / "version.rb").write_text('module Foo\n  VERSION = "1.0.0"\nend\n')
+    name, version = detect_ecosystem()
+    assert name == "ruby"
     assert version == "1.0.0"
 
 
