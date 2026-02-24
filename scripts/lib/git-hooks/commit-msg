@@ -7,6 +7,6 @@ set -euo pipefail
 if command -v commit-message >/dev/null 2>&1; then
   commit-message "$1"
 else
-  repo_root="$(git rev-parse --show-toplevel)"
-  "$repo_root/scripts/bin/commit-message" "$1"
+  hook_dir="$(cd "$(dirname "$0")" && pwd)"
+  "$hook_dir/../../bin/commit-message" "$1"
 fi
