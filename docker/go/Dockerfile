@@ -3,6 +3,14 @@
 ARG GO_VERSION=1.25
 FROM golang:${GO_VERSION}
 
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+      shellcheck nodejs npm && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN npm install -g markdownlint-cli@0.47.0 && \
+    npm cache clean --force
+
 RUN go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.10.1 && \
     go install golang.org/x/vuln/cmd/govulncheck@v1.1.4 && \
     go install github.com/google/go-licenses/v2@v2.0.1 && \

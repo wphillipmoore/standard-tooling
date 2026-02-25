@@ -5,8 +5,11 @@ FROM python:${PYTHON_VERSION}-slim
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-      git curl && \
+      git curl shellcheck nodejs npm && \
     rm -rf /var/lib/apt/lists/*
+
+RUN npm install -g markdownlint-cli@0.47.0 && \
+    npm cache clean --force
 
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /usr/local/bin/
 
