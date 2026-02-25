@@ -20,11 +20,15 @@ new projects.
 Testing is split into three tiers with increasing scope, cost, and
 feedback latency:
 
-| Tier | Trigger | Scope | Time | Security | Matrix |
-| ---- | ------- | ----- | ---- | -------- | ------ |
-| 1 | Manual (before commit) | Single version, unit tests | Seconds | No | No |
-| 2 | Push to feature branch | Single version, unit + integration | ~3-5 min | No | No |
-| 3 | Pull request | Full version matrix, all checks | ~8-10 min | Yes | Yes |
+| Tier | Trigger | Time | Security |
+| ---- | ------- | ---- | -------- |
+| 1 | Manual (before commit) | Seconds | No |
+| 2 | Push to feature branch | ~3-5 min | No |
+| 3 | Pull request | ~8-10 min | Yes |
+
+- **Tier 1**: Single version, unit tests only
+- **Tier 2**: Single version, unit + integration tests
+- **Tier 3**: Full version matrix, all checks
 
 The goal is fast local feedback for the developer, rapid push-to-CI
 validation before PR submission, and comprehensive gated checks on the
@@ -128,12 +132,17 @@ the direct PR trigger and a reusable workflow via `workflow_call`.
 
 `ci.yml` accepts `workflow_call` with inputs that control scope:
 
-| Input | Type | Default | Purpose |
-| ----- | ---- | ------- | ------- |
-| `versions` | string (JSON array) | Full matrix | Language versions to test |
-| `integration-matrix` | string (JSON array) | Full matrix | Integration test entries with ports |
-| `run-security` | string | `"true"` | Enable security scanners |
-| `run-release-gates` | string | `"true"` | Enable release gate checks |
+| Input | Type | Default |
+| ----- | ---- | ------- |
+| `versions` | string (JSON) | Full matrix |
+| `integration-matrix` | string (JSON) | Full matrix |
+| `run-security` | string | `"true"` |
+| `run-release-gates` | string | `"true"` |
+
+- `versions` — language versions to test
+- `integration-matrix` — test entries with ports
+- `run-security` — enable security scanners
+- `run-release-gates` — enable release gate checks
 
 When triggered directly by `pull_request`, all inputs are empty and
 defaults produce the full Tier 3 behavior. When called from
@@ -239,12 +248,16 @@ repository's `CLAUDE.md`.
 When security and standards jobs move into the shared reusable workflow,
 their check names gain a `security-and-standards /` prefix:
 
-| Old name | New name |
-| -------- | -------- |
-| `ci: standards-compliance` | `security-and-standards / ci: standards-compliance` |
-| `security: codeql` | `security-and-standards / security: codeql` |
-| `security: trivy` | `security-and-standards / security: trivy` |
-| `security: semgrep` | `security-and-standards / security: semgrep` |
+Old names and their replacements:
+
+- `ci: standards-compliance` →
+  `security-and-standards / ci: standards-compliance`
+- `security: codeql` →
+  `security-and-standards / security: codeql`
+- `security: trivy` →
+  `security-and-standards / security: trivy`
+- `security: semgrep` →
+  `security-and-standards / security: semgrep`
 
 Jobs that remain inline keep their names unchanged:
 
@@ -260,12 +273,19 @@ Published to `ghcr.io/wphillipmoore/dev-<language>:<version>` from the
 
 ### Available images
 
-| Image | Versions | Base | Contents |
-| ----- | -------- | ---- | -------- |
-| `dev-ruby` | 3.2, 3.3, 3.4 | `ruby:<v>-slim` | build-essential, git, curl, bundler |
-| `dev-python` | 3.12, 3.13, 3.14 | `python:<v>-slim` | git, curl, uv |
-| `dev-java` | 17, 21 | `eclipse-temurin:<v>-jdk` | git, curl |
-| `dev-go` | 1.25, 1.26 | `golang:<v>` | golangci-lint, govulncheck, go-licenses, gocyclo |
+**`dev-ruby`** (3.2, 3.3, 3.4)
+:   Base: `ruby:<v>-slim`. Includes build-essential,
+    git, curl, bundler.
+
+**`dev-python`** (3.12, 3.13, 3.14)
+:   Base: `python:<v>-slim`. Includes git, curl, uv.
+
+**`dev-java`** (17, 21)
+:   Base: `eclipse-temurin:<v>-jdk`. Includes git, curl.
+
+**`dev-go`** (1.25, 1.26)
+:   Base: `golang:<v>`. Includes golangci-lint,
+    govulncheck, go-licenses, gocyclo.
 
 ### Building locally
 
