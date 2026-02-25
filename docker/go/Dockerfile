@@ -1,6 +1,6 @@
 # Managed by standard-tooling — DO NOT EDIT in downstream repos.
 # Canonical source: https://github.com/wphillipmoore/standard-tooling
-ARG GO_VERSION=1.23
+ARG GO_VERSION=1.25
 FROM golang:${GO_VERSION}
 
 RUN go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.10.1 && \
