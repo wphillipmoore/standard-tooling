@@ -70,7 +70,7 @@ fi
 # Format: {type}/{issue}-{description}
 # Exempt: release/* (automated by the publish workflow, no issue association).
 issue_required_regex='^(feature|bugfix|hotfix|chore)/'
-issue_format_regex='^(feature|bugfix|hotfix|chore)/[0-9]+-[a-z0-9][a-z0-9-]*$'
+issue_format_regex='^(feature|bugfix|hotfix|chore)/[0-9]+-[a-z0-9][a-z0-9.-]*$'
 
 if [[ "$current_branch" =~ $issue_required_regex ]]; then
   if [[ ! "$current_branch" =~ $issue_format_regex ]]; then
