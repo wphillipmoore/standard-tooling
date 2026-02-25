@@ -5,8 +5,11 @@ FROM ruby:${RUBY_VERSION}-slim
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-      build-essential git curl && \
+      build-essential git curl shellcheck nodejs npm && \
     rm -rf /var/lib/apt/lists/*
+
+RUN npm install -g markdownlint-cli@0.47.0 && \
+    npm cache clean --force
 
 RUN gem install bundler
 
