@@ -121,7 +121,27 @@ Language-specific dev containers for Docker-first testing:
 - **`docker/python/Dockerfile`** — Python dev image with uv (`dev-python:3.14`)
 - **`docker/java/Dockerfile`** — Java dev image, Eclipse Temurin (`dev-java:21`)
 - **`docker/go/Dockerfile`** — Go dev image with linters (`dev-go:1.23`)
-- **`docker/build.sh`** — Builds all 4 images locally with default version tags
+- **`docker/build.sh`** — Builds all images locally for every version in the matrix
+
+#### GHCR Publishing
+
+Images are published to GitHub Container Registry by the `docker-publish.yml`
+workflow on push to `develop` or `main` when `docker/**` files change, or via
+manual `workflow_dispatch`.
+
+Image naming: `ghcr.io/wphillipmoore/dev-{language}:{version}`
+
+Version matrix:
+
+| Language | Versions |
+|----------|----------|
+| Ruby     | 3.2, 3.3, 3.4 |
+| Python   | 3.13, 3.14 |
+| Java     | 21 |
+| Go       | 1.23 |
+
+To trigger a rebuild manually: Actions → "Publish dev container images" →
+Run workflow.
 
 The `docker-test` script (`scripts/bin/docker-test`) auto-detects the project
 language (Gemfile, pyproject.toml, go.mod, pom.xml/mvnw) and runs the test

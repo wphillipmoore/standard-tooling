@@ -1,0 +1,69 @@
+name: Publish dev container images
+
+on:
+  push:
+    branches:
+      - develop
+      - main
+    paths:
+      - "docker/**"
+  workflow_dispatch:
+
+permissions:
+  packages: write
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  publish:
+    name: "publish: dev-${{ matrix.language }}:${{ matrix.version }}"
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - language: ruby
+            version: "3.2"
+            build-arg: RUBY_VERSION
+          - language: ruby
+            version: "3.3"
+            build-arg: RUBY_VERSION
+          - language: ruby
+            version: "3.4"
+            build-arg: RUBY_VERSION
+          - language: python
+            version: "3.13"
+            build-arg: PYTHON_VERSION
+          - language: python
+            version: "3.14"
+            build-arg: PYTHON_VERSION
+          - language: java
+            version: "21"
+            build-arg: JDK_VERSION
+          - language: go
+            version: "1.23"
+            build-arg: GO_VERSION
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build image
+        run: |
+          docker build \
+            --build-arg "${{ matrix.build-arg }}=${{ matrix.version }}" \
+            -t "ghcr.io/wphillipmoore/dev-${{ matrix.language }}:${{ matrix.version }}" \
+            "docker/${{ matrix.language }}"
+
+      - name: Push image
+        run: |
+          docker push "ghcr.io/wphillipmoore/dev-${{ matrix.language }}:${{ matrix.version }}"
