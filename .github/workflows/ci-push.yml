@@ -1,0 +1,20 @@
+name: CI (push)
+
+on:
+  push:
+    branches:
+      - 'feature/**'
+      - 'bugfix/**'
+      - 'hotfix/**'
+      - 'chore/**'
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  ci:
+    uses: ./.github/workflows/ci.yml
+    with:
+      run-security: 'false'
+      run-release-gates: 'false'

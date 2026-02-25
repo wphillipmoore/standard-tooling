@@ -78,6 +78,54 @@ shellcheck scripts/bin/* scripts/lib/git-hooks/*       # Shell script lint
 uv run st-validate-local                               # Runs all checks
 ```
 
+### Three-Tier CI Model
+
+Testing is split across three tiers with increasing scope and cost:
+
+**Tier 1 — Local pre-commit (seconds):** Fast smoke tests in a single
+container. Run before every commit. No matrix.
+
+```bash
+./scripts/dev/test.sh        # pytest + 100% coverage in dev-python:3.12
+./scripts/dev/lint.sh        # ruff check + format in dev-python:3.12
+./scripts/dev/audit.sh       # uv lock --check in dev-python:3.12
+```
+
+**Tier 2 — Push CI (~1-2 min):** Triggers automatically on push to
+`feature/**`, `bugfix/**`, `hotfix/**`, `chore/**`. Single Python version
+(3.12), no security scanners or release gates.
+Workflow: `.github/workflows/ci-push.yml` (calls `ci.yml`).
+
+**Tier 3 — PR CI (~5-8 min):** Triggers on `pull_request`. Python 3.12,
+all quality checks, security scanners (CodeQL, Trivy, Semgrep), standards
+compliance, and release gates.
+Workflow: `.github/workflows/ci.yml`.
+
+### Docker-First Testing
+
+All tests can run inside containers — Docker is the only host prerequisite.
+The `dev-python:3.12` image is built from `docker/python/` and published to
+`ghcr.io/wphillipmoore/dev-python`.
+
+```bash
+# Build the dev image (one-time)
+./docker/build.sh
+
+# Run unit tests in container
+./scripts/dev/test.sh
+
+# Run linter in container
+./scripts/dev/lint.sh
+
+# Run dependency audit in container
+./scripts/dev/audit.sh
+```
+
+Environment overrides:
+
+- `DOCKER_DEV_IMAGE` — override the container image (default: `dev-python:3.12`)
+- `DOCKER_TEST_CMD` — override the test command
+
 ## Architecture
 
 ### Python Package (`src/standard_tooling/`)
