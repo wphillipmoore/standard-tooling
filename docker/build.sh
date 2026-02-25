@@ -23,6 +23,7 @@ build python python PYTHON_VERSION 3.13
 build python python PYTHON_VERSION 3.14
 build java   java   JDK_VERSION    17
 build java   java   JDK_VERSION    21
-build go     go     GO_VERSION     1.23
+build go     go     GO_VERSION     1.25
+build go     go     GO_VERSION     1.26
 
 echo "All images built successfully."

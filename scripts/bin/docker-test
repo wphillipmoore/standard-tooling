@@ -26,7 +26,7 @@ default_image() {
   case "$1" in
     ruby)   echo "dev-ruby:3.4"   ;;
     python) echo "dev-python:3.14" ;;
-    go)     echo "dev-go:1.23"     ;;
+    go)     echo "dev-go:1.26"     ;;
     java)   echo "dev-java:21"     ;;
     *)      echo ""                ;;
   esac
