@@ -73,5 +73,6 @@ nav:
           - st-validate-local: reference/dev/validate-local.md
   - Guides:
       - Consuming Repo Setup: guides/consuming-repo-setup.md
+      - Three-Tier CI: guides/three-tier-ci.md
       - Validation Matrix: guides/validation-matrix.md
       - Releasing: guides/releasing.md
