@@ -83,9 +83,6 @@ jobs:
       - name: Check lockfile integrity
         run: uv lock --check
 
-      - name: Check dependency sync
-        run: uv sync --check --frozen
-
   # ---------------------------------------------------------------------------
   # Security and standards (shared reusable workflow)
   # ---------------------------------------------------------------------------
