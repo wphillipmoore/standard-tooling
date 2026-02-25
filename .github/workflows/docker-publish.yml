@@ -35,11 +35,17 @@ jobs:
             version: "3.4"
             build-arg: RUBY_VERSION
           - language: python
+            version: "3.12"
+            build-arg: PYTHON_VERSION
+          - language: python
             version: "3.13"
             build-arg: PYTHON_VERSION
           - language: python
             version: "3.14"
             build-arg: PYTHON_VERSION
+          - language: java
+            version: "17"
+            build-arg: JDK_VERSION
           - language: java
             version: "21"
             build-arg: JDK_VERSION
