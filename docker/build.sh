@@ -15,7 +15,10 @@ build() {
     "${script_dir}/${lang}"
 }
 
+build ruby   ruby   RUBY_VERSION   3.2
+build ruby   ruby   RUBY_VERSION   3.3
 build ruby   ruby   RUBY_VERSION   3.4
+build python python PYTHON_VERSION 3.13
 build python python PYTHON_VERSION 3.14
 build java   java   JDK_VERSION    21
 build go     go     GO_VERSION     1.23
