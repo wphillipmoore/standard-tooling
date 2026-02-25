@@ -111,6 +111,27 @@ Grandfathered validators consumed via PATH (no `.sh` extensions):
 - `validate-local-python` — Python-specific validation
 - `validate-local-go` — Go-specific validation
 - `validate-local-java` — Java-specific validation
+- `docker-test` — run repo test suite inside a dev container
+
+### Docker Dev Images (`docker/`)
+
+Language-specific dev containers for Docker-first testing:
+
+- **`docker/ruby/Dockerfile`** — Ruby dev image (`dev-ruby:3.4`)
+- **`docker/python/Dockerfile`** — Python dev image with uv (`dev-python:3.14`)
+- **`docker/java/Dockerfile`** — Java dev image, Eclipse Temurin (`dev-java:21`)
+- **`docker/go/Dockerfile`** — Go dev image with linters (`dev-go:1.23`)
+- **`docker/build.sh`** — Builds all 4 images locally with default version tags
+
+The `docker-test` script (`scripts/bin/docker-test`) auto-detects the project
+language (Gemfile, pyproject.toml, go.mod, pom.xml/mvnw) and runs the test
+suite inside the appropriate container. Consuming repos call it directly or wrap
+it in a thin `scripts/dev/test.sh`. Environment overrides:
+
+- `DOCKER_DEV_IMAGE` — override the container image
+- `DOCKER_TEST_CMD` — override the test command
+- `DOCKER_NETWORK` — join a Docker network (e.g., for MQ integration tests)
+- `MQ_*` env vars are automatically passed through to the container
 
 ### Git Hooks (`scripts/lib/git-hooks/`)
 

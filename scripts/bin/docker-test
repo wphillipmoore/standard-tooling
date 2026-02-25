@@ -1,0 +1,95 @@
+#!/usr/bin/env bash
+# Managed by standard-tooling — DO NOT EDIT in downstream repos.
+# Canonical source: https://github.com/wphillipmoore/standard-tooling
+# docker-test — run a repo's test suite inside a dev container.
+set -euo pipefail
+
+repo_root="$(git rev-parse --show-toplevel)"
+
+# -- auto-detect language and defaults ----------------------------------------
+
+detect_language() {
+  if [[ -f "${repo_root}/Gemfile" ]]; then
+    echo "ruby"
+  elif [[ -f "${repo_root}/pyproject.toml" ]]; then
+    echo "python"
+  elif [[ -f "${repo_root}/go.mod" ]]; then
+    echo "go"
+  elif [[ -f "${repo_root}/pom.xml" ]] || [[ -f "${repo_root}/mvnw" ]]; then
+    echo "java"
+  else
+    echo ""
+  fi
+}
+
+default_image() {
+  case "$1" in
+    ruby)   echo "dev-ruby:3.4"   ;;
+    python) echo "dev-python:3.14" ;;
+    go)     echo "dev-go:1.23"     ;;
+    java)   echo "dev-java:21"     ;;
+    *)      echo ""                ;;
+  esac
+}
+
+default_test_cmd() {
+  case "$1" in
+    ruby)   echo "bundle install --jobs 4 && bundle exec rake" ;;
+    python) echo "uv sync && uv run pytest tests/ -v"          ;;
+    go)     echo "go test ./..."                                ;;
+    java)   echo "./mvnw verify"                                ;;
+    *)      echo ""                                             ;;
+  esac
+}
+
+lang="$(detect_language)"
+
+if [[ -z "$lang" ]]; then
+  echo "ERROR: could not detect project language from repo contents." >&2
+  echo "Set DOCKER_DEV_IMAGE and DOCKER_TEST_CMD explicitly." >&2
+  exit 1
+fi
+
+image="${DOCKER_DEV_IMAGE:-$(default_image "$lang")}"
+test_cmd="${DOCKER_TEST_CMD:-$(default_test_cmd "$lang")}"
+network="${DOCKER_NETWORK:-}"
+
+if [[ -z "$image" ]]; then
+  echo "ERROR: no Docker image configured for language: ${lang}" >&2
+  exit 1
+fi
+
+if [[ -z "$test_cmd" ]]; then
+  echo "ERROR: no test command configured for language: ${lang}" >&2
+  exit 1
+fi
+
+# -- build docker run arguments -----------------------------------------------
+
+docker_args=(
+  run --rm
+  -v "${repo_root}:/workspace"
+  -w /workspace
+)
+
+if [[ -n "$network" ]]; then
+  docker_args+=(--network "$network")
+fi
+
+# Pass through MQ_* environment variables for integration tests.
+while IFS='=' read -r name _; do
+  docker_args+=(-e "$name")
+done < <(env | grep '^MQ_' || true)
+
+docker_args+=("$image")
+docker_args+=(bash -c "$test_cmd")
+
+# -- run ----------------------------------------------------------------------
+
+echo "Language: ${lang}"
+echo "Image:    ${image}"
+echo "Command:  ${test_cmd}"
+[[ -n "$network" ]] && echo "Network:  ${network}"
+echo "---"
+
+exec docker "${docker_args[@]}"
