@@ -205,7 +205,6 @@ def _normalize_trailing_newline(path: Path) -> None:
     path.write_text(path.read_text(encoding="utf-8").rstrip() + "\n", encoding="utf-8")
 
 
-
 def _create_pr(version: str, issue: int) -> str:
     import tempfile
 
