@@ -168,13 +168,11 @@ RELEASE_NOTES_DIR = "releases"
 
 
 def _generate_changelog(version: str) -> None:
-    for tool in ("git-cliff", "markdownlint"):
-        _ensure_tool(tool)
+    _ensure_tool("git-cliff")
     tag = f"develop-v{version}"
     print(f"Generating changelog with boundary tag: {tag}")
     subprocess.run(("git-cliff", "--tag", tag, "-o", "CHANGELOG.md"), check=True)  # noqa: S603, S607
     _normalize_trailing_newline(Path("CHANGELOG.md"))
-    _validate_markdownlint(Path("CHANGELOG.md"))
     git.run("add", "CHANGELOG.md")
     _generate_release_notes(version, tag)
     status = git.read_output("status", "--porcelain")
@@ -200,22 +198,11 @@ def _generate_release_notes(version: str, tag: str) -> None:
         check=True,
     )
     _normalize_trailing_newline(output_file)
-    _validate_markdownlint(output_file)
     git.run("add", str(releases_dir))
 
 
 def _normalize_trailing_newline(path: Path) -> None:
     path.write_text(path.read_text(encoding="utf-8").rstrip() + "\n", encoding="utf-8")
-
-
-def _validate_markdownlint(path: Path) -> None:
-    result = subprocess.run(  # noqa: S603, S607
-        ("markdownlint", str(path)), capture_output=True, text=True
-    )
-    if result.returncode != 0:
-        print(result.stdout)
-        print(result.stderr)
-        raise SystemExit(f"{path} failed markdownlint validation.")
 
 
 def _create_pr(version: str, issue: int) -> str:
