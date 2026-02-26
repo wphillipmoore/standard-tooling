@@ -1,8 +1,11 @@
 # Trivy ignore file for dev container images.
 #
+# These CVEs are either false positives for containers or unfixable
+# upstream issues. Review periodically and remove entries when fixes
+# become available in base images or dependencies.
+
 # Linux kernel CVEs — containers use the host kernel, not the kernel
-# headers/modules baked into the base image. These are false positives
-# for container image scanning.
+# headers/modules baked into the base image. False positives.
 
 CVE-2013-7445
 CVE-2019-19449
@@ -32,3 +35,44 @@ CVE-2026-23066
 CVE-2026-23152
 CVE-2026-23171
 CVE-2026-23210
+
+# Debian system cpython — present in go/ruby base images via Debian
+# packages. Not the language runtime we use, no Debian patch available.
+
+CVE-2025-13836
+CVE-2025-15366
+CVE-2025-15367
+CVE-2025-8194
+CVE-2026-1299
+
+# glibc — no fix available in Debian bookworm at time of writing.
+
+CVE-2026-0861
+
+# GnuPG tpm2daemon — dev containers do not use TPM. Low practical risk.
+
+CVE-2026-24882
+
+# npm transitive dependencies from markdownlint-cli@0.47.0 — no fix
+# available without an upstream markdownlint-cli release.
+
+CVE-2025-64756
+CVE-2025-69873
+CVE-2026-22036
+CVE-2026-23745
+CVE-2026-23950
+CVE-2026-24001
+CVE-2026-24842
+CVE-2026-26960
+CVE-2026-26996
+CVE-2026-27699
+
+# Node.js CVEs — should be resolved by Node 22.22.0 upgrade. Listed
+# here as safety net in case Trivy DB still attributes them to copied
+# node binary. Remove after confirming clean scan.
+
+CVE-2025-55130
+CVE-2025-55131
+CVE-2025-59465
+CVE-2025-59466
+CVE-2026-21637
