@@ -78,6 +78,54 @@ shellcheck scripts/bin/* scripts/lib/git-hooks/*       # Shell script lint
 uv run st-validate-local                               # Runs all checks
 ```
 
+### Three-Tier CI Model
+
+Testing is split across three tiers with increasing scope and cost:
+
+**Tier 1 — Local pre-commit (seconds):** Fast smoke tests in a single
+container. Run before every commit. No matrix.
+
+```bash
+./scripts/dev/test.sh        # pytest + 100% coverage in dev-python:3.12
+./scripts/dev/lint.sh        # ruff check + format in dev-python:3.12
+./scripts/dev/audit.sh       # uv lock --check in dev-python:3.12
+```
+
+**Tier 2 — Push CI (~1-2 min):** Triggers automatically on push to
+`feature/**`, `bugfix/**`, `hotfix/**`, `chore/**`. Single Python version
+(3.12), no security scanners or release gates.
+Workflow: `.github/workflows/ci-push.yml` (calls `ci.yml`).
+
+**Tier 3 — PR CI (~5-8 min):** Triggers on `pull_request`. Python 3.12,
+all quality checks, security scanners (CodeQL, Trivy, Semgrep), standards
+compliance, and release gates.
+Workflow: `.github/workflows/ci.yml`.
+
+### Docker-First Testing
+
+All tests can run inside containers — Docker is the only host prerequisite.
+The `dev-python:3.12` image is built from `docker/python/` and published to
+`ghcr.io/wphillipmoore/dev-python`.
+
+```bash
+# Build the dev image (one-time)
+./docker/build.sh
+
+# Run unit tests in container
+./scripts/dev/test.sh
+
+# Run linter in container
+./scripts/dev/lint.sh
+
+# Run dependency audit in container
+./scripts/dev/audit.sh
+```
+
+Environment overrides:
+
+- `DOCKER_DEV_IMAGE` — override the container image (default: `dev-python:3.12`)
+- `DOCKER_TEST_CMD` — override the test command
+
 ## Architecture
 
 ### Python Package (`src/standard_tooling/`)
@@ -111,6 +159,47 @@ Grandfathered validators consumed via PATH (no `.sh` extensions):
 - `validate-local-python` — Python-specific validation
 - `validate-local-go` — Go-specific validation
 - `validate-local-java` — Java-specific validation
+- `docker-test` — run repo test suite inside a dev container
+
+### Docker Dev Images (`docker/`)
+
+Language-specific dev containers for Docker-first testing:
+
+- **`docker/ruby/Dockerfile`** — Ruby dev image (`dev-ruby:3.4`)
+- **`docker/python/Dockerfile`** — Python dev image with uv (`dev-python:3.14`)
+- **`docker/java/Dockerfile`** — Java dev image, Eclipse Temurin (`dev-java:21`)
+- **`docker/go/Dockerfile`** — Go dev image with linters (`dev-go:1.23`)
+- **`docker/build.sh`** — Builds all images locally for every version in the matrix
+
+#### GHCR Publishing
+
+Images are published to GitHub Container Registry by the `docker-publish.yml`
+workflow on push to `develop` or `main` when `docker/**` files change, or via
+manual `workflow_dispatch`.
+
+Image naming: `ghcr.io/wphillipmoore/dev-{language}:{version}`
+
+Version matrix:
+
+| Language | Versions |
+|----------|----------|
+| Ruby     | 3.2, 3.3, 3.4 |
+| Python   | 3.13, 3.14 |
+| Java     | 21 |
+| Go       | 1.25, 1.26 |
+
+To trigger a rebuild manually: Actions → "Publish dev container images" →
+Run workflow.
+
+The `docker-test` script (`scripts/bin/docker-test`) auto-detects the project
+language (Gemfile, pyproject.toml, go.mod, pom.xml/mvnw) and runs the test
+suite inside the appropriate container. Consuming repos call it directly or wrap
+it in a thin `scripts/dev/test.sh`. Environment overrides:
+
+- `DOCKER_DEV_IMAGE` — override the container image
+- `DOCKER_TEST_CMD` — override the test command
+- `DOCKER_NETWORK` — join a Docker network (e.g., for MQ integration tests)
+- `MQ_*` env vars are automatically passed through to the container
 
 ### Git Hooks (`scripts/lib/git-hooks/`)
 
@@ -182,7 +271,7 @@ st-commit --type docs --message "update README" --body "Expanded usage section" 
 
 ```bash
 st-submit-pr --issue 42 --summary "Add new lint check for X"
-st-submit-pr --issue 42 --linkage Ref --summary "Update docs" --docs-only
+st-submit-pr --issue 42 --linkage Ref --summary "Update docs"
 st-submit-pr --issue 42 --summary "Fix regex bug" --notes "Tested on macOS and Linux"
 ```
 
@@ -191,7 +280,6 @@ st-submit-pr --issue 42 --summary "Fix regex bug" --notes "Tested on macOS and L
 - `--linkage` (optional, default: `Fixes`): `Fixes|Closes|Resolves|Ref`
 - `--title` (optional): PR title (default: most recent commit subject)
 - `--notes` (optional): additional notes
-- `--docs-only` (optional): applies docs-only testing exception
 - `--dry-run` (optional): print generated PR without executing
 
 ## Key References

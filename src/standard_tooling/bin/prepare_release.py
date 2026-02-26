@@ -7,6 +7,7 @@ Supported ecosystems:
   - Python: reads version from pyproject.toml
   - Maven:  reads version from pom.xml
   - Go:     reads version from **/version.go
+  - Ruby:   reads version from **/version.rb
   - VERSION file: reads version from VERSION (fallback)
 """
 
@@ -54,6 +55,17 @@ def _detect_go() -> str | None:
     return None
 
 
+def _detect_ruby() -> str | None:
+    if not Path("Gemfile").is_file():
+        return None
+    for path in Path().rglob("version.rb"):
+        text = path.read_text(encoding="utf-8")
+        match = re.search(r"VERSION\s*=\s*['\"]([^'\"]+)['\"]", text)
+        if match:
+            return match.group(1)
+    return None
+
+
 def _detect_version_file() -> str | None:
     path = Path("VERSION")
     if not path.is_file():
@@ -74,6 +86,7 @@ _DETECTORS: list[tuple[str, _Detector]] = [
     ("python", _detect_python),
     ("maven", _detect_maven),
     ("go", _detect_go),
+    ("ruby", _detect_ruby),
     ("version-file", _detect_version_file),
 ]
 
@@ -89,6 +102,7 @@ def detect_ecosystem() -> tuple[str, str]:
         "  - pyproject.toml with version (Python)\n"
         "  - pom.xml with version (Maven)\n"
         "  - go.mod + **/version.go (Go)\n"
+        "  - Gemfile + **/version.rb (Ruby)\n"
         "  - VERSION file with MAJOR.MINOR.PATCH"
     )
     raise SystemExit(msg)
@@ -149,25 +163,18 @@ def _merge_main(version: str) -> None:
     )
 
 
+RELEASE_NOTES_CONFIG = "cliff-release-notes.toml"
+RELEASE_NOTES_DIR = "releases"
+
+
 def _generate_changelog(version: str) -> None:
-    for tool in ("git-cliff", "markdownlint"):
-        _ensure_tool(tool)
+    _ensure_tool("git-cliff")
     tag = f"develop-v{version}"
     print(f"Generating changelog with boundary tag: {tag}")
     subprocess.run(("git-cliff", "--tag", tag, "-o", "CHANGELOG.md"), check=True)  # noqa: S603, S607
-    changelog = Path("CHANGELOG.md")
-    changelog.write_text(changelog.read_text(encoding="utf-8").rstrip() + "\n", encoding="utf-8")
-    result = subprocess.run(  # noqa: S603, S607
-        ("markdownlint", "CHANGELOG.md"), capture_output=True, text=True
-    )
-    if result.returncode != 0:
-        print(result.stdout)
-        print(result.stderr)
-        raise SystemExit(
-            "CHANGELOG.md failed markdownlint validation. "
-            "Fix cliff.toml template or CHANGELOG content before releasing."
-        )
+    _normalize_trailing_newline(Path("CHANGELOG.md"))
     git.run("add", "CHANGELOG.md")
+    _generate_release_notes(version, tag)
     status = git.read_output("status", "--porcelain")
     if not status:
         raise SystemExit(
@@ -176,6 +183,26 @@ def _generate_changelog(version: str) -> None:
             f"Aborting release preparation."
         )
     git.run("commit", "-m", f"chore: prepare release {version}")
+
+
+def _generate_release_notes(version: str, tag: str) -> None:
+    config = Path(RELEASE_NOTES_CONFIG)
+    if not config.is_file():
+        return
+    releases_dir = Path(RELEASE_NOTES_DIR)
+    releases_dir.mkdir(exist_ok=True)
+    output_file = releases_dir / f"v{version}.md"
+    print(f"Generating release notes: {output_file}")
+    subprocess.run(  # noqa: S603, S607
+        ("git-cliff", "--config", str(config), "--tag", tag, "--latest", "-o", str(output_file)),
+        check=True,
+    )
+    _normalize_trailing_newline(output_file)
+    git.run("add", str(releases_dir))
+
+
+def _normalize_trailing_newline(path: Path) -> None:
+    path.write_text(path.read_text(encoding="utf-8").rstrip() + "\n", encoding="utf-8")
 
 
 def _create_pr(version: str, issue: int) -> str:

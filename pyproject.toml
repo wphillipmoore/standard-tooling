@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "standard-tooling"
-version = "1.2.0"
+version = "1.2.1"
 description = "Shared development tooling for managed repositories"
 requires-python = ">=3.12,<4.0"
 dependencies = []
@@ -18,6 +18,7 @@ st-validate-local = "standard_tooling.bin.validate_local:main"
 st-ensure-label = "standard_tooling.bin.ensure_label:main"
 st-list-project-repos = "standard_tooling.bin.list_project_repos:main"
 st-set-project-field = "standard_tooling.bin.set_project_field:main"
+st-observatory = "standard_tooling.bin.observatory:main"
 
 [dependency-groups]
 dev = ["ruff", "mypy", "pytest", "pytest-cov", "pip-audit", "pip-licenses"]

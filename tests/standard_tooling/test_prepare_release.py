@@ -3,27 +3,29 @@
 from __future__ import annotations
 
 import subprocess
-from typing import TYPE_CHECKING
+from pathlib import Path
 from unittest.mock import patch
 
 import pytest
 
 from standard_tooling.bin.prepare_release import (
+    RELEASE_NOTES_CONFIG,
+    RELEASE_NOTES_DIR,
     _detect_go,
     _detect_maven,
     _detect_python,
+    _detect_ruby,
     _detect_version_file,
     _ensure_clean_tree,
     _ensure_develop_up_to_date,
     _ensure_on_develop,
     _ensure_tool,
+    _generate_release_notes,
+    _normalize_trailing_newline,
     detect_ecosystem,
     main,
     parse_args,
 )
-
-if TYPE_CHECKING:
-    from pathlib import Path
 
 
 def test_parse_args() -> None:
@@ -91,6 +93,40 @@ def test_detect_go_no_version_in_file(tmp_path: Path, monkeypatch: pytest.Monkey
     assert _detect_go() is None
 
 
+def test_detect_ruby(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / "Gemfile").write_text('source "https://rubygems.org"\n')
+    lib = tmp_path / "lib" / "mq" / "rest" / "admin"
+    lib.mkdir(parents=True)
+    (lib / "version.rb").write_text(
+        'module MQ\n  module REST\n    module Admin\n      VERSION = "1.3.0"\n    end\n  end\nend\n'
+    )
+    assert _detect_ruby() == "1.3.0"
+
+
+def test_detect_ruby_single_quotes(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / "Gemfile").write_text('source "https://rubygems.org"\n')
+    lib = tmp_path / "lib"
+    lib.mkdir()
+    (lib / "version.rb").write_text("module Foo\n  VERSION = '2.0.0'\nend\n")
+    assert _detect_ruby() == "2.0.0"
+
+
+def test_detect_ruby_no_gemfile(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.chdir(tmp_path)
+    assert _detect_ruby() is None
+
+
+def test_detect_ruby_no_version_in_file(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / "Gemfile").write_text('source "https://rubygems.org"\n')
+    lib = tmp_path / "lib"
+    lib.mkdir()
+    (lib / "version.rb").write_text("module Foo\nend\n")
+    assert _detect_ruby() is None
+
+
 def test_detect_version_file(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.chdir(tmp_path)
     (tmp_path / "VERSION").write_text("2.3.4\n")
@@ -114,6 +150,17 @@ def test_detect_ecosystem_python(tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     (tmp_path / "pyproject.toml").write_text('version = "1.0.0"\n')
     name, version = detect_ecosystem()
     assert name == "python"
+    assert version == "1.0.0"
+
+
+def test_detect_ecosystem_ruby(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / "Gemfile").write_text('source "https://rubygems.org"\n')
+    lib = tmp_path / "lib"
+    lib.mkdir()
+    (lib / "version.rb").write_text('module Foo\n  VERSION = "1.0.0"\nend\n')
+    name, version = detect_ecosystem()
+    assert name == "ruby"
     assert version == "1.0.0"
 
 
@@ -351,13 +398,73 @@ def test_main_no_publishable_changes(tmp_path: Path, monkeypatch: pytest.MonkeyP
         main(["--issue", "42"])
 
 
-def test_main_changelog_lint_fails(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+# -- helper function tests ---
+
+
+def test_normalize_trailing_newline(tmp_path: Path) -> None:
+    p = tmp_path / "test.md"
+    p.write_text("hello\n\n\n")
+    _normalize_trailing_newline(p)
+    assert p.read_text() == "hello\n"
+
+
+def test_normalize_trailing_newline_no_newline(tmp_path: Path) -> None:
+    p = tmp_path / "test.md"
+    p.write_text("hello")
+    _normalize_trailing_newline(p)
+    assert p.read_text() == "hello\n"
+
+
+# -- release notes tests ---
+
+
+def test_generate_release_notes_no_config(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.chdir(tmp_path)
+    _generate_release_notes("1.0.0", "develop-v1.0.0")
+    assert not (tmp_path / RELEASE_NOTES_DIR).exists()
+
+
+def test_generate_release_notes_creates_file(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / RELEASE_NOTES_CONFIG).write_text("[changelog]\nbody = ''\n")
+
+    def mock_subprocess_run(
+        cmd: tuple[str, ...], **kwargs: object
+    ) -> subprocess.CompletedProcess[str]:
+        if "git-cliff" in cmd:
+            output_idx = list(cmd).index("-o") + 1
+            Path(cmd[output_idx]).write_text("# Release 1.0.0\n")
+        return subprocess.CompletedProcess(args=list(cmd), returncode=0, stdout="", stderr="")
+
+    with (
+        patch(
+            "standard_tooling.bin.prepare_release.subprocess.run",
+            side_effect=mock_subprocess_run,
+        ),
+        patch("standard_tooling.bin.prepare_release.git.run"),
+    ):
+        _generate_release_notes("1.0.0", "develop-v1.0.0")
+
+    assert (tmp_path / RELEASE_NOTES_DIR / "v1.0.0.md").is_file()
+    assert (tmp_path / RELEASE_NOTES_DIR / "v1.0.0.md").read_text() == "# Release 1.0.0\n"
+
+
+def test_main_full_flow_with_release_notes(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.chdir(tmp_path)
     (tmp_path / "pyproject.toml").write_text('version = "1.0.0"\n')
+    (tmp_path / RELEASE_NOTES_CONFIG).write_text("[changelog]\nbody = ''\n")
+
+    status_calls = 0
 
     def mock_read_output(*args: str) -> str:
+        nonlocal status_calls
         if args[0] == "status":
-            return ""
+            status_calls += 1
+            if status_calls == 1:
+                return ""
+            return "M CHANGELOG.md"
         if args[0] == "rev-parse":
             return "abc123"
         return ""
@@ -365,13 +472,11 @@ def test_main_changelog_lint_fails(tmp_path: Path, monkeypatch: pytest.MonkeyPat
     def mock_subprocess_run(
         cmd: tuple[str, ...], **kwargs: object
     ) -> subprocess.CompletedProcess[str]:
-        if "git-cliff" in cmd:
-            (tmp_path / "CHANGELOG.md").write_text("# Changelog\n")
-            return subprocess.CompletedProcess(args=list(cmd), returncode=0, stdout="", stderr="")
-        if "markdownlint" in cmd:
-            return subprocess.CompletedProcess(
-                args=list(cmd), returncode=1, stdout="lint error", stderr="detail"
-            )
+        if "git-cliff" in cmd and "-o" in cmd:
+            output_idx = list(cmd).index("-o") + 1
+            output_path = Path(cmd[output_idx])
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+            output_path.write_text("# Content\n")
         return subprocess.CompletedProcess(args=list(cmd), returncode=0, stdout="", stderr="")
 
     with (
@@ -393,6 +498,12 @@ def test_main_changelog_lint_fails(tmp_path: Path, monkeypatch: pytest.MonkeyPat
             "standard_tooling.bin.prepare_release.subprocess.run",
             side_effect=mock_subprocess_run,
         ),
-        pytest.raises(SystemExit, match="failed markdownlint"),
+        patch(
+            "standard_tooling.bin.prepare_release.github.create_pr",
+            return_value="https://github.com/pr/1",
+        ),
+        patch("standard_tooling.bin.prepare_release.github.auto_merge"),
     ):
-        main(["--issue", "42"])
+        result = main(["--issue", "42"])
+    assert result == 0
+    assert (tmp_path / RELEASE_NOTES_DIR / "v1.0.0.md").is_file()

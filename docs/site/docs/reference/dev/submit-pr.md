@@ -28,7 +28,6 @@ st-submit-pr \
 | `--linkage` | No | Linkage keyword (default: `Fixes`) |
 | `--title` | No | PR title (default: last commit subject) |
 | `--notes` | No | Additional notes for the PR |
-| `--docs-only` | No | Apply docs-only testing exception |
 | `--dry-run` | No | Print PR body without executing |
 
 ### Linkage Keywords
@@ -42,10 +41,10 @@ st-submit-pr \
 st-submit-pr \
   --issue 42 --summary "Add new lint check for X"
 
-# Docs-only PR with Ref linkage
+# PR with Ref linkage
 st-submit-pr \
   --issue 42 --linkage Ref \
-  --summary "Update docs" --docs-only
+  --summary "Update docs"
 
 # Dry run to preview
 st-submit-pr \
@@ -61,11 +60,9 @@ st-submit-pr \
     - All other branches target `develop` with squash strategy
 3. Reads the testing section from
    `.github/pull_request_template.md`.
-4. For `--docs-only`, replaces the testing section with changed
-   file list.
-5. Pushes the branch to origin.
-6. Creates the PR via `gh pr create`.
-7. Enables auto-merge with the detected strategy.
+4. Pushes the branch to origin.
+5. Creates the PR via `gh pr create`.
+6. Enables auto-merge with the detected strategy.
 
 ## Exit Codes
 

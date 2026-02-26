@@ -30,7 +30,6 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     )
     parser.add_argument("--notes", default="", help="Additional notes")
     parser.add_argument("--title", default="", help="PR title (default: latest commit subject)")
-    parser.add_argument("--docs-only", action="store_true", help="Docs-only testing exception")
     parser.add_argument("--dry-run", action="store_true", help="Print without executing")
     return parser.parse_args(argv)
 
@@ -79,14 +78,6 @@ def main(argv: list[str] | None = None) -> int:
     title = args.title or git.read_output("log", "-1", "--pretty=%s")
 
     testing_section = _extract_testing_section(root)
-
-    if args.docs_only:
-        try:
-            changed = git.read_output("diff", "--name-only", f"{target_branch}...HEAD")
-        except Exception:  # noqa: BLE001
-            changed = git.read_output("diff", "--name-only", "HEAD~1")
-        file_lines = "\n".join(f"- {f}" for f in changed.splitlines() if f)
-        testing_section = f"Docs-only: tests skipped\n\nChanged files:\n{file_lines}"
 
     notes_section = args.notes or "-"
 

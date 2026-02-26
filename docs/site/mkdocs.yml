@@ -34,6 +34,7 @@ theme:
   features:
     - navigation.tabs
     - navigation.sections
+    - navigation.indexes
     - navigation.top
     - content.code.copy
     - search.highlight
@@ -71,7 +72,12 @@ nav:
           - st-prepare-release: reference/dev/prepare-release.md
           - st-finalize-repo: reference/dev/finalize-repo.md
           - st-validate-local: reference/dev/validate-local.md
+  - Releases:
+      - Changelog: changelog.md
+      - Release Notes:
+          - releases/index.md
   - Guides:
       - Consuming Repo Setup: guides/consuming-repo-setup.md
+      - Three-Tier CI: guides/three-tier-ci.md
       - Validation Matrix: guides/validation-matrix.md
       - Releasing: guides/releasing.md
