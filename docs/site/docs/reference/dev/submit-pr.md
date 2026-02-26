@@ -61,8 +61,8 @@ st-submit-pr \
 3. Reads the testing section from
    `.github/pull_request_template.md`.
 4. Pushes the branch to origin.
-6. Creates the PR via `gh pr create`.
-7. Enables auto-merge with the detected strategy.
+5. Creates the PR via `gh pr create`.
+6. Enables auto-merge with the detected strategy.
 
 ## Exit Codes
 
