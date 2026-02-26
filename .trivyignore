@@ -1,0 +1,34 @@
+# Trivy ignore file for dev container images.
+#
+# Linux kernel CVEs — containers use the host kernel, not the kernel
+# headers/modules baked into the base image. These are false positives
+# for container image scanning.
+
+CVE-2013-7445
+CVE-2019-19449
+CVE-2019-19814
+CVE-2021-3847
+CVE-2021-3864
+CVE-2024-21803
+CVE-2024-58015
+CVE-2024-58093
+CVE-2025-22104
+CVE-2025-38137
+CVE-2025-38187
+CVE-2025-38204
+CVE-2025-38206
+CVE-2025-38421
+CVE-2025-38584
+CVE-2025-38627
+CVE-2025-38636
+CVE-2025-39859
+CVE-2025-39862
+CVE-2025-39958
+CVE-2025-40064
+CVE-2025-40135
+CVE-2025-40158
+CVE-2025-40168
+CVE-2026-23066
+CVE-2026-23152
+CVE-2026-23171
+CVE-2026-23210
