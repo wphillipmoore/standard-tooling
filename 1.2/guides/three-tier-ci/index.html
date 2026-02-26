@@ -11,8 +11,10 @@
       
       
       
-        <link rel="prev" href="../validation-matrix/">
+        <link rel="prev" href="../consuming-repo-setup/">
       
+      
+        <link rel="next" href="../validation-matrix/">
       
       
         
@@ -23,7 +25,7 @@
     
     
       
-        <title>Releasing - Standard Tooling</title>
+        <title>Three-Tier CI - Standard Tooling</title>
       
     
     
@@ -74,7 +76,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#releasing" class="md-skip">
+        <a href="#three-tier-ci-architecture" class="md-skip">
           Skip to content
         </a>
       
@@ -112,7 +114,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Releasing
+              Three-Tier CI
             
           </span>
         </div>
@@ -1437,10 +1439,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../three-tier-ci/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Three-Tier CI
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -1456,6 +1485,286 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#table-of-contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Table of Contents
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tier-1-local-pre-commit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tier 1: Local pre-commit
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tier-2-push-ci" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tier 2: Push CI
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tier-3-pr-ci" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tier 3: PR CI
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Architecture
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Architecture">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#reusable-workflow-pattern" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reusable workflow pattern
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#shared-security-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Shared security workflow
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#default-matrix-pattern" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Default matrix pattern
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#implementation-guide" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Implementation guide
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Implementation guide">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-convert-ciyml-to-reusable-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Convert ci.yml to reusable workflow
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-create-ci-pushyml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Create ci-push.yml
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-factor-security-into-shared-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Factor security into shared workflow
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-add-dev-scripts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: Add dev scripts
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-5-update-ci-gates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 5: Update CI gates
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-6-update-claudemd" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 6: Update CLAUDE.md
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ci-gates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CI gates
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dev-container-images" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dev container images
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Dev container images">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#available-images" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Available images
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#building-locally" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Building locally
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#publishing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Publishing
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#design-principles" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Design principles
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -1493,37 +1802,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Releasing
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../releasing/" class="md-nav__link">
         
   
   
@@ -1539,120 +1821,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#release-workflow" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Release Workflow
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Release Workflow">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#1-develop-changes" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        1. Develop Changes
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#2-prepare-the-release" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        2. Prepare the Release
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#3-post-merge-automation" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        3. Post-Merge Automation
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#4-finalize" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        4. Finalize
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#consuming-repo-updates" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Consuming Repo Updates
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#version-detection" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Version Detection
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#documentation-deployment" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Documentation Deployment
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -1692,22 +1860,77 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#release-workflow" class="md-nav__link">
+  <a href="#table-of-contents" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Release Workflow
+        Table of Contents
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Release Workflow">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tier-1-local-pre-commit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tier 1: Local pre-commit
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tier-2-push-ci" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tier 2: Push CI
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tier-3-pr-ci" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tier 3: PR CI
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Architecture
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Architecture">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#1-develop-changes" class="md-nav__link">
+  <a href="#reusable-workflow-pattern" class="md-nav__link">
     <span class="md-ellipsis">
       
-        1. Develop Changes
+        Reusable workflow pattern
       
     </span>
   </a>
@@ -1715,10 +1938,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#2-prepare-the-release" class="md-nav__link">
+  <a href="#shared-security-workflow" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2. Prepare the Release
+        Shared security workflow
       
     </span>
   </a>
@@ -1726,21 +1949,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#3-post-merge-automation" class="md-nav__link">
+  <a href="#default-matrix-pattern" class="md-nav__link">
     <span class="md-ellipsis">
       
-        3. Post-Merge Automation
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#4-finalize" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        4. Finalize
+        Default matrix pattern
       
     </span>
   </a>
@@ -1753,10 +1965,93 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#consuming-repo-updates" class="md-nav__link">
+  <a href="#implementation-guide" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Consuming Repo Updates
+        Implementation guide
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Implementation guide">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-convert-ciyml-to-reusable-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Convert ci.yml to reusable workflow
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-create-ci-pushyml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Create ci-push.yml
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-factor-security-into-shared-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Factor security into shared workflow
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-add-dev-scripts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: Add dev scripts
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-5-update-ci-gates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 5: Update CI gates
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-6-update-claudemd" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 6: Update CLAUDE.md
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ci-gates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CI gates
       
     </span>
   </a>
@@ -1764,24 +2059,63 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#version-detection" class="md-nav__link">
+  <a href="#dev-container-images" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Version Detection
+        Dev container images
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Dev container images">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#available-images" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Available images
       
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#documentation-deployment" class="md-nav__link">
+        
+          <li class="md-nav__item">
+  <a href="#building-locally" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Documentation Deployment
+        Building locally
       
     </span>
   </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#publishing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Publishing
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#design-principles" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Design principles
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -1802,85 +2136,312 @@
 
 
 
-<h1 id="releasing">Releasing<a class="headerlink" href="#releasing" title="Permanent link">&para;</a></h1>
-<p>This guide covers the release workflow for standard-tooling.</p>
-<h2 id="release-workflow">Release Workflow<a class="headerlink" href="#release-workflow" title="Permanent link">&para;</a></h2>
-<h3 id="1-develop-changes">1. Develop Changes<a class="headerlink" href="#1-develop-changes" title="Permanent link">&para;</a></h3>
-<p>All changes start as feature PRs targeting <code>develop</code>:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>git<span class="w"> </span>checkout<span class="w"> </span>-b<span class="w"> </span>feature/42-add-new-check
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="c1"># ... make changes ...</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>st-commit<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span>--type<span class="w"> </span>feat<span class="w"> </span>--message<span class="w"> </span><span class="s2">&quot;add new check&quot;</span><span class="w"> </span>--agent<span class="w"> </span>claude
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>st-submit-pr<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">  </span>--issue<span class="w"> </span><span class="m">42</span><span class="w"> </span>--summary<span class="w"> </span><span class="s2">&quot;Add new check&quot;</span>
-</code></pre></div>
-<h3 id="2-prepare-the-release">2. Prepare the Release<a class="headerlink" href="#2-prepare-the-release" title="Permanent link">&para;</a></h3>
-<p>Once <code>develop</code> has all changes for the release, run:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>st-prepare-release<span class="w"> </span>--issue<span class="w"> </span><span class="m">50</span>
-</code></pre></div>
-<p>This tool:</p>
+<h1 id="three-tier-ci-architecture">Three-Tier CI Architecture<a class="headerlink" href="#three-tier-ci-architecture" title="Permanent link">&para;</a></h1>
+<p>This guide explains the three-tier continuous integration model used
+across all <code>mq-rest-admin-*</code> repositories, and how to implement it in
+new projects.</p>
+<h2 id="table-of-contents">Table of Contents<a class="headerlink" href="#table-of-contents" title="Permanent link">&para;</a></h2>
 <ul>
-<li>Creates a <code>release/{version}</code> branch from develop</li>
-<li>Merges main to incorporate prior release history</li>
-<li>Generates the changelog via git-cliff</li>
-<li>Creates a PR to main with auto-merge enabled</li>
+<li><a href="#overview">Overview</a></li>
+<li><a href="#tier-1-local-pre-commit">Tier 1: Local pre-commit</a></li>
+<li><a href="#tier-2-push-ci">Tier 2: Push CI</a></li>
+<li><a href="#tier-3-pr-ci">Tier 3: PR CI</a></li>
+<li><a href="#architecture">Architecture</a></li>
+<li><a href="#implementation-guide">Implementation guide</a></li>
+<li><a href="#ci-gates">CI gates</a></li>
+<li><a href="#dev-container-images">Dev container images</a></li>
 </ul>
-<h3 id="3-post-merge-automation">3. Post-Merge Automation<a class="headerlink" href="#3-post-merge-automation" title="Permanent link">&para;</a></h3>
-<p>After the release PR merges to main, CI automation handles:</p>
-<ul>
-<li>Creating and pushing the <code>v{version}</code> tag</li>
-<li>Creating the GitHub Release</li>
-<li>Publishing the package artifact</li>
-<li>Deploying documentation</li>
-<li>Creating an automated version bump PR to develop</li>
-</ul>
-<h3 id="4-finalize">4. Finalize<a class="headerlink" href="#4-finalize" title="Permanent link">&para;</a></h3>
-<p>Clean up local state:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>st-finalize-repo
-</code></pre></div>
-<h2 id="consuming-repo-updates">Consuming Repo Updates<a class="headerlink" href="#consuming-repo-updates" title="Permanent link">&para;</a></h2>
-<p>Standard-tooling is consumed via PATH, so consuming repos pick up
-updates automatically when their sibling checkout is updated:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nb">cd</span><span class="w"> </span>../standard-tooling
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>git<span class="w"> </span>pull
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>uv<span class="w"> </span>sync
-</code></pre></div>
-<p>For CI, consuming repos use <code>standard-actions</code> which pins to a
-<code>standard-tooling-ref</code>. After tagging a new release, update the
-default ref in the <code>standards-compliance</code> action.</p>
-<h2 id="version-detection">Version Detection<a class="headerlink" href="#version-detection" title="Permanent link">&para;</a></h2>
-<p><code>st-prepare-release</code> auto-detects the version from the project
-ecosystem:</p>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
+<p>Testing is split into three tiers with increasing scope, cost, and
+feedback latency:</p>
 <table>
 <thead>
 <tr>
-<th>Ecosystem</th>
-<th>Source</th>
+<th>Tier</th>
+<th>Trigger</th>
+<th>Time</th>
+<th>Security</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>Python</td>
-<td><code>pyproject.toml</code></td>
+<td>1</td>
+<td>Manual (before commit)</td>
+<td>Seconds</td>
+<td>No</td>
 </tr>
 <tr>
-<td>Maven</td>
-<td><code>pom.xml</code></td>
+<td>2</td>
+<td>Push to feature branch</td>
+<td>~3-5 min</td>
+<td>No</td>
 </tr>
 <tr>
-<td>Go</td>
-<td><code>**/version.go</code></td>
-</tr>
-<tr>
-<td>Fallback</td>
-<td><code>VERSION</code> file</td>
+<td>3</td>
+<td>Pull request</td>
+<td>~8-10 min</td>
+<td>Yes</td>
 </tr>
 </tbody>
 </table>
-<h2 id="documentation-deployment">Documentation Deployment<a class="headerlink" href="#documentation-deployment" title="Permanent link">&para;</a></h2>
-<p>The documentation site deploys automatically on pushes to <code>develop</code>
-and <code>main</code> via <code>.github/workflows/docs.yml</code>. The version displayed
-in the site is derived from the project version using major.minor.</p>
+<ul>
+<li><strong>Tier 1</strong>: Single version, unit tests only</li>
+<li><strong>Tier 2</strong>: Single version, unit + integration tests</li>
+<li><strong>Tier 3</strong>: Full version matrix, all checks</li>
+</ul>
+<p>The goal is fast local feedback for the developer, rapid push-to-CI
+validation before PR submission, and comprehensive gated checks on the
+PR itself.</p>
+<h2 id="tier-1-local-pre-commit">Tier 1: Local pre-commit<a class="headerlink" href="#tier-1-local-pre-commit" title="Permanent link">&para;</a></h2>
+<p>Run in a dev container on the developer's machine. Docker is the only
+host prerequisite.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>./scripts/dev/test.sh<span class="w">        </span><span class="c1"># Unit tests + linting</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>./scripts/dev/lint.sh<span class="w">        </span><span class="c1"># Lint and formatting checks</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>./scripts/dev/audit.sh<span class="w">       </span><span class="c1"># Dependency and license audit</span>
+</code></pre></div>
+<p>Each script follows the same pattern:</p>
+<ol>
+<li>Set <code>DOCKER_DEV_IMAGE</code> (default: <code>dev-&lt;language&gt;:&lt;latest-version&gt;</code>)</li>
+<li>Set <code>DOCKER_TEST_CMD</code> (language-specific command)</li>
+<li>Delegate to <code>docker-test</code> if available, otherwise run <code>docker run</code>
+   directly</li>
+</ol>
+<p>Environment overrides:</p>
+<ul>
+<li><code>DOCKER_DEV_IMAGE</code> — use a different container image</li>
+<li><code>DOCKER_TEST_CMD</code> — override the test command</li>
+</ul>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>Build the dev images locally before first use:
+<code>cd ../standard-tooling &amp;&amp; docker/build.sh</code></p>
+</div>
+<h2 id="tier-2-push-ci">Tier 2: Push CI<a class="headerlink" href="#tier-2-push-ci" title="Permanent link">&para;</a></h2>
+<p>Triggers automatically on push to <code>feature/**</code>, <code>bugfix/**</code>,
+<code>hotfix/**</code>, or <code>chore/**</code> branches.</p>
+<p><strong>What runs:</strong></p>
+<ul>
+<li>Unit tests (single latest version)</li>
+<li>Integration tests (single latest version)</li>
+<li>Dependency audit</li>
+</ul>
+<p><strong>What is skipped:</strong></p>
+<ul>
+<li>Security scanners (CodeQL, Trivy, Semgrep)</li>
+<li>Standards compliance</li>
+<li>Release gates</li>
+<li>Full version matrix</li>
+</ul>
+<p>The workflow file is <code>.github/workflows/ci-push.yml</code>, a thin wrapper
+that calls <code>ci.yml</code> with restricted inputs:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">CI (push)</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="nt">on</span><span class="p">:</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span><span class="nt">push</span><span class="p">:</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">    </span><span class="nt">branches</span><span class="p">:</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;feature/**&quot;</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;bugfix/**&quot;</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;hotfix/**&quot;</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;chore/**&quot;</span>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="nt">permissions</span><span class="p">:</span>
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="w">  </span><span class="nt">contents</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">read</span>
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="w">  </span><span class="nt">security-events</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">write</span>
+<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>
+<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="nt">jobs</span><span class="p">:</span>
+<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="w">  </span><span class="nt">ci</span><span class="p">:</span>
+<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a><span class="w">    </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">./.github/workflows/ci.yml</span>
+<a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a><span class="w">    </span><span class="nt">permissions</span><span class="p">:</span>
+<a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a><span class="w">      </span><span class="nt">contents</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">read</span>
+<a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a><span class="w">      </span><span class="nt">security-events</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">write</span>
+<a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a><span class="w">    </span><span class="nt">with</span><span class="p">:</span>
+<a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a><span class="w">      </span><span class="nt">versions</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;[&quot;&lt;latest&gt;&quot;]&#39;</span>
+<a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a><span class="w">      </span><span class="nt">integration-matrix</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;[{...single</span><span class="nv"> </span><span class="s">entry...}]&#39;</span>
+<a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a><span class="w">      </span><span class="nt">run-security</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;false&quot;</span>
+<a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a><span class="w">      </span><span class="nt">run-release-gates</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;false&quot;</span>
+</code></pre></div>
+<h2 id="tier-3-pr-ci">Tier 3: PR CI<a class="headerlink" href="#tier-3-pr-ci" title="Permanent link">&para;</a></h2>
+<p>Triggers on <code>pull_request</code> events. Runs the full validation suite.</p>
+<p><strong>What runs:</strong></p>
+<ul>
+<li>Unit tests across the full version matrix</li>
+<li>Integration tests across the full version matrix</li>
+<li>Security scanners (CodeQL, Trivy, Semgrep) via shared reusable workflow</li>
+<li>Standards compliance</li>
+<li>Dependency audit</li>
+<li>Release gates (version divergence, format validation)</li>
+</ul>
+<p>The workflow file is <code>.github/workflows/ci.yml</code>, which doubles as both
+the direct PR trigger and a reusable workflow via <code>workflow_call</code>.</p>
+<h2 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">&para;</a></h2>
+<h3 id="reusable-workflow-pattern">Reusable workflow pattern<a class="headerlink" href="#reusable-workflow-pattern" title="Permanent link">&para;</a></h3>
+<p><code>ci.yml</code> accepts <code>workflow_call</code> with inputs that control scope:</p>
+<table>
+<thead>
+<tr>
+<th>Input</th>
+<th>Type</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>versions</code></td>
+<td>string (JSON)</td>
+<td>Full matrix</td>
+</tr>
+<tr>
+<td><code>integration-matrix</code></td>
+<td>string (JSON)</td>
+<td>Full matrix</td>
+</tr>
+<tr>
+<td><code>run-security</code></td>
+<td>string</td>
+<td><code>"true"</code></td>
+</tr>
+<tr>
+<td><code>run-release-gates</code></td>
+<td>string</td>
+<td><code>"true"</code></td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><code>versions</code> — language versions to test</li>
+<li><code>integration-matrix</code> — test entries with ports</li>
+<li><code>run-security</code> — enable security scanners</li>
+<li><code>run-release-gates</code> — enable release gate checks</li>
+</ul>
+<p>When triggered directly by <code>pull_request</code>, all inputs are empty and
+defaults produce the full Tier 3 behavior. When called from
+<code>ci-push.yml</code>, inputs restrict scope to Tier 2.</p>
+<div class="admonition warning">
+<p class="admonition-title">String inputs, not booleans</p>
+<p>Use <code>type: string</code> for gate inputs, not <code>type: boolean</code>. Boolean
+inputs are unreliable for job-level <code>if</code> conditions when the
+workflow is triggered directly (inputs are empty, not <code>false</code>).
+Use <code>!= 'false'</code> comparisons instead.</p>
+</div>
+<h3 id="shared-security-workflow">Shared security workflow<a class="headerlink" href="#shared-security-workflow" title="Permanent link">&para;</a></h3>
+<p>Security scanners and standards compliance are factored into a shared
+reusable workflow at
+<code>wphillipmoore/standard-actions/.github/workflows/ci-security.yml</code>.</p>
+<p>This provides four jobs:</p>
+<ul>
+<li><code>ci: standards-compliance</code></li>
+<li><code>security: codeql</code></li>
+<li><code>security: trivy</code></li>
+<li><code>security: semgrep</code></li>
+</ul>
+<p>Call it from <code>ci.yml</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nt">security-and-standards</span><span class="p">:</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="nt">if</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${{ inputs.run-security != &#39;false&#39; }}</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">wphillipmoore/standard-actions/.github/workflows/ci-security.yml@develop</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">  </span><span class="nt">with</span><span class="p">:</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">    </span><span class="nt">language</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ruby</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">    </span><span class="c1"># For Go, also set: semgrep-language: golang</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">  </span><span class="nt">permissions</span><span class="p">:</span>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">    </span><span class="nt">contents</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">read</span>
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="w">    </span><span class="nt">security-events</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">write</span>
+</code></pre></div>
+<div class="admonition tip">
+<p class="admonition-title">Semgrep language names</p>
+<p>Semgrep uses <code>p/&lt;language&gt;</code> rulesets. Most languages match their
+common name (<code>ruby</code>, <code>python</code>, <code>java</code>) but Go requires <code>golang</code>.
+Use the <code>semgrep-language</code> input to override when needed.</p>
+</div>
+<h3 id="default-matrix-pattern">Default matrix pattern<a class="headerlink" href="#default-matrix-pattern" title="Permanent link">&para;</a></h3>
+<p>Use <code>fromJSON()</code> with a fallback to embed the full default matrix
+directly in the workflow:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nt">strategy</span><span class="p">:</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="nt">fail-fast</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span><span class="nt">matrix</span><span class="p">:</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">    </span><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${{ fromJSON(inputs.versions || &#39;[&quot;3.2&quot;, &quot;3.3&quot;, &quot;3.4&quot;]&#39;) }}</span>
+</code></pre></div>
+<p>This avoids needing a separate job to compute the matrix.</p>
+<h2 id="implementation-guide">Implementation guide<a class="headerlink" href="#implementation-guide" title="Permanent link">&para;</a></h2>
+<h3 id="step-1-convert-ciyml-to-reusable-workflow">Step 1: Convert ci.yml to reusable workflow<a class="headerlink" href="#step-1-convert-ciyml-to-reusable-workflow" title="Permanent link">&para;</a></h3>
+<p>Add <code>workflow_call</code> alongside <code>pull_request</code> in the <code>on:</code> block. Define
+inputs with string types and sensible defaults.</p>
+<h3 id="step-2-create-ci-pushyml">Step 2: Create ci-push.yml<a class="headerlink" href="#step-2-create-ci-pushyml" title="Permanent link">&para;</a></h3>
+<p>Create a thin wrapper that calls <code>ci.yml</code> with single-version inputs
+and security/release gates disabled.</p>
+<h3 id="step-3-factor-security-into-shared-workflow">Step 3: Factor security into shared workflow<a class="headerlink" href="#step-3-factor-security-into-shared-workflow" title="Permanent link">&para;</a></h3>
+<p>Replace inline CodeQL, Trivy, Semgrep, and standards-compliance jobs
+with a single call to <code>ci-security.yml</code>.</p>
+<h3 id="step-4-add-dev-scripts">Step 4: Add dev scripts<a class="headerlink" href="#step-4-add-dev-scripts" title="Permanent link">&para;</a></h3>
+<p>Create <code>scripts/dev/test.sh</code>, <code>scripts/dev/lint.sh</code>, and
+<code>scripts/dev/audit.sh</code> following the Docker-first pattern. See
+<a href="#dev-container-images">Dev container images</a> for image details.</p>
+<h3 id="step-5-update-ci-gates">Step 5: Update CI gates<a class="headerlink" href="#step-5-update-ci-gates" title="Permanent link">&para;</a></h3>
+<p>Update the repository ruleset to match new check names. Key changes:</p>
+<ul>
+<li>Remove <code>ci: docs-only</code> (no longer exists)</li>
+<li>Replace <code>ci: standards-compliance</code> with
+  <code>security-and-standards / ci: standards-compliance</code></li>
+<li>Replace <code>security: *</code> with <code>security-and-standards / security: *</code></li>
+</ul>
+<p>Use the GitHub API to update rulesets:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>gh<span class="w"> </span>api<span class="w"> </span>repos/OWNER/REPO/rulesets/RULESET_ID<span class="w"> </span>-X<span class="w"> </span>PUT<span class="w"> </span>--input<span class="w"> </span>gates.json
+</code></pre></div>
+<h3 id="step-6-update-claudemd">Step 6: Update CLAUDE.md<a class="headerlink" href="#step-6-update-claudemd" title="Permanent link">&para;</a></h3>
+<p>Add three-tier CI model and Docker-first testing sections to the
+repository's <code>CLAUDE.md</code>.</p>
+<h2 id="ci-gates">CI gates<a class="headerlink" href="#ci-gates" title="Permanent link">&para;</a></h2>
+<p>When security and standards jobs move into the shared reusable workflow,
+their check names gain a <code>security-and-standards /</code> prefix:</p>
+<p>Old names and their replacements:</p>
+<ul>
+<li><code>ci: standards-compliance</code> →
+  <code>security-and-standards / ci: standards-compliance</code></li>
+<li><code>security: codeql</code> →
+  <code>security-and-standards / security: codeql</code></li>
+<li><code>security: trivy</code> →
+  <code>security-and-standards / security: trivy</code></li>
+<li><code>security: semgrep</code> →
+  <code>security-and-standards / security: semgrep</code></li>
+</ul>
+<p>Jobs that remain inline keep their names unchanged:</p>
+<ul>
+<li><code>ci: dependency-audit</code></li>
+<li><code>release: gates</code></li>
+<li><code>test: unit (&lt;version&gt;)</code></li>
+<li><code>test: integration (&lt;version&gt;)</code></li>
+</ul>
+<h2 id="dev-container-images">Dev container images<a class="headerlink" href="#dev-container-images" title="Permanent link">&para;</a></h2>
+<p>Published to <code>ghcr.io/wphillipmoore/dev-&lt;language&gt;:&lt;version&gt;</code> from the
+<code>docker/</code> directory in this repository.</p>
+<h3 id="available-images">Available images<a class="headerlink" href="#available-images" title="Permanent link">&para;</a></h3>
+<p><strong><code>dev-ruby</code></strong> (3.2, 3.3, 3.4)
+:   Base: <code>ruby:&lt;v&gt;-slim</code>. Includes build-essential,
+    git, curl, bundler.</p>
+<p><strong><code>dev-python</code></strong> (3.12, 3.13, 3.14)
+:   Base: <code>python:&lt;v&gt;-slim</code>. Includes git, curl, uv.</p>
+<p><strong><code>dev-java</code></strong> (17, 21)
+:   Base: <code>eclipse-temurin:&lt;v&gt;-jdk</code>. Includes git, curl.</p>
+<p><strong><code>dev-go</code></strong> (1.25, 1.26)
+:   Base: <code>golang:&lt;v&gt;</code>. Includes golangci-lint,
+    govulncheck, go-licenses, gocyclo.</p>
+<h3 id="building-locally">Building locally<a class="headerlink" href="#building-locally" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nb">cd</span><span class="w"> </span>../standard-tooling
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>docker/build.sh
+</code></pre></div>
+<p>This builds all images. Individual images can be built with:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>docker<span class="w"> </span>build<span class="w"> </span>--build-arg<span class="w"> </span><span class="nv">RUBY_VERSION</span><span class="o">=</span><span class="m">3</span>.4<span class="w"> </span>-t<span class="w"> </span>dev-ruby:3.4<span class="w"> </span>docker/ruby/
+</code></pre></div>
+<h3 id="publishing">Publishing<a class="headerlink" href="#publishing" title="Permanent link">&para;</a></h3>
+<p>Images are published automatically when files under <code>docker/</code> change
+on the <code>develop</code> or <code>main</code> branches via
+<code>.github/workflows/docker-publish.yml</code>.</p>
+<h3 id="design-principles">Design principles<a class="headerlink" href="#design-principles" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Thin images</strong> — language runtime + package manager + git/curl</li>
+<li><strong>Project-managed dependencies</strong> — tools come from lockfiles at
+  container startup (e.g., <code>bundle install</code>, <code>uv sync</code>, <code>go install</code>)</li>
+<li><strong>No host requirements</strong> — Docker is the only prerequisite for
+  local development</li>
+</ul>
 
 
 
