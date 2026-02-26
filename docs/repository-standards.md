@@ -81,7 +81,7 @@ The script resolves the correct `Co-Authored-By` identity from the
 st-submit-pr \
   --issue NUMBER --summary TEXT \
   [--linkage KEYWORD] [--title TEXT] \
-  [--notes TEXT] [--docs-only] [--dry-run]
+  [--notes TEXT] [--dry-run]
 ```
 
 - `--issue` (required): GitHub issue number (just the number)
@@ -89,7 +89,6 @@ st-submit-pr \
 - `--linkage` (optional, default: `Fixes`): `Fixes|Closes|Resolves|Ref`
 - `--title` (optional): PR title (default: most recent commit subject)
 - `--notes` (optional): additional notes
-- `--docs-only` (optional): applies docs-only testing exception
 - `--dry-run` (optional): print generated PR without executing
 
 The script detects the target branch and merge strategy automatically.
