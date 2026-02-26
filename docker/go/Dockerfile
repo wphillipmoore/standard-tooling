@@ -4,6 +4,7 @@ ARG GO_VERSION=1.25
 ARG NODE_VERSION=22.22.0
 FROM node:${NODE_VERSION}-bookworm-slim AS node-donor
 FROM golang:${GO_VERSION}
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 COPY --from=node-donor /usr/local/bin/node /usr/local/bin/node
 COPY --from=node-donor /usr/local/lib/node_modules /usr/local/lib/node_modules
