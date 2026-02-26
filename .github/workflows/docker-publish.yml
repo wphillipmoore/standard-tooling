@@ -104,6 +104,7 @@ jobs:
           scan-ref: ${{ env.IMAGE }}
           exit-code: "1"
           sarif-category: "trivy-image-${{ matrix.language }}-${{ matrix.version }}"
+          trivyignores: .trivyignore
 
       - name: Push image
         run: |
