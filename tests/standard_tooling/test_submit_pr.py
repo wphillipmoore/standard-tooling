@@ -41,7 +41,6 @@ def test_parse_args_required() -> None:
     assert args.issue == "42"
     assert args.summary == "Fix bug"
     assert args.linkage == "Fixes"
-    assert args.docs_only is False
     assert args.dry_run is False
 
 
@@ -58,12 +57,10 @@ def test_parse_args_all_options() -> None:
             "Tested",
             "--title",
             "My PR",
-            "--docs-only",
             "--dry-run",
         ]
     )
     assert args.linkage == "Ref"
-    assert args.docs_only is True
     assert args.dry_run is True
 
 
@@ -130,58 +127,6 @@ def test_main_dry_run_release_branch(tmp_path: Path) -> None:
         patch("standard_tooling.bin.submit_pr.git.read_output", return_value="release: 1.0.0"),
     ):
         result = main(["--issue", "42", "--summary", "Release 1.0.0", "--dry-run"])
-    assert result == 0
-
-
-def test_main_dry_run_docs_only(tmp_path: Path) -> None:
-    with (
-        patch("standard_tooling.bin.submit_pr.git.repo_root", return_value=tmp_path),
-        patch("standard_tooling.bin.submit_pr.git.current_branch", return_value="feature/x"),
-        patch(
-            "standard_tooling.bin.submit_pr.git.read_output",
-            return_value="docs: update README",
-        ),
-    ):
-        result = main(
-            [
-                "--issue",
-                "42",
-                "--summary",
-                "Update docs",
-                "--docs-only",
-                "--dry-run",
-            ]
-        )
-    assert result == 0
-
-
-def test_main_dry_run_docs_only_diff_fallback(tmp_path: Path) -> None:
-    call_count = 0
-
-    def mock_read_output(*args: str) -> str:
-        nonlocal call_count
-        call_count += 1
-        if args[0] == "log":
-            return "docs: update README"
-        if args[0] == "diff" and "develop...HEAD" in " ".join(args):
-            raise RuntimeError("no upstream")
-        return "README.md"
-
-    with (
-        patch("standard_tooling.bin.submit_pr.git.repo_root", return_value=tmp_path),
-        patch("standard_tooling.bin.submit_pr.git.current_branch", return_value="feature/x"),
-        patch("standard_tooling.bin.submit_pr.git.read_output", side_effect=mock_read_output),
-    ):
-        result = main(
-            [
-                "--issue",
-                "42",
-                "--summary",
-                "Update docs",
-                "--docs-only",
-                "--dry-run",
-            ]
-        )
     assert result == 0
 
 
