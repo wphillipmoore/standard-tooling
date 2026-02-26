@@ -30,7 +30,7 @@ jobs:
 
       - name: Download Hadolint
         run: |
-          curl -sL "https://github.com/hadolint/hadolint/releases/download/v2.12.0/hadolint-Linux-x86_64" \
+          curl -sL "https://github.com/hadolint/hadolint/releases/download/v2.14.0/hadolint-Linux-x86_64" \
             -o /usr/local/bin/hadolint
           chmod +x /usr/local/bin/hadolint
 
