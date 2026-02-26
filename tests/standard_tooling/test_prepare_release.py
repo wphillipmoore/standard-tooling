@@ -22,7 +22,6 @@ from standard_tooling.bin.prepare_release import (
     _ensure_tool,
     _generate_release_notes,
     _normalize_trailing_newline,
-    _validate_markdownlint,
     detect_ecosystem,
     main,
     parse_args,
@@ -399,53 +398,6 @@ def test_main_no_publishable_changes(tmp_path: Path, monkeypatch: pytest.MonkeyP
         main(["--issue", "42"])
 
 
-def test_main_changelog_lint_fails(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.chdir(tmp_path)
-    (tmp_path / "pyproject.toml").write_text('version = "1.0.0"\n')
-
-    def mock_read_output(*args: str) -> str:
-        if args[0] == "status":
-            return ""
-        if args[0] == "rev-parse":
-            return "abc123"
-        return ""
-
-    def mock_subprocess_run(
-        cmd: tuple[str, ...], **kwargs: object
-    ) -> subprocess.CompletedProcess[str]:
-        if "git-cliff" in cmd:
-            (tmp_path / "CHANGELOG.md").write_text("# Changelog\n")
-            return subprocess.CompletedProcess(args=list(cmd), returncode=0, stdout="", stderr="")
-        if "markdownlint" in cmd:
-            return subprocess.CompletedProcess(
-                args=list(cmd), returncode=1, stdout="lint error", stderr="detail"
-            )
-        return subprocess.CompletedProcess(args=list(cmd), returncode=0, stdout="", stderr="")
-
-    with (
-        patch(
-            "standard_tooling.bin.prepare_release.git.current_branch",
-            return_value="develop",
-        ),
-        patch("standard_tooling.bin.prepare_release.git.run"),
-        patch(
-            "standard_tooling.bin.prepare_release.git.read_output",
-            side_effect=mock_read_output,
-        ),
-        patch("standard_tooling.bin.prepare_release.git.ref_exists", return_value=False),
-        patch(
-            "standard_tooling.bin.prepare_release.shutil.which",
-            return_value="/usr/bin/tool",
-        ),
-        patch(
-            "standard_tooling.bin.prepare_release.subprocess.run",
-            side_effect=mock_subprocess_run,
-        ),
-        pytest.raises(SystemExit, match="failed markdownlint"),
-    ):
-        main(["--issue", "42"])
-
-
 # -- helper function tests ---
 
 
@@ -461,31 +413,6 @@ def test_normalize_trailing_newline_no_newline(tmp_path: Path) -> None:
     p.write_text("hello")
     _normalize_trailing_newline(p)
     assert p.read_text() == "hello\n"
-
-
-def test_validate_markdownlint_passes(tmp_path: Path) -> None:
-    p = tmp_path / "test.md"
-    p.write_text("# Valid\n")
-    with patch(
-        "standard_tooling.bin.prepare_release.subprocess.run",
-        return_value=subprocess.CompletedProcess(args=[], returncode=0, stdout="", stderr=""),
-    ):
-        _validate_markdownlint(p)
-
-
-def test_validate_markdownlint_fails(tmp_path: Path) -> None:
-    p = tmp_path / "test.md"
-    p.write_text("bad\n")
-    with (
-        patch(
-            "standard_tooling.bin.prepare_release.subprocess.run",
-            return_value=subprocess.CompletedProcess(
-                args=[], returncode=1, stdout="error", stderr="detail"
-            ),
-        ),
-        pytest.raises(SystemExit, match="failed markdownlint"),
-    ):
-        _validate_markdownlint(p)
 
 
 # -- release notes tests ---
@@ -522,35 +449,6 @@ def test_generate_release_notes_creates_file(
 
     assert (tmp_path / RELEASE_NOTES_DIR / "v1.0.0.md").is_file()
     assert (tmp_path / RELEASE_NOTES_DIR / "v1.0.0.md").read_text() == "# Release 1.0.0\n"
-
-
-def test_generate_release_notes_lint_failure(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    monkeypatch.chdir(tmp_path)
-    (tmp_path / RELEASE_NOTES_CONFIG).write_text("[changelog]\nbody = ''\n")
-
-    def mock_subprocess_run(
-        cmd: tuple[str, ...], **kwargs: object
-    ) -> subprocess.CompletedProcess[str]:
-        if "git-cliff" in cmd:
-            output_idx = list(cmd).index("-o") + 1
-            Path(cmd[output_idx]).write_text("# Release 1.0.0\n")
-            return subprocess.CompletedProcess(args=list(cmd), returncode=0, stdout="", stderr="")
-        if "markdownlint" in cmd:
-            return subprocess.CompletedProcess(
-                args=list(cmd), returncode=1, stdout="error", stderr=""
-            )
-        return subprocess.CompletedProcess(args=list(cmd), returncode=0, stdout="", stderr="")
-
-    with (
-        patch(
-            "standard_tooling.bin.prepare_release.subprocess.run",
-            side_effect=mock_subprocess_run,
-        ),
-        pytest.raises(SystemExit, match="failed markdownlint"),
-    ):
-        _generate_release_notes("1.0.0", "develop-v1.0.0")
 
 
 def test_main_full_flow_with_release_notes(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
