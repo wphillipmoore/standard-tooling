@@ -43,7 +43,7 @@ def go_proxy_latest(module: str) -> RegistryVersion | None:
 def crates_latest(crate: str) -> RegistryVersion | None:
     """Return the latest crates.io version for *crate*, or ``None`` on failure."""
     url = f"https://crates.io/api/v1/crates/{crate}"
-    req = urllib.request.Request(
+    req = urllib.request.Request(  # noqa: S310
         url,
         headers={"User-Agent": "standard-tooling (https://github.com/wphillipmoore/standard-tooling)"},
     )
