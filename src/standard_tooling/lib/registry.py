@@ -45,7 +45,9 @@ def crates_latest(crate: str) -> RegistryVersion | None:
     url = f"https://crates.io/api/v1/crates/{crate}"
     req = urllib.request.Request(  # noqa: S310
         url,
-        headers={"User-Agent": "standard-tooling (https://github.com/wphillipmoore/standard-tooling)"},
+        headers={
+            "User-Agent": "standard-tooling (https://github.com/wphillipmoore/standard-tooling)"
+        },
     )
     try:
         with urllib.request.urlopen(req, timeout=10) as resp:  # noqa: S310
