@@ -7,6 +7,7 @@ from unittest.mock import patch
 
 from standard_tooling.lib.registry import (
     RegistryVersion,
+    crates_latest,
     go_proxy_latest,
     lookup,
     maven_latest,
@@ -64,6 +65,22 @@ def test_go_proxy_latest_network_error() -> None:
         assert go_proxy_latest("github.com/acme/missing") is None
 
 
+def test_crates_latest_success() -> None:
+    body = json.dumps({"crate": {"max_stable_version": "0.5.2"}}).encode()
+    with patch(_URLOPEN, return_value=_FakeResponse(body)):
+        result = crates_latest("my-crate")
+    assert result == RegistryVersion(
+        name="my-crate",
+        version="0.5.2",
+        registry="crates.io",
+    )
+
+
+def test_crates_latest_network_error() -> None:
+    with patch(_URLOPEN, side_effect=OSError("timeout")):
+        assert crates_latest("bad-crate") is None
+
+
 def test_maven_latest_returns_none() -> None:
     assert maven_latest("some-artifact") is None
 
@@ -89,8 +106,17 @@ def test_lookup_java_deferred() -> None:
     assert lookup("Java", "acme", "my-app") is None
 
 
+def test_lookup_rust() -> None:
+    body = json.dumps({"crate": {"max_stable_version": "1.0.0"}}).encode()
+    with patch(_URLOPEN, return_value=_FakeResponse(body)):
+        result = lookup("Rust", "acme", "my-crate")
+    assert result is not None
+    assert result.registry == "crates.io"
+    assert result.version == "1.0.0"
+
+
 def test_lookup_unknown_language() -> None:
-    assert lookup("Rust", "acme", "my-crate") is None
+    assert lookup("Haskell", "acme", "my-lib") is None
 
 
 def test_lookup_empty_language() -> None:

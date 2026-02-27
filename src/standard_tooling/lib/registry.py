@@ -1,4 +1,4 @@
-"""Package registry HTTP lookups (PyPI, Go proxy)."""
+"""Package registry HTTP lookups (PyPI, Go proxy, crates.io)."""
 
 from __future__ import annotations
 
@@ -40,6 +40,22 @@ def go_proxy_latest(module: str) -> RegistryVersion | None:
         return None
 
 
+def crates_latest(crate: str) -> RegistryVersion | None:
+    """Return the latest crates.io version for *crate*, or ``None`` on failure."""
+    url = f"https://crates.io/api/v1/crates/{crate}"
+    req = urllib.request.Request(
+        url,
+        headers={"User-Agent": "standard-tooling (https://github.com/wphillipmoore/standard-tooling)"},
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=10) as resp:  # noqa: S310
+            data = json.loads(resp.read())
+        version: str = data["crate"]["max_stable_version"]
+        return RegistryVersion(name=crate, version=version, registry="crates.io")
+    except Exception:  # noqa: BLE001
+        return None
+
+
 def maven_latest(_artifact: str) -> RegistryVersion | None:
     """Maven Central lookup — deferred (needs group:artifact, can't infer)."""
     return None
@@ -52,6 +68,8 @@ def lookup(language: str, owner: str, repo: str) -> RegistryVersion | None:
         return pypi_latest(repo)
     if lang == "go":
         return go_proxy_latest(f"github.com/{owner}/{repo}")
+    if lang == "rust":
+        return crates_latest(repo)
     if lang == "java":
         return maven_latest(repo)
     return None
