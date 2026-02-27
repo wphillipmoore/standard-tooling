@@ -15,6 +15,8 @@ detect_language() {
     echo "python"
   elif [[ -f "${repo_root}/go.mod" ]]; then
     echo "go"
+  elif [[ -f "${repo_root}/Cargo.toml" ]]; then
+    echo "rust"
   elif [[ -f "${repo_root}/pom.xml" ]] || [[ -f "${repo_root}/mvnw" ]]; then
     echo "java"
   else
@@ -27,6 +29,7 @@ default_image() {
     ruby)   echo "dev-ruby:3.4"   ;;
     python) echo "dev-python:3.14" ;;
     go)     echo "dev-go:1.26"     ;;
+    rust)   echo "dev-rust:1.93"   ;;
     java)   echo "dev-java:21"     ;;
     *)      echo ""                ;;
   esac
@@ -37,6 +40,7 @@ default_test_cmd() {
     ruby)   echo "bundle install --jobs 4 && bundle exec rake" ;;
     python) echo "uv sync && uv run pytest tests/ -v"          ;;
     go)     echo "go test ./..."                                ;;
+    rust)   echo "cargo test"                                   ;;
     java)   echo "./mvnw verify"                                ;;
     *)      echo ""                                             ;;
   esac
