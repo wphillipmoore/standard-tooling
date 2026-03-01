@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.2.2] - 2026-03-01
+
+### Bug fixes
+
+- Ruby list DISPLAY methods without name_default use required positional name param (#158)
+
+### CI
+
+- add concurrency group to ci-push workflow (#167)
+
+### Documentation
+
+- move Releases nav to right of Home for consistency (#136)
+- add multi-repo finalization workflow rules to CLAUDE.md (#156)
+- add Python 3.12 to dev-python version matrix in CLAUDE.md (#166)
+
+### Features
+
+- add Rust development tooling (#139)
+- add st-generate-commands CLI for multi-language MQSC method generation (#154)
+- add canonical label registry and sync modes to st-ensure-label (#164)
+
 ## [1.2.1] - 2026-02-26
 
 ### Bug fixes
