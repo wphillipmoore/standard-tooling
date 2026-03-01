@@ -6,6 +6,26 @@ body:
     attributes:
       value: |
         Use this form to capture the required issue details.
+  - type: dropdown
+    id: issue_type
+    attributes:
+      label: Issue type
+      description: Select the type that best describes this issue.
+      options:
+        - feature
+        - bug
+        - documentation
+        - style
+        - refactor
+        - test
+        - chore
+        - ci
+        - build
+        - research
+        - rtfm
+        - observability
+    validations:
+      required: true
   - type: textarea
     id: summary
     attributes:
