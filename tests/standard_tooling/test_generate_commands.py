@@ -29,6 +29,7 @@ MINIMAL_MAPPING_DATA = {
         "ALTER AUTHINFO": {"qualifier": "authinfo"},
         "ALTER QMGR": {"qualifier": "qmgr"},
         "DEFINE CHANNEL": {"qualifier": "channel", "name_required": True},
+        "DISPLAY AUTHINFO": {"qualifier": "authinfo"},
         "DEFINE QLOCAL": {"qualifier": "queue", "name_required": True},
         "DELETE QUEUE": {"qualifier": "queue", "name_required": True},
         "DISPLAY CHANNEL": {"qualifier": "channel", "pattern": "list", "name_default": "*"},
@@ -285,6 +286,13 @@ def test_ruby_list_with_default(mapping_data_file: Path) -> None:
     output = generate("ruby", specs)
     assert "def display_queue(name: nil," in output
     assert "name: name || '*'" in output
+    assert "where: where" in output
+
+
+def test_ruby_list_without_default(mapping_data_file: Path) -> None:
+    specs = load_commands(mapping_data_file)
+    output = generate("ruby", specs)
+    assert "def display_authinfo(name, request_parameters:" in output
     assert "where: where" in output
 
 

@@ -220,10 +220,10 @@ def _ruby_method(cmd: CommandSpec) -> str:
     lines.append(f"        # Execute the MQSC +{command_label}+ command.")
     lines.append("        #")
 
-    if cmd.pattern == "required_name":
+    if cmd.pattern == "required_name" or (cmd.pattern == "list" and not cmd.name_default):
         lines.append("        # @param name [String] the object name")
     elif cmd.pattern in ("list", "optional_name"):
-        if cmd.pattern == "list" and cmd.name_default:
+        if cmd.name_default:
             lines.append(
                 f"        # @param name [String, nil] object name or pattern,"
                 f' defaults to +"{cmd.name_default}"+'
@@ -261,9 +261,14 @@ def _ruby_method(cmd: CommandSpec) -> str:
         lines.append(
             f"        def {method_name}(request_parameters: nil, response_parameters: nil)"
         )
-    elif cmd.pattern == "list":
+    elif cmd.pattern == "list" and cmd.name_default:
         lines.append(
             f"        def {method_name}(name: nil, request_parameters: nil,"
+            f" response_parameters: nil, where: nil)"
+        )
+    elif cmd.pattern == "list":
+        lines.append(
+            f"        def {method_name}(name, request_parameters: nil,"
             f" response_parameters: nil, where: nil)"
         )
     else:  # optional_name
