@@ -25,5 +25,7 @@ build java   java   JDK_VERSION    17
 build java   java   JDK_VERSION    21
 build go     go     GO_VERSION     1.25
 build go     go     GO_VERSION     1.26
+build rust   rust   RUST_VERSION   1.92
+build rust   rust   RUST_VERSION   1.93
 
 echo "All images built successfully."

@@ -184,7 +184,7 @@ Version matrix:
 | Language | Versions |
 |----------|----------|
 | Ruby     | 3.2, 3.3, 3.4 |
-| Python   | 3.13, 3.14 |
+| Python   | 3.12, 3.13, 3.14 |
 | Java     | 21 |
 | Go       | 1.25, 1.26 |
 
@@ -281,6 +281,31 @@ st-submit-pr --issue 42 --summary "Fix regex bug" --notes "Tested on macOS and L
 - `--title` (optional): PR title (default: most recent commit subject)
 - `--notes` (optional): additional notes
 - `--dry-run` (optional): print generated PR without executing
+
+### Finalizing
+
+After a PR is submitted, **always run `st-finalize-repo`** to complete the
+cycle: switch to develop, pull the merge, and prune stale branches. A repo is
+not finalized until `st-finalize-repo` succeeds with the merged changes on
+develop.
+
+If `st-finalize-repo` reports that the PR has not merged yet, **wait for the
+merge before proceeding**. Do not move on to dependent work in other repos.
+
+## Multi-Repo Workflow
+
+When a plan spans multiple repositories (e.g., updating common data, then
+consuming repos), execute each repo's commit/submit/finalize cycle **to
+completion** before starting the next repo:
+
+1. Make changes, commit with `st-commit`, submit with `st-submit-pr`
+2. Wait for CI checks to pass and the PR to merge
+3. Run `st-finalize-repo` — confirm develop has the merged changes
+4. **Only then** move to the next repo in the plan
+
+**Never start work in a downstream repo while an upstream PR is still open.**
+Downstream repos depend on upstream changes being merged. Starting early
+creates inconsistency and wasted work if the upstream PR requires changes.
 
 ## Key References
 
