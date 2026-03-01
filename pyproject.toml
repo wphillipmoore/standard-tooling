@@ -27,6 +27,9 @@ dev = ["ruff", "mypy", "pytest", "pytest-cov", "pip-audit", "pip-licenses"]
 [tool.setuptools]
 package-dir = {"" = "src"}
 
+[tool.setuptools.package-data]
+standard_tooling = ["data/*.json"]
+
 [tool.setuptools.packages.find]
 where = ["src"]
 
