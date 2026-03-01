@@ -184,7 +184,7 @@ Version matrix:
 | Language | Versions |
 |----------|----------|
 | Ruby     | 3.2, 3.3, 3.4 |
-| Python   | 3.13, 3.14 |
+| Python   | 3.12, 3.13, 3.14 |
 | Java     | 21 |
 | Go       | 1.25, 1.26 |
 
