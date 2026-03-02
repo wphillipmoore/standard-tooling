@@ -149,9 +149,7 @@ def test_detect_cargo_no_version(tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 
 def test_detect_ecosystem_cargo(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.chdir(tmp_path)
-    (tmp_path / "Cargo.toml").write_text(
-        '[package]\nname = "my-crate"\nversion = "1.2.0"\n'
-    )
+    (tmp_path / "Cargo.toml").write_text('[package]\nname = "my-crate"\nversion = "1.2.0"\n')
     name, version = detect_ecosystem()
     assert name == "cargo"
     assert version == "1.2.0"
