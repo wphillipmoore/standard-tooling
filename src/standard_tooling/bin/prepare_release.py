@@ -8,6 +8,7 @@ Supported ecosystems:
   - Maven:  reads version from pom.xml
   - Go:     reads version from **/version.go
   - Ruby:   reads version from **/version.rb
+  - Cargo:  reads version from Cargo.toml
   - VERSION file: reads version from VERSION (fallback)
 """
 
@@ -66,6 +67,15 @@ def _detect_ruby() -> str | None:
     return None
 
 
+def _detect_cargo() -> str | None:
+    path = Path("Cargo.toml")
+    if not path.is_file():
+        return None
+    text = path.read_text(encoding="utf-8")
+    match = re.search(r'^version\s*=\s*"([^"]+)"', text, re.MULTILINE)
+    return match.group(1) if match else None
+
+
 def _detect_version_file() -> str | None:
     path = Path("VERSION")
     if not path.is_file():
@@ -87,6 +97,7 @@ _DETECTORS: list[tuple[str, _Detector]] = [
     ("maven", _detect_maven),
     ("go", _detect_go),
     ("ruby", _detect_ruby),
+    ("cargo", _detect_cargo),
     ("version-file", _detect_version_file),
 ]
 
@@ -103,6 +114,7 @@ def detect_ecosystem() -> tuple[str, str]:
         "  - pom.xml with version (Maven)\n"
         "  - go.mod + **/version.go (Go)\n"
         "  - Gemfile + **/version.rb (Ruby)\n"
+        "  - Cargo.toml with version (Cargo/Rust)\n"
         "  - VERSION file with MAJOR.MINOR.PATCH"
     )
     raise SystemExit(msg)
