@@ -98,7 +98,7 @@ jobs:
             "docker/${{ matrix.language }}"
 
       - name: Trivy image scan
-        uses: wphillipmoore/standard-actions/actions/security/trivy@develop
+        uses: wphillipmoore/standard-actions/actions/security/trivy@v1.1
         with:
           scan-type: image
           scan-ref: ${{ env.IMAGE }}
