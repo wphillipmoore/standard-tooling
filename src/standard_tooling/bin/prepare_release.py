@@ -84,7 +84,8 @@ def _detect_claude_plugin() -> str | None:
     if not path.is_file():
         return None
     data = json.loads(path.read_text(encoding="utf-8"))
-    return data.get("version")
+    version: str | None = data.get("version")
+    return version
 
 
 def _detect_version_file() -> str | None:
