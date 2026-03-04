@@ -9,6 +9,7 @@ Supported ecosystems:
   - Go:     reads version from **/version.go
   - Ruby:   reads version from **/version.rb
   - Cargo:  reads version from Cargo.toml
+  - Claude plugin: reads version from .claude-plugin/plugin.json
   - VERSION file: reads version from VERSION (fallback)
 """
 
@@ -76,6 +77,17 @@ def _detect_cargo() -> str | None:
     return match.group(1) if match else None
 
 
+def _detect_claude_plugin() -> str | None:
+    import json
+
+    path = Path(".claude-plugin/plugin.json")
+    if not path.is_file():
+        return None
+    data = json.loads(path.read_text(encoding="utf-8"))
+    version: str | None = data.get("version")
+    return version
+
+
 def _detect_version_file() -> str | None:
     path = Path("VERSION")
     if not path.is_file():
@@ -98,6 +110,7 @@ _DETECTORS: list[tuple[str, _Detector]] = [
     ("go", _detect_go),
     ("ruby", _detect_ruby),
     ("cargo", _detect_cargo),
+    ("claude-plugin", _detect_claude_plugin),
     ("version-file", _detect_version_file),
 ]
 
@@ -115,6 +128,7 @@ def detect_ecosystem() -> tuple[str, str]:
         "  - go.mod + **/version.go (Go)\n"
         "  - Gemfile + **/version.rb (Ruby)\n"
         "  - Cargo.toml with version (Cargo/Rust)\n"
+        "  - .claude-plugin/plugin.json with version (Claude plugin)\n"
         "  - VERSION file with MAJOR.MINOR.PATCH"
     )
     raise SystemExit(msg)

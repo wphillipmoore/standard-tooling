@@ -12,6 +12,7 @@ from standard_tooling.bin.prepare_release import (
     RELEASE_NOTES_CONFIG,
     RELEASE_NOTES_DIR,
     _detect_cargo,
+    _detect_claude_plugin,
     _detect_go,
     _detect_maven,
     _detect_python,
@@ -153,6 +154,37 @@ def test_detect_ecosystem_cargo(tmp_path: Path, monkeypatch: pytest.MonkeyPatch)
     name, version = detect_ecosystem()
     assert name == "cargo"
     assert version == "1.2.0"
+
+
+def test_detect_claude_plugin(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.chdir(tmp_path)
+    plugin_dir = tmp_path / ".claude-plugin"
+    plugin_dir.mkdir()
+    (plugin_dir / "plugin.json").write_text('{"name": "test", "version": "0.1.0"}')
+    assert _detect_claude_plugin() == "0.1.0"
+
+
+def test_detect_claude_plugin_no_file(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.chdir(tmp_path)
+    assert _detect_claude_plugin() is None
+
+
+def test_detect_claude_plugin_no_version(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.chdir(tmp_path)
+    plugin_dir = tmp_path / ".claude-plugin"
+    plugin_dir.mkdir()
+    (plugin_dir / "plugin.json").write_text('{"name": "test"}')
+    assert _detect_claude_plugin() is None
+
+
+def test_detect_ecosystem_claude_plugin(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.chdir(tmp_path)
+    plugin_dir = tmp_path / ".claude-plugin"
+    plugin_dir.mkdir()
+    (plugin_dir / "plugin.json").write_text('{"name": "test", "version": "0.1.0"}')
+    name, version = detect_ecosystem()
+    assert name == "claude-plugin"
+    assert version == "0.1.0"
 
 
 def test_detect_version_file(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
