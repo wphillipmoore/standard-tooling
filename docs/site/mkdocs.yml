@@ -64,9 +64,7 @@ nav:
       - Overview: reference/index.md
       - Git Hooks:
           - pre-commit: reference/hooks/pre-commit.md
-          - commit-msg: reference/hooks/commit-msg.md
       - Bash Validators:
-          - commit-message: reference/lint/commit-message.md
           - repo-profile: reference/lint/repo-profile.md
           - markdown-standards: reference/lint/markdown-standards.md
           - pr-issue-linkage: reference/lint/pr-issue-linkage.md

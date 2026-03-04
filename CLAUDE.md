@@ -1,6 +1,7 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working in this repository.
+This file provides guidance to Claude Code (claude.ai/code) when working in
+this repository.
 
 <!-- include: docs/repository-standards.md -->
 
@@ -15,7 +16,9 @@ CI checkout (GitHub Actions).
 
 **Status**: Stable (v1.x)
 
-**Canonical Standards**: This repository follows standards at <https://github.com/wphillipmoore/standards-and-conventions> (local path: `../standards-and-conventions` if available)
+**Canonical Standards**: This repository follows standards at
+<https://github.com/wphillipmoore/standards-and-conventions>
+(local path: `../standards-and-conventions` if available)
 
 ## Development Commands
 
@@ -97,7 +100,8 @@ Environment overrides:
 
 CLI tools installed as `st-*` console scripts:
 
-- **`st-commit`** — Construct standards-compliant conventional commits with co-author resolution
+- **`st-commit`** — Construct standards-compliant conventional
+  commits with co-author resolution
 - **`st-submit-pr`** — Create standards-compliant PRs with auto-merge
 - **`st-prepare-release`** — Automate release preparation (branch, changelog, PR)
 - **`st-finalize-repo`** — Post-merge cleanup (branch deletion, remote pruning)
@@ -119,8 +123,8 @@ Grandfathered validators consumed via PATH (no `.sh` extensions):
 - `markdown-standards` — markdownlint + structural checks
 - `repo-profile` — repository profile validation
 - `pr-issue-linkage` — PR body issue linkage validation
-- `commit-message` — single commit message validation
-- `validate-local-common` — shared validation checks (shellcheck, markdownlint, repo-profile)
+- `validate-local-common` — shared validation checks
+  (shellcheck, markdownlint, repo-profile)
 - `validate-local-python` — Python-specific validation
 - `validate-local-go` — Go-specific validation
 - `validate-local-java` — Java-specific validation
@@ -146,7 +150,6 @@ it in a thin `scripts/dev/test.sh`. Environment overrides:
 Consumed via `git config core.hooksPath scripts/lib/git-hooks`:
 
 - `pre-commit` — Branch naming enforcement
-- `commit-msg` — Conventional Commits validation
 
 ### Consumption Model
 

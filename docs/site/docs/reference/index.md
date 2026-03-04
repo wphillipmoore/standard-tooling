@@ -18,7 +18,6 @@ PATH.
 
 | Script | Purpose |
 | ------ | ------- |
-| [commit-message](lint/commit-message.md) | Single commit Conventional Commits validation |
 | [repo-profile](lint/repo-profile.md) | Repository profile attribute validation |
 | [markdown-standards](lint/markdown-standards.md) | Markdown linting and structural checks |
 | [pr-issue-linkage](lint/pr-issue-linkage.md) | PR body issue linkage validation |
@@ -28,7 +27,6 @@ PATH.
 | Hook | Purpose |
 | ---- | ------- |
 | [pre-commit](hooks/pre-commit.md) | Branch naming enforcement |
-| [commit-msg](hooks/commit-msg.md) | Commit message validation |
 
 ## Validation Drivers
 

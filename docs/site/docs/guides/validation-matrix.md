@@ -8,7 +8,6 @@ and its exit codes.
 | Check | Hook | CI | Script |
 | ----- | ---- | -- | ------ |
 | Branch naming | Yes | -- | `pre-commit` |
-| Conventional Commits (single) | Yes | -- | `commit-message` |
 | Repository profile | -- | Yes | `repo-profile` |
 | Markdown standards | -- | Yes | `markdown-standards` |
 | PR issue linkage | -- | Yes | `pr-issue-linkage` |
@@ -26,14 +25,6 @@ and its exit codes.
 | Protected branch | `direct commits...forbidden` | Create a feature branch |
 | Bad prefix | `branch name must use...` | Rename branch |
 | Missing issue | `must include a repo issue` | Rename to `type/123-desc` |
-
-### commit-msg
-
-**Trigger:** Every `git commit` (after pre-commit)
-
-| Check | Error Message | Fix |
-| ----- | ------------- | --- |
-| Bad format | `does not follow Conventional Commits` | Use `st-commit` |
 
 ## CI Checks
 
