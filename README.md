@@ -61,7 +61,6 @@ Grandfathered bash scripts in `scripts/bin/` consumed via PATH:
 - `markdown-standards` — markdownlint + structural checks
 - `repo-profile` — repository profile validation
 - `pr-issue-linkage` — PR body issue linkage validation
-- `commit-message` — single commit message validation
 - `validate-local-common` — shared checks for all repos
 - `validate-local-python` — Python-specific validation
 - `validate-local-go` — Go-specific validation
@@ -72,7 +71,6 @@ Grandfathered bash scripts in `scripts/bin/` consumed via PATH:
 Consumed via `git config core.hooksPath scripts/lib/git-hooks`:
 
 - `pre-commit` — branch naming enforcement
-- `commit-msg` — Conventional Commits validation
 
 ## Releasing
 

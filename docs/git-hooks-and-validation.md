@@ -6,9 +6,7 @@
 - [Git Hooks](#git-hooks)
   - [Enabling Hooks](#enabling-hooks)
   - [pre-commit](#pre-commit)
-  - [commit-msg](#commit-msg)
 - [Validators](#validators)
-  - [commit-message](#commit-message)
   - [repo-profile](#repo-profile)
   - [markdown-standards](#markdown-standards)
   - [pr-issue-linkage](#pr-issue-linkage)
@@ -89,28 +87,7 @@ automated workflows and have no associated issue.
 The full pattern:
 `^(feature|bugfix|hotfix|chore)/[0-9]+-[a-z0-9][a-z0-9-]*$`
 
-### commit-msg
-
-The commit-msg hook validates the commit message using the
-`commit-message` validator (Conventional Commits format).
-
 ## Validators
-
-### commit-message
-
-Validates that the commit subject line follows Conventional
-Commits format.
-
-**Input**: path to the commit message file (single commit).
-
-**Pattern**:
-`^(feat|fix|docs|style|refactor|test|chore|ci|build)(\([^\)]+\))?: .+`
-
-**Allowed types**: `feat`, `fix`, `docs`, `style`, `refactor`,
-`test`, `chore`, `ci`, `build`.
-
-Merge commits (subject starting with `Merge`) bypass
-validation entirely.
 
 ### repo-profile
 
@@ -172,19 +149,17 @@ as a list item.
 The following table shows where each validation runs:
 
 - **pre-commit**: runs locally before each commit
-- **commit-msg**: runs locally on the commit message
 - **CI**: runs in GitHub Actions on pull requests
 
-| Validation             | pre-commit | commit-msg | CI |
-|------------------------|:----------:|:----------:|:--:|
-| Detached HEAD          | yes        |            |    |
-| Protected branch       | yes        |            |    |
-| Branch prefix          | yes        |            |    |
-| Issue number in branch | yes        |            |    |
-| Conventional Commits   |            | yes        | yes|
-| Repository profile     |            |            | yes|
-| Markdown standards     |            |            | yes|
-| PR issue linkage       |            |            | yes|
+| Validation             | pre-commit | CI  |
+|------------------------|:----------:|:---:|
+| Detached HEAD          | yes        |     |
+| Protected branch       | yes        |     |
+| Branch prefix          | yes        |     |
+| Issue number in branch | yes        |     |
+| Repository profile     |            | yes |
+| Markdown standards     |            | yes |
+| PR issue linkage       |            | yes |
 
 ## Configuration Points
 
@@ -242,11 +217,6 @@ format. Example: `feature/42-add-caching`.
 `branching_model` value in the repository profile is not
 one of the three supported models.
 
-**`"ERROR: commit message does not follow Conventional
-Commits."`** — The commit subject line does not match the
-required pattern. Use the format
-`<type>(optional-scope): <description>`.
-
 **`"ERROR: repository profile missing required attribute"`**
 — One of the six required attributes is not present in
 `docs/repository-standards.md`.
@@ -270,10 +240,6 @@ no body text. Add issue linkage to the PR description.
 linkage"`** — The PR body does not contain a recognized
 linkage keyword (`Fixes`, `Closes`, `Resolves`, or `Ref`)
 followed by an issue reference.
-
-**`"ERROR: commit message file path is required."`** —
-The lint script was called without a file argument. This
-typically indicates a misconfigured hook.
 
 **`"ERROR: repository profile not found"`** — The file
 `docs/repository-standards.md` does not exist. Create it

@@ -119,7 +119,6 @@ Grandfathered validators consumed via PATH (no `.sh` extensions):
 - `markdown-standards` — markdownlint + structural checks
 - `repo-profile` — repository profile validation
 - `pr-issue-linkage` — PR body issue linkage validation
-- `commit-message` — single commit message validation
 - `validate-local-common` — shared validation checks (shellcheck, markdownlint, repo-profile)
 - `validate-local-python` — Python-specific validation
 - `validate-local-go` — Go-specific validation
@@ -146,7 +145,6 @@ it in a thin `scripts/dev/test.sh`. Environment overrides:
 Consumed via `git config core.hooksPath scripts/lib/git-hooks`:
 
 - `pre-commit` — Branch naming enforcement
-- `commit-msg` — Conventional Commits validation
 
 ### Consumption Model
 
