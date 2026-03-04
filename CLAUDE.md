@@ -69,12 +69,12 @@ Workflow: `.github/workflows/ci.yml`.
 ### Docker-First Testing
 
 All tests can run inside containers — Docker is the only host prerequisite.
-The `dev-python:3.12` image is built from `docker/python/` and published to
-`ghcr.io/wphillipmoore/dev-python`.
+Dev container images are maintained in
+[standard-tooling-docker](https://github.com/wphillipmoore/standard-tooling-docker).
 
 ```bash
 # Build the dev image (one-time)
-./docker/build.sh
+cd ../standard-tooling-docker && docker/build.sh
 
 # Run unit tests in container
 ./scripts/dev/test.sh
@@ -126,35 +126,10 @@ Grandfathered validators consumed via PATH (no `.sh` extensions):
 - `validate-local-java` — Java-specific validation
 - `docker-test` — run repo test suite inside a dev container
 
-### Docker Dev Images (`docker/`)
+### Docker Dev Images
 
-Language-specific dev containers for Docker-first testing:
-
-- **`docker/ruby/Dockerfile`** — Ruby dev image (`dev-ruby:3.4`)
-- **`docker/python/Dockerfile`** — Python dev image with uv (`dev-python:3.14`)
-- **`docker/java/Dockerfile`** — Java dev image, Eclipse Temurin (`dev-java:21`)
-- **`docker/go/Dockerfile`** — Go dev image with linters (`dev-go:1.23`)
-- **`docker/build.sh`** — Builds all images locally for every version in the matrix
-
-#### GHCR Publishing
-
-Images are published to GitHub Container Registry by the `docker-publish.yml`
-workflow on push to `develop` or `main` when `docker/**` files change, or via
-manual `workflow_dispatch`.
-
-Image naming: `ghcr.io/wphillipmoore/dev-{language}:{version}`
-
-Version matrix:
-
-| Language | Versions |
-|----------|----------|
-| Ruby     | 3.2, 3.3, 3.4 |
-| Python   | 3.12, 3.13, 3.14 |
-| Java     | 21 |
-| Go       | 1.25, 1.26 |
-
-To trigger a rebuild manually: Actions → "Publish dev container images" →
-Run workflow.
+Dev container images (Dockerfiles, build script, publish workflow) are
+maintained in [standard-tooling-docker](https://github.com/wphillipmoore/standard-tooling-docker).
 
 The `docker-test` script (`scripts/bin/docker-test`) auto-detects the project
 language (Gemfile, pyproject.toml, go.mod, pom.xml/mvnw) and runs the test

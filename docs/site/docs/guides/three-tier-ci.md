@@ -269,7 +269,8 @@ Jobs that remain inline keep their names unchanged:
 ## Dev container images
 
 Published to `ghcr.io/wphillipmoore/dev-<language>:<version>` from the
-`docker/` directory in this repository.
+[standard-tooling-docker](https://github.com/wphillipmoore/standard-tooling-docker)
+repository.
 
 ### Available images
 
@@ -290,7 +291,7 @@ Published to `ghcr.io/wphillipmoore/dev-<language>:<version>` from the
 ### Building locally
 
 ```bash
-cd ../standard-tooling
+cd ../standard-tooling-docker
 docker/build.sh
 ```
 
@@ -302,9 +303,9 @@ docker build --build-arg RUBY_VERSION=3.4 -t dev-ruby:3.4 docker/ruby/
 
 ### Publishing
 
-Images are published automatically when files under `docker/` change
-on the `develop` or `main` branches via
-`.github/workflows/docker-publish.yml`.
+Images are published automatically on push to `develop` or `main` in
+the `standard-tooling-docker` repository via its
+`.github/workflows/docker-publish.yml` workflow.
 
 ### Design principles
 
