@@ -48,7 +48,7 @@ default_test_cmd() {
 
 lang="$(detect_language)"
 
-if [[ -z "$lang" ]]; then
+if [[ -z "$lang" ]] && [[ -z "${DOCKER_DEV_IMAGE:-}" ]]; then
   echo "ERROR: could not detect project language from repo contents." >&2
   echo "Set DOCKER_DEV_IMAGE and DOCKER_TEST_CMD explicitly." >&2
   exit 1
@@ -80,6 +80,14 @@ if [[ -n "$network" ]]; then
   docker_args+=(--network "$network")
 fi
 
+# Extra bind mounts (semicolon-separated, e.g. "/host/path:/container/path:ro").
+if [[ -n "${DOCKER_EXTRA_VOLUMES:-}" ]]; then
+  IFS=';' read -ra vols <<< "$DOCKER_EXTRA_VOLUMES"
+  for vol in "${vols[@]}"; do
+    [[ -n "$vol" ]] && docker_args+=(-v "$vol")
+  done
+fi
+
 # Pass through MQ_* environment variables for integration tests.
 while IFS='=' read -r name _; do
   docker_args+=(-e "$name")
@@ -90,7 +98,7 @@ docker_args+=(bash -c "$test_cmd")
 
 # -- run ----------------------------------------------------------------------
 
-echo "Language: ${lang}"
+echo "Language: ${lang:-<none>}"
 echo "Image:    ${image}"
 echo "Command:  ${test_cmd}"
 [[ -n "$network" ]] && echo "Network:  ${network}"

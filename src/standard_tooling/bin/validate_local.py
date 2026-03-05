@@ -47,6 +47,11 @@ def _run_validator(name: str, scripts_bin: Path) -> bool:
 
 
 def main(argv: list[str] | None = None) -> int:  # noqa: ARG001
+    for tool in ("docker", "docker-test"):
+        if shutil.which(tool) is None:
+            print(f"ERROR: {tool} is required for local validation", file=sys.stderr)
+            return 1
+
     root = git.repo_root()
     scripts_bin = root / "scripts" / "bin"
 
