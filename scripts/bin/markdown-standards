@@ -3,33 +3,44 @@
 # Canonical source: https://github.com/wphillipmoore/standard-tooling
 set -euo pipefail
 
-# Collect MkDocs documentation sources — the only markdown files subject to
-# both markdownlint and structural checks (single-H1, Table of Contents,
-# heading-level progression).
+# Scope: published documentation only.
 #
-# Everything outside docs/site/ is out of scope: CLAUDE.md, AGENTS.md,
-# skills/, agents/, fragments/, drafts/, CHANGELOG.md, releases/, etc.
-# Those files are operational config or auto-generated and are not
-# published documentation.
+# Everything outside docs/site/, docs/sphinx/, and README.md is out of
+# scope: CLAUDE.md, AGENTS.md, skills/, agents/, fragments/, drafts/,
+# CHANGELOG.md, releases/, etc.  Those files are operational config or
+# auto-generated and are not published documentation.
 
-files=()
+# -- file collection ---------------------------------------------------------
+# Two groups with different check levels:
+#
+#   lint_files   — markdownlint only (MkDocs/Sphinx pages that have
+#                  site-level navigation, so ToC/H1 rules don't apply)
+#   struct_files — markdownlint + structural checks (standalone docs
+#                  that must have a single H1 and a Table of Contents)
+
+lint_files=()
+struct_files=()
 
 for docsite_dir in docs/site docs/sphinx; do
   if [[ -d "$docsite_dir" ]]; then
     while IFS= read -r file; do
-      files+=("$file")
+      lint_files+=("$file")
     done < <(find "$docsite_dir" -type f -name "*.md")
   fi
 done
 
 if [[ -f README.md ]]; then
-  files+=("README.md")
+  struct_files+=("README.md")
 fi
 
-if [[ ${#files[@]} -eq 0 ]]; then
-  echo "No documentation files found to lint (checked docs/site/, docs/sphinx/, README.md)."
+all_files=("${lint_files[@]}" ${struct_files[@]+"${struct_files[@]}"})
+
+if [[ ${#all_files[@]} -eq 0 ]]; then
+  echo "No documentation files found to lint."
   exit 0
 fi
+
+# -- markdownlint ------------------------------------------------------------
 
 if command -v markdownlint >/dev/null 2>&1; then
   markdownlint_cmd=(markdownlint)
@@ -40,18 +51,20 @@ fi
 
 markdownlint_failed=0
 if [[ -f ".markdownlint.yaml" ]]; then
-  if ! "${markdownlint_cmd[@]}" --config ".markdownlint.yaml" "${files[@]}"; then
+  if ! "${markdownlint_cmd[@]}" --config ".markdownlint.yaml" "${all_files[@]}"; then
     markdownlint_failed=1
   fi
 else
-  if ! "${markdownlint_cmd[@]}" "${files[@]}"; then
+  if ! "${markdownlint_cmd[@]}" "${all_files[@]}"; then
     markdownlint_failed=1
   fi
 fi
 
+# -- structural checks (standalone docs only) --------------------------------
+
 failed=0
 
-for file in "${files[@]}"; do
+for file in "${struct_files[@]}"; do
   awk -v file="$file" '
     BEGIN {
       in_code = 0
