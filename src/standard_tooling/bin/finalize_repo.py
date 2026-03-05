@@ -99,7 +99,9 @@ def main(argv: list[str] | None = None) -> int:
                 validation_failed = True
         else:
             print()
-            print("WARNING: st-validate-local not found on PATH; skipping validation.", file=sys.stderr)
+            print("ERROR: st-validate-local not found on PATH.", file=sys.stderr)
+            print("  Ensure standard-tooling is installed and on PATH.", file=sys.stderr)
+            return 1
     else:
         print("  [dry-run] st-validate-local")
 
