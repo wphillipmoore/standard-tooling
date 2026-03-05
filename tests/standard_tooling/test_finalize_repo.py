@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from subprocess import CompletedProcess
 from typing import TYPE_CHECKING
 from unittest.mock import patch
 
@@ -31,6 +32,10 @@ def _make_profile(tmp_path: Path, model: str) -> None:
     )
 
 
+def _validation_ok() -> CompletedProcess[bytes]:
+    return CompletedProcess(args=("st-validate-local",), returncode=0)
+
+
 def test_main_library_release(tmp_path: Path) -> None:
     _make_profile(tmp_path, "library-release")
     with (
@@ -41,6 +46,8 @@ def test_main_library_release(tmp_path: Path) -> None:
             "standard_tooling.bin.finalize_repo.git.merged_branches",
             return_value=["feature/x", "develop"],
         ),
+        patch("standard_tooling.bin.finalize_repo.shutil.which", return_value="/usr/bin/st-validate-local"),
+        patch("standard_tooling.bin.finalize_repo.subprocess.run", return_value=_validation_ok()),
     ):
         result = main([])
     assert result == 0
@@ -55,6 +62,8 @@ def test_main_already_on_target(tmp_path: Path) -> None:
         patch("standard_tooling.bin.finalize_repo.git.current_branch", return_value="develop"),
         patch("standard_tooling.bin.finalize_repo.git.run"),
         patch("standard_tooling.bin.finalize_repo.git.merged_branches", return_value=[]),
+        patch("standard_tooling.bin.finalize_repo.shutil.which", return_value="/usr/bin/st-validate-local"),
+        patch("standard_tooling.bin.finalize_repo.subprocess.run", return_value=_validation_ok()),
     ):
         result = main([])
     assert result == 0
@@ -82,6 +91,8 @@ def test_main_no_profile(tmp_path: Path) -> None:
         patch("standard_tooling.bin.finalize_repo.git.current_branch", return_value="develop"),
         patch("standard_tooling.bin.finalize_repo.git.run"),
         patch("standard_tooling.bin.finalize_repo.git.merged_branches", return_value=[]),
+        patch("standard_tooling.bin.finalize_repo.shutil.which", return_value="/usr/bin/st-validate-local"),
+        patch("standard_tooling.bin.finalize_repo.subprocess.run", return_value=_validation_ok()),
     ):
         result = main([])
     assert result == 0
@@ -106,6 +117,8 @@ def test_main_application_promotion(tmp_path: Path) -> None:
             "standard_tooling.bin.finalize_repo.git.merged_branches",
             return_value=["develop", "release", "main", "feature/y"],
         ),
+        patch("standard_tooling.bin.finalize_repo.shutil.which", return_value="/usr/bin/st-validate-local"),
+        patch("standard_tooling.bin.finalize_repo.subprocess.run", return_value=_validation_ok()),
     ):
         result = main([])
     assert result == 0
@@ -118,6 +131,8 @@ def test_main_docs_single_branch(tmp_path: Path) -> None:
         patch("standard_tooling.bin.finalize_repo.git.current_branch", return_value="develop"),
         patch("standard_tooling.bin.finalize_repo.git.run"),
         patch("standard_tooling.bin.finalize_repo.git.merged_branches", return_value=[]),
+        patch("standard_tooling.bin.finalize_repo.shutil.which", return_value="/usr/bin/st-validate-local"),
+        patch("standard_tooling.bin.finalize_repo.subprocess.run", return_value=_validation_ok()),
     ):
         result = main([])
     assert result == 0
@@ -130,6 +145,38 @@ def test_main_no_deleted_branches(tmp_path: Path) -> None:
         patch("standard_tooling.bin.finalize_repo.git.current_branch", return_value="develop"),
         patch("standard_tooling.bin.finalize_repo.git.run"),
         patch("standard_tooling.bin.finalize_repo.git.merged_branches", return_value=["develop"]),
+        patch("standard_tooling.bin.finalize_repo.shutil.which", return_value="/usr/bin/st-validate-local"),
+        patch("standard_tooling.bin.finalize_repo.subprocess.run", return_value=_validation_ok()),
     ):
         result = main([])
     assert result == 0
+
+
+def test_main_validation_fails(tmp_path: Path) -> None:
+    _make_profile(tmp_path, "library-release")
+    with (
+        patch("standard_tooling.bin.finalize_repo.git.repo_root", return_value=tmp_path),
+        patch("standard_tooling.bin.finalize_repo.git.current_branch", return_value="develop"),
+        patch("standard_tooling.bin.finalize_repo.git.run"),
+        patch("standard_tooling.bin.finalize_repo.git.merged_branches", return_value=[]),
+        patch("standard_tooling.bin.finalize_repo.shutil.which", return_value="/usr/bin/st-validate-local"),
+        patch(
+            "standard_tooling.bin.finalize_repo.subprocess.run",
+            return_value=CompletedProcess(args=("st-validate-local",), returncode=1),
+        ),
+    ):
+        result = main([])
+    assert result == 1
+
+
+def test_main_validator_not_found(tmp_path: Path) -> None:
+    _make_profile(tmp_path, "library-release")
+    with (
+        patch("standard_tooling.bin.finalize_repo.git.repo_root", return_value=tmp_path),
+        patch("standard_tooling.bin.finalize_repo.git.current_branch", return_value="develop"),
+        patch("standard_tooling.bin.finalize_repo.git.run"),
+        patch("standard_tooling.bin.finalize_repo.git.merged_branches", return_value=[]),
+        patch("standard_tooling.bin.finalize_repo.shutil.which", return_value=None),
+    ):
+        result = main([])
+    assert result == 1
