@@ -7,6 +7,8 @@ branches, and prunes stale remote-tracking references.
 from __future__ import annotations
 
 import argparse
+import shutil
+import subprocess
 import sys
 
 from standard_tooling.lib import git, repo_profile
@@ -81,11 +83,39 @@ def main(argv: list[str] | None = None) -> int:
     else:
         git.run("remote", "prune", "origin")
 
+    # -- post-finalization validation ------------------------------------------
+    # Run canonical validation to catch problems on the target branch before
+    # the next PR is created.  Failures are reported as warnings — the
+    # finalization itself already succeeded.
+
+    validation_failed = False
+    if not args.dry_run:
+        validator = shutil.which("st-validate-local")
+        if validator is not None:
+            print()
+            print("Running post-finalization validation...")
+            result = subprocess.run((validator,), check=False)  # noqa: S603
+            if result.returncode != 0:
+                validation_failed = True
+        else:
+            print()
+            print("WARNING: st-validate-local not found on PATH; skipping validation.", file=sys.stderr)
+    else:
+        print("  [dry-run] st-validate-local")
+
     print()
     print("Finalization complete.")
     print(f"  Branch: {args.target_branch}")
     print(f"  Deleted: {' '.join(deleted) if deleted else '(none)'}")
     print("  Remotes: pruned")
+
+    if validation_failed:
+        print()
+        print("WARNING: post-finalization validation failed.", file=sys.stderr)
+        print(f"  The {args.target_branch} branch has issues that should be", file=sys.stderr)
+        print("  fixed before creating the next PR.", file=sys.stderr)
+        return 1
+
     return 0
 
 
