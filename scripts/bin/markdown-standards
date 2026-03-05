@@ -5,57 +5,87 @@ set -euo pipefail
 
 # Scope: published documentation only.
 #
-# Everything outside docs/site/, docs/sphinx/, and README.md is out of
-# scope: CLAUDE.md, AGENTS.md, skills/, agents/, fragments/, drafts/,
-# CHANGELOG.md, releases/, etc.  Those files are operational config or
-# auto-generated and are not published documentation.
+# Everything outside docs/site/ and README.md is out of scope: CLAUDE.md,
+# AGENTS.md, skills/, agents/, fragments/, drafts/, CHANGELOG.md, releases/,
+# etc.  Those files are operational config or auto-generated and are not
+# published documentation.
+#
+# Usage:
+#   markdown-standards              # discover and validate all in-scope files
+#   markdown-standards FILE...      # validate only the given files
+#
+# When file arguments are provided, each file is classified by path:
+#   docs/site/**/*.md  → markdownlint only (site navigation handles ToC/H1)
+#   README.md          → markdownlint + structural checks (H1, ToC, headings)
+#   anything else      → out of scope, silently skipped
 
-# -- file collection ---------------------------------------------------------
+# -- file classification ------------------------------------------------------
 # Two groups with different check levels:
 #
-#   lint_files   — markdownlint only (MkDocs/Sphinx pages that have
-#                  site-level navigation, so ToC/H1 rules don't apply)
+#   lint_files   — markdownlint only (MkDocs pages that have site-level
+#                  navigation, so ToC/H1 rules don't apply)
 #   struct_files — markdownlint + structural checks (standalone docs
 #                  that must have a single H1 and a Table of Contents)
+
+classify_file() {
+  local file="$1"
+  case "$file" in
+    docs/site/*.md)
+      lint_files+=("$file")
+      ;;
+    README.md | */README.md)
+      struct_files+=("$file")
+      ;;
+    *)
+      # Out of scope — skip silently
+      ;;
+  esac
+}
 
 lint_files=()
 struct_files=()
 
-for docsite_dir in docs/site docs/sphinx; do
-  if [[ -d "$docsite_dir" ]]; then
+if [[ $# -gt 0 ]]; then
+  # Single-file mode: classify each argument
+  for arg in "$@"; do
+    if [[ -f "$arg" ]]; then
+      classify_file "$arg"
+    fi
+  done
+else
+  # Discovery mode: find all in-scope files
+  if [[ -d docs/site ]]; then
     while IFS= read -r file; do
       lint_files+=("$file")
-    done < <(find "$docsite_dir" -type f -name "*.md")
+    done < <(find docs/site -type f -name "*.md")
   fi
-done
 
-if [[ -f README.md ]]; then
-  struct_files+=("README.md")
+  if [[ -f README.md ]]; then
+    struct_files+=("README.md")
+  fi
 fi
 
-all_files=("${lint_files[@]}" ${struct_files[@]+"${struct_files[@]}"})
+all_files=("${lint_files[@]+"${lint_files[@]}"}" "${struct_files[@]+"${struct_files[@]}"}")
 
 if [[ ${#all_files[@]} -eq 0 ]]; then
-  echo "No documentation files found to lint."
+  # No in-scope files — nothing to do
   exit 0
 fi
 
 # -- markdownlint ------------------------------------------------------------
 
-if command -v markdownlint >/dev/null 2>&1; then
-  markdownlint_cmd=(markdownlint)
-else
-  echo "ERROR: markdownlint not found. Install markdownlint-cli locally." >&2
+if ! command -v markdownlint >/dev/null 2>&1; then
+  echo "FATAL: markdownlint not found on PATH" >&2
   exit 2
 fi
 
 markdownlint_failed=0
 if [[ -f ".markdownlint.yaml" ]]; then
-  if ! "${markdownlint_cmd[@]}" --config ".markdownlint.yaml" "${all_files[@]}"; then
+  if ! markdownlint --config ".markdownlint.yaml" "${all_files[@]}"; then
     markdownlint_failed=1
   fi
 else
-  if ! "${markdownlint_cmd[@]}" "${all_files[@]}"; then
+  if ! markdownlint "${all_files[@]}"; then
     markdownlint_failed=1
   fi
 fi
@@ -64,7 +94,8 @@ fi
 
 failed=0
 
-for file in "${struct_files[@]}"; do
+for file in "${struct_files[@]+"${struct_files[@]}"}"; do
+  [[ -z "$file" ]] && continue
   awk -v file="$file" '
     BEGIN {
       in_code = 0
