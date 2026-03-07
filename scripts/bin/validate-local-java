@@ -1,19 +1,4 @@
 #!/usr/bin/env bash
 # Managed by standard-tooling — DO NOT EDIT in downstream repos.
 # Canonical source: https://github.com/wphillipmoore/standard-tooling
-# validate-local-java — Java-specific local validation checks.
-# Delegates to the repo's scripts/dev/ scripts which run inside containers.
-set -euo pipefail
-
-repo_root="$(git rev-parse --show-toplevel)"
-failed=0
-
-for script in lint.sh typecheck.sh test.sh audit.sh; do
-  target="$repo_root/scripts/dev/$script"
-  if [[ -x "$target" ]]; then
-    echo "Running: scripts/dev/$script"
-    "$target" || failed=1
-  fi
-done
-
-exit $failed
+exec st-validate-local-java "$@"
