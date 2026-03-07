@@ -9,8 +9,24 @@ from unittest.mock import patch
 from standard_tooling.bin.validate_local import _find_validator, _run_validator, main
 
 
+def test_find_validator_entry_point() -> None:
+    def which_side_effect(name: str) -> str | None:
+        if name == "st-v":
+            return "/usr/bin/st-v"
+        return None
+
+    with patch("standard_tooling.bin.validate_local.shutil.which", side_effect=which_side_effect):
+        result = _find_validator("v", Path("/scripts/bin"))
+    assert result == "/usr/bin/st-v"
+
+
 def test_find_validator_on_path() -> None:
-    with patch("standard_tooling.bin.validate_local.shutil.which", return_value="/usr/bin/v"):
+    def which_side_effect(name: str) -> str | None:
+        if name == "v":
+            return "/usr/bin/v"
+        return None
+
+    with patch("standard_tooling.bin.validate_local.shutil.which", side_effect=which_side_effect):
         result = _find_validator("v", Path("/scripts/bin"))
     assert result == "/usr/bin/v"
 
@@ -24,6 +40,21 @@ def test_find_validator_local_fallback(tmp_path: Path) -> None:
     with patch("standard_tooling.bin.validate_local.shutil.which", return_value=None):
         result = _find_validator("validate-local-common", scripts_bin)
     assert result == str(validator)
+
+
+def test_find_validator_entry_point_preferred_over_bare(tmp_path: Path) -> None:
+    """st- entry point is preferred over bare name on PATH."""
+
+    def which_side_effect(name: str) -> str | None:
+        if name == "st-validate-local-common":
+            return "/usr/bin/st-validate-local-common"
+        if name == "validate-local-common":
+            return "/usr/bin/validate-local-common"
+        return None
+
+    with patch("standard_tooling.bin.validate_local.shutil.which", side_effect=which_side_effect):
+        result = _find_validator("validate-local-common", tmp_path)
+    assert result == "/usr/bin/st-validate-local-common"
 
 
 def test_find_validator_not_found(tmp_path: Path) -> None:
@@ -77,8 +108,8 @@ def test_run_validator_not_found(tmp_path: Path) -> None:
 
 
 def _which_allows_docker(tool: str) -> str | None:
-    """Mock shutil.which: allow docker and docker-test, block everything else."""
-    if tool in ("docker", "docker-test"):
+    """Mock shutil.which: allow docker and st-docker-test, block everything else."""
+    if tool in ("docker", "st-docker-test"):
         return f"/usr/bin/{tool}"
     return None
 
@@ -99,11 +130,34 @@ def test_main_docker_missing() -> None:
 
 def test_main_docker_test_missing() -> None:
     def which_only_docker(tool: str) -> str | None:
-        return "/usr/bin/docker" if tool == "docker" else None
+        if tool == "docker":
+            return "/usr/bin/docker"
+        return None
 
     with patch("standard_tooling.bin.validate_local.shutil.which", side_effect=which_only_docker):
         result = main([])
     assert result == 1
+
+
+def test_main_st_docker_test_found() -> None:
+    """st-docker-test entry point satisfies the docker-test requirement."""
+
+    def which_side_effect(tool: str) -> str | None:
+        if tool in ("docker", "st-docker-test"):
+            return f"/usr/bin/{tool}"
+        return None
+
+    with (
+        patch(
+            "standard_tooling.bin.validate_local.shutil.which",
+            side_effect=which_side_effect,
+        ),
+        patch("standard_tooling.bin.validate_local.git.repo_root") as mock_root,
+        patch("standard_tooling.bin.validate_local._find_validator", return_value=None),
+    ):
+        mock_root.return_value = Path("/tmp/repo")  # noqa: S108
+        result = main([])
+    assert result == 0
 
 
 def test_main_all_pass(tmp_path: Path) -> None:

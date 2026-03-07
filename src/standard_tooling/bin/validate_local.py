@@ -24,9 +24,13 @@ def _find_validator(name: str, scripts_bin: Path) -> str | None:
     """Locate a validator by *name*.
 
     Search order:
-      1. PATH (via ``shutil.which``)
-      2. The repository's own ``scripts/bin/`` directory
+      1. ``st-{name}`` on PATH (installed entry point)
+      2. *name* on PATH (legacy bash wrapper)
+      3. The repository's own ``scripts/bin/`` directory
     """
+    entry_point = shutil.which(f"st-{name}")
+    if entry_point is not None:
+        return entry_point
     on_path = shutil.which(name)
     if on_path is not None:
         return on_path
@@ -47,8 +51,9 @@ def _run_validator(name: str, scripts_bin: Path) -> bool:
 
 
 def main(argv: list[str] | None = None) -> int:  # noqa: ARG001
-    for tool in ("docker", "docker-test"):
-        if shutil.which(tool) is None:
+    required = {"docker": ("docker",), "docker-test": ("st-docker-test", "docker-test")}
+    for tool, candidates in required.items():
+        if not any(shutil.which(c) for c in candidates):
             print(f"ERROR: {tool} is required for local validation", file=sys.stderr)
             return 1
 

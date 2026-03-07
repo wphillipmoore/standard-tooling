@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
 # Managed by standard-tooling — DO NOT EDIT in downstream repos.
 # Canonical source: https://github.com/wphillipmoore/standard-tooling
-exec st-pr-issue-linkage "$@"
+if command -v st-pr-issue-linkage >/dev/null 2>&1; then
+    exec st-pr-issue-linkage "$@"
+fi
+_st_root="$(cd "$(dirname "$0")/../.." && pwd)"
+PYTHONPATH="${_st_root}/src${PYTHONPATH:+:$PYTHONPATH}" \
+    exec python3 -c "import sys; from standard_tooling.bin.pr_issue_linkage import main; sys.exit(main())" "$@"
