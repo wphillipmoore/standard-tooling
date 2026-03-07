@@ -153,29 +153,19 @@ Consumed via `git config core.hooksPath scripts/lib/git-hooks`:
 
 ### Consumption Model
 
-**Local development** (any consuming repo):
+**Dev containers** (primary): All `st-*` entry points are pre-installed in
+the dev container images (`dev-python`, `dev-java`, `dev-go`, `dev-rust`,
+`dev-ruby`, `dev-docs`). No local setup required.
+
+**Git hooks** (any consuming repo):
 
 ```bash
-cd ../standard-tooling && uv sync
-export PATH="../standard-tooling/.venv/bin:../standard-tooling/scripts/bin:$PATH"
 git config core.hooksPath ../standard-tooling/scripts/lib/git-hooks
 ```
 
-**CI (GitHub Actions)**:
-
-```yaml
-- uses: actions/checkout@v4
-  with:
-    repository: wphillipmoore/standard-tooling
-    ref: v1.2
-    path: .standard-tooling
-
-- name: Set up standard-tooling
-  run: |
-    cd .standard-tooling && uv sync --frozen
-    echo "$GITHUB_WORKSPACE/.standard-tooling/.venv/bin" >> "$GITHUB_PATH"
-    echo "$GITHUB_WORKSPACE/.standard-tooling/scripts/bin" >> "$GITHUB_PATH"
-```
+**CI (GitHub Actions)**: The `standards-compliance` action clones
+standard-tooling and puts `scripts/bin/` on PATH. The bash wrappers
+include a PYTHONPATH fallback for non-installed environments.
 
 ### Key Constraints
 
