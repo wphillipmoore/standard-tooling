@@ -1,0 +1,88 @@
+#!/usr/bin/env bash
+# Managed by standard-tooling — DO NOT EDIT in downstream repos.
+# Canonical source: https://github.com/wphillipmoore/standard-tooling
+# docker-docs — preview or build MkDocs documentation inside a dev container.
+set -euo pipefail
+
+repo_root="$(git rev-parse --show-toplevel)"
+
+image="${DOCKER_DOCS_IMAGE:-dev-docs:latest}"
+config="${MKDOCS_CONFIG:-docs/site/mkdocs.yml}"
+port="${DOCS_PORT:-8000}"
+
+usage() {
+  echo "Usage: docker-docs <serve|build> [mkdocs args...]"
+  echo ""
+  echo "Commands:"
+  echo "  serve   Start a live-reloading preview server (port ${port})"
+  echo "  build   Build the static documentation site"
+  echo ""
+  echo "Environment variables:"
+  echo "  DOCKER_DOCS_IMAGE  Docker image (default: dev-docs:latest)"
+  echo "  MKDOCS_CONFIG      Path to mkdocs.yml (default: docs/site/mkdocs.yml)"
+  echo "  DOCS_PORT          Host port for serve (default: 8000)"
+  exit 1
+}
+
+[[ $# -lt 1 ]] && usage
+
+command="$1"; shift
+
+# -- build mkdocs command ------------------------------------------------------
+
+case "$command" in
+  serve)
+    mkdocs_cmd="mkdocs serve -f ${config} -a 0.0.0.0:8000"
+    ;;
+  build)
+    mkdocs_cmd="mkdocs build -f ${config}"
+    ;;
+  *)
+    echo "ERROR: unknown command: ${command}" >&2
+    usage
+    ;;
+esac
+
+# Append any extra arguments passed after the command.
+if [[ $# -gt 0 ]]; then
+  mkdocs_cmd+=" $*"
+fi
+
+# -- Python repo detection: use uv for mkdocstrings ---------------------------
+
+container_cmd="$mkdocs_cmd"
+if [[ -f "${repo_root}/pyproject.toml" ]]; then
+  container_cmd="uv sync --group docs && uv run ${mkdocs_cmd}"
+fi
+
+# -- build docker run arguments ------------------------------------------------
+
+docker_args=(
+  run --rm
+  -v "${repo_root}:/workspace"
+  -w /workspace
+)
+
+if [[ "$command" == "serve" ]]; then
+  docker_args+=(-p "${port}:8000")
+fi
+
+# Mount mq-rest-admin-common as sibling at .mq-rest-admin-common (matches the
+# first base_path entry in all mkdocs.yml files).
+common_dir="${repo_root}/../mq-rest-admin-common"
+if [[ -d "$common_dir" ]]; then
+  docker_args+=(-v "$(cd "$common_dir" && pwd):/workspace/.mq-rest-admin-common:ro")
+fi
+
+docker_args+=("$image")
+docker_args+=(bash -c "$container_cmd")
+
+# -- run -----------------------------------------------------------------------
+
+echo "Image:   ${image}"
+echo "Config:  ${config}"
+echo "Command: ${container_cmd}"
+[[ "$command" == "serve" ]] && echo "URL:     http://localhost:${port}"
+echo "---"
+
+exec docker "${docker_args[@]}"
