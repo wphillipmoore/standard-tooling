@@ -91,8 +91,7 @@ jobs:
     uses: wphillipmoore/standard-actions/.github/workflows/ci-security.yml@v1.1
     with:
       language: python
-      # TODO: restore after wrapper fallback lands on develop (#217)
-      run-standards: 'false'
+      run-standards: ${{ inputs.run-release-gates || 'true' }}
       run-security: ${{ inputs.run-security || 'true' }}
     permissions:
       contents: read
