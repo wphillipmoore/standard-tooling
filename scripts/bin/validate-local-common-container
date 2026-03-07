@@ -1,42 +1,4 @@
 #!/usr/bin/env bash
 # Managed by standard-tooling — DO NOT EDIT in downstream repos.
 # Canonical source: https://github.com/wphillipmoore/standard-tooling
-# validate-local-common-container — runs INSIDE a dev container.
-# Called by validate-local-common via docker-test.
-set -euo pipefail
-
-repo_root="$(git rev-parse --show-toplevel)"
-
-run() {
-  echo "Running: $*"
-  "$@"
-}
-
-# -- repo profile validation -------------------------------------------------
-
-if command -v repo-profile >/dev/null 2>&1; then
-  run repo-profile
-elif [[ -f "$repo_root/scripts/bin/repo-profile" ]]; then
-  run "$repo_root/scripts/bin/repo-profile"
-fi
-
-# -- markdown lint -----------------------------------------------------------
-
-if command -v markdown-standards >/dev/null 2>&1; then
-  run markdown-standards
-elif [[ -f "$repo_root/scripts/bin/markdown-standards" ]]; then
-  run "$repo_root/scripts/bin/markdown-standards"
-fi
-
-# -- shellcheck on all shell scripts -----------------------------------------
-
-shell_files=()
-while IFS= read -r f; do
-  shell_files+=("$f")
-done < <(
-  find "$repo_root/scripts" -type f \( -name '*.sh' -o -path '*/git-hooks/*' -o -path '*/bin/*' \) 2>/dev/null
-)
-
-if [[ ${#shell_files[@]} -gt 0 ]]; then
-  run shellcheck "${shell_files[@]}"
-fi
+exec st-validate-local-common-container "$@"

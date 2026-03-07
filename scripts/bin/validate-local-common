@@ -1,14 +1,4 @@
 #!/usr/bin/env bash
 # Managed by standard-tooling — DO NOT EDIT in downstream repos.
 # Canonical source: https://github.com/wphillipmoore/standard-tooling
-# validate-local-common — shared checks run for ALL repos (containerised).
-set -euo pipefail
-
-st_bin="$(cd "$(dirname "$0")" && pwd)"
-
-# All dev images include shellcheck, markdownlint, shfmt, yamllint, actionlint.
-# Default to dev-python:3.14 for repos with no language marker.
-export DOCKER_DEV_IMAGE="${DOCKER_DEV_IMAGE:-dev-python:3.14}"
-export DOCKER_EXTRA_VOLUMES="${st_bin}:/st-bin:ro"
-export DOCKER_TEST_CMD="export PATH=/st-bin:\$PATH && validate-local-common-container"
-exec docker-test
+exec st-validate-local-common "$@"
