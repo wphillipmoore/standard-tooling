@@ -5,6 +5,14 @@ this repository.
 
 <!-- include: docs/repository-standards.md -->
 
+## Auto-memory policy
+
+**Do NOT use MEMORY.md.** Never write to MEMORY.md or any file under the
+memory directory. All behavioral rules, conventions, and workflow instructions
+belong in managed, version-controlled documentation (CLAUDE.md, AGENTS.md,
+skills, or docs/). If you want to persist something, tell the human what you
+would save and let them decide where it belongs.
+
 ## Project Overview
 
 This is a Python package providing shared development tooling for all managed
