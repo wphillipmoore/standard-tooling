@@ -40,7 +40,7 @@ cd ../your-repo
 Add standard-tooling to PATH and configure git hooks:
 
 ```bash
-export PATH="../standard-tooling/.venv/bin:../standard-tooling/scripts/bin:$PATH"
+export PATH="../standard-tooling/.venv/bin:$PATH"
 git config core.hooksPath ../standard-tooling/scripts/lib/git-hooks
 ```
 
@@ -89,9 +89,9 @@ Use the `standard-actions` composite action in your CI workflow:
 
 The action checks out standard-tooling, adds it to PATH, and runs:
 
-- `repo-profile` -- validates the repository profile
-- `markdown-standards` -- validates markdown formatting
-- `pr-issue-linkage` -- validates PR issue linkage (on PRs only)
+- `st-repo-profile` -- validates the repository profile
+- `st-markdown-standards` -- validates markdown formatting
+- `st-pr-issue-linkage` -- validates PR issue linkage (on PRs only)
 
 See `standard-actions` for reusable workflow actions.
 
@@ -109,10 +109,10 @@ no-duplicate-heading:
 
 ```bash
 # Verify repo profile
-repo-profile
+st-repo-profile
 
 # Verify markdown
-markdown-standards
+st-markdown-standards
 
 # Verify hooks work
 git checkout -b feature/1-test-setup

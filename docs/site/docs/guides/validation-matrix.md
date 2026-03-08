@@ -8,9 +8,9 @@ and its exit codes.
 | Check | Hook | CI | Script |
 | ----- | ---- | -- | ------ |
 | Branch naming | Yes | -- | `pre-commit` |
-| Repository profile | -- | Yes | `repo-profile` |
-| Markdown standards | -- | Yes | `markdown-standards` |
-| PR issue linkage | -- | Yes | `pr-issue-linkage` |
+| Repository profile | -- | Yes | `st-repo-profile` |
+| Markdown standards | -- | Yes | `st-markdown-standards` |
+| PR issue linkage | -- | Yes | `st-pr-issue-linkage` |
 | Shellcheck | -- | Yes | CI workflow step |
 
 ## Local Hooks
@@ -28,14 +28,14 @@ and its exit codes.
 
 ## CI Checks
 
-### repo-profile
+### st-repo-profile
 
 **Trigger:** PR opened or updated
 
 Validates `docs/repository-standards.md` has all six required
 attributes.
 
-### markdown-standards
+### st-markdown-standards
 
 **Trigger:** PR opened or updated
 
@@ -43,7 +43,7 @@ Runs markdownlint on all markdown files. Structural checks (single
 H1, TOC, heading hierarchy) apply to standard docs only -- not
 doc-site pages or CHANGELOG.md.
 
-### pr-issue-linkage
+### st-pr-issue-linkage
 
 **Trigger:** PR opened or updated
 

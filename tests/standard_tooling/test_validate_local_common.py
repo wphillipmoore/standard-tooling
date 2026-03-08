@@ -57,7 +57,7 @@ def test_main_sets_default_image() -> None:
     assert captured["DOCKER_DEV_IMAGE"] == "dev-python:3.14"
 
 
-def test_main_sets_volumes_and_cmd() -> None:
+def test_main_sets_cmd() -> None:
     import os
 
     captured: dict[str, str] = {}
@@ -74,8 +74,8 @@ def test_main_sets_volumes_and_cmd() -> None:
         patch.dict("os.environ", {}, clear=True),
     ):
         main()
-    assert "/st-bin:ro" in captured["DOCKER_EXTRA_VOLUMES"]
-    assert "validate-local-common-container" in captured["DOCKER_TEST_CMD"]
+    assert "DOCKER_EXTRA_VOLUMES" not in captured
+    assert captured["DOCKER_TEST_CMD"] == "st-validate-local-common-container"
 
 
 def test_main_propagates_failure() -> None:

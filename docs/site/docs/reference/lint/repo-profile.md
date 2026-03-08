@@ -1,6 +1,6 @@
-# repo-profile
+# st-repo-profile
 
-**Path:** `scripts/bin/repo-profile`
+**Installed as:** `st-repo-profile` (Python console script)
 
 Validates that `docs/repository-standards.md` contains all required
 repository profile attributes with non-placeholder values.
@@ -8,7 +8,7 @@ repository profile attributes with non-placeholder values.
 ## Usage
 
 ```bash
-repo-profile
+st-repo-profile
 ```
 
 Run from the repository root. The script reads

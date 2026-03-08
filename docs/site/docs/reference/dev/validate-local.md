@@ -23,9 +23,9 @@ stages:
 
 ### 1. Common Checks (always)
 
-Runs `validate-local-common` (resolved via PATH). This script
+Runs `st-validate-local-common` (resolved via PATH). This script
 contains checks shared across all repositories (markdown linting,
-shellcheck, repo-profile validation).
+shellcheck, st-repo-profile validation).
 
 ### 2. Language-Specific Checks
 
@@ -34,9 +34,9 @@ validation script (resolved via PATH):
 
 | Language | Script |
 | -------- | ------ |
-| `python` | `validate-local-python` |
-| `go` | `validate-local-go` |
-| `java` | `validate-local-java` |
+| `python` | `st-validate-local-python` |
+| `go` | `st-validate-local-go` |
+| `java` | `st-validate-local-java` |
 
 ### 3. Custom Checks
 

@@ -20,17 +20,6 @@ def test_find_validator_entry_point() -> None:
     assert result == "/usr/bin/st-v"
 
 
-def test_find_validator_on_path() -> None:
-    def which_side_effect(name: str) -> str | None:
-        if name == "v":
-            return "/usr/bin/v"
-        return None
-
-    with patch("standard_tooling.bin.validate_local.shutil.which", side_effect=which_side_effect):
-        result = _find_validator("v", Path("/scripts/bin"))
-    assert result == "/usr/bin/v"
-
-
 def test_find_validator_local_fallback(tmp_path: Path) -> None:
     scripts_bin = tmp_path / "scripts" / "bin"
     scripts_bin.mkdir(parents=True)
@@ -42,14 +31,12 @@ def test_find_validator_local_fallback(tmp_path: Path) -> None:
     assert result == str(validator)
 
 
-def test_find_validator_entry_point_preferred_over_bare(tmp_path: Path) -> None:
-    """st- entry point is preferred over bare name on PATH."""
+def test_find_validator_entry_point_found(tmp_path: Path) -> None:
+    """st- entry point is found on PATH."""
 
     def which_side_effect(name: str) -> str | None:
         if name == "st-validate-local-common":
             return "/usr/bin/st-validate-local-common"
-        if name == "validate-local-common":
-            return "/usr/bin/validate-local-common"
         return None
 
     with patch("standard_tooling.bin.validate_local.shutil.which", side_effect=which_side_effect):

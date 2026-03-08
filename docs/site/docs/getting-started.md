@@ -35,12 +35,11 @@ This installs the `st-*` CLI tools into `.venv/bin/`.
 From your consuming repository:
 
 ```bash
-export PATH="../standard-tooling/.venv/bin:../standard-tooling/scripts/bin:$PATH"
+export PATH="../standard-tooling/.venv/bin:$PATH"
 ```
 
-This makes both the Python CLI tools (`st-commit`, `st-submit-pr`, etc.)
-and bash validators (`repo-profile`, `markdown-standards`, etc.) available
-by bare name.
+This makes the `st-*` CLI tools (`st-commit`, `st-submit-pr`, etc.)
+available by name.
 
 ### 4. Configure git hooks
 
@@ -89,7 +88,7 @@ Create `docs/repository-standards.md` with the required attributes:
 Run a validator to confirm everything is wired up:
 
 ```bash
-repo-profile
+st-repo-profile
 ```
 
 ## Next Steps
