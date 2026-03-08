@@ -49,7 +49,7 @@ Each script follows the same pattern:
 
 1. Set `DOCKER_DEV_IMAGE` (default: `dev-<language>:<latest-version>`)
 2. Set `DOCKER_TEST_CMD` (language-specific command)
-3. Delegate to `docker-test` if available, otherwise run `docker run`
+3. Delegate to `st-docker-test` if available, otherwise run `docker run`
    directly
 
 Environment overrides:

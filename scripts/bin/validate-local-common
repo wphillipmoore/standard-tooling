@@ -1,9 +1,0 @@
-#!/usr/bin/env bash
-# Managed by standard-tooling — DO NOT EDIT in downstream repos.
-# Canonical source: https://github.com/wphillipmoore/standard-tooling
-if command -v st-validate-local-common >/dev/null 2>&1; then
-    exec st-validate-local-common "$@"
-fi
-_st_root="$(cd "$(dirname "$0")/../.." && pwd)"
-PYTHONPATH="${_st_root}/src${PYTHONPATH:+:$PYTHONPATH}" \
-    exec python3 -c "import sys; from standard_tooling.bin.validate_local_common import main; sys.exit(main())" "$@"

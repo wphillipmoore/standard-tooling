@@ -1,6 +1,6 @@
-# markdown-standards
+# st-markdown-standards
 
-**Path:** `scripts/bin/markdown-standards`
+**Installed as:** `st-markdown-standards` (Python console script)
 
 Validates markdown files using markdownlint and structural checks.
 Applies different levels of validation depending on file location.
@@ -8,7 +8,7 @@ Applies different levels of validation depending on file location.
 ## Usage
 
 ```bash
-markdown-standards
+st-markdown-standards
 ```
 
 Run from the repository root. No arguments required.
