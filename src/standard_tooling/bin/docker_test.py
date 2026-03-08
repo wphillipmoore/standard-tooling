@@ -8,6 +8,7 @@ via environment variables.
 from __future__ import annotations
 
 import os
+import subprocess
 import sys
 from typing import TYPE_CHECKING
 
@@ -16,12 +17,14 @@ from standard_tooling.lib import git
 if TYPE_CHECKING:
     from pathlib import Path
 
+_GHCR = "ghcr.io/wphillipmoore"
+
 _DEFAULT_IMAGES: dict[str, str] = {
-    "ruby": "dev-ruby:3.4",
-    "python": "dev-python:3.14",
-    "go": "dev-go:1.26",
-    "rust": "dev-rust:1.93",
-    "java": "dev-java:21",
+    "ruby": f"{_GHCR}/dev-ruby:3.4",
+    "python": f"{_GHCR}/dev-python:3.14",
+    "go": f"{_GHCR}/dev-go:1.26",
+    "rust": f"{_GHCR}/dev-rust:1.93",
+    "java": f"{_GHCR}/dev-java:21",
 }
 
 _DEFAULT_COMMANDS: dict[str, str] = {
@@ -99,6 +102,20 @@ def build_docker_args(repo_root: Path, lang: str) -> list[str]:
     return docker_args
 
 
+def _docker_is_available() -> bool:
+    """Check whether the Docker daemon is reachable."""
+    try:
+        result = subprocess.run(
+            ["docker", "info"],  # noqa: S603, S607
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            timeout=10,
+        )
+        return result.returncode == 0
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        return False
+
+
 def main(argv: list[str] | None = None) -> int:  # noqa: ARG001
     repo_root = git.repo_root()
     lang = _detect_language(repo_root)
@@ -112,6 +129,14 @@ def main(argv: list[str] | None = None) -> int:  # noqa: ARG001
         return 1
 
     docker_args = build_docker_args(repo_root, lang)
+
+    if not _docker_is_available():
+        print(
+            "ERROR: Docker is not available. Ensure the Docker daemon is running.",
+            file=sys.stderr,
+        )
+        return 1
+
     os.execvp("docker", docker_args)  # noqa: S606, S607
     return 0  # pragma: no cover
 

@@ -54,7 +54,7 @@ def test_main_sets_default_image() -> None:
         patch.dict("os.environ", {}, clear=True),
     ):
         main()
-    assert captured["DOCKER_DEV_IMAGE"] == "dev-python:3.14"
+    assert captured["DOCKER_DEV_IMAGE"] == "ghcr.io/wphillipmoore/dev-python:3.14"
 
 
 def test_main_sets_cmd() -> None:

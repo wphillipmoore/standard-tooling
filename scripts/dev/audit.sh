@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-export DOCKER_DEV_IMAGE="${DOCKER_DEV_IMAGE:-dev-python:3.12}"
+export DOCKER_DEV_IMAGE="${DOCKER_DEV_IMAGE:-ghcr.io/wphillipmoore/dev-python:3.12}"
 export DOCKER_TEST_CMD="${DOCKER_TEST_CMD:-uv sync --check --frozen --group dev && uv lock --check}"
 
 if ! command -v docker-test >/dev/null 2>&1; then
