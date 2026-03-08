@@ -127,7 +127,7 @@ def test_main_docker_test_missing() -> None:
 
 
 def test_main_st_docker_test_found() -> None:
-    """st-docker-test entry point satisfies the docker-test requirement."""
+    """st-docker-test entry point satisfies the st-docker-test requirement."""
 
     def which_side_effect(tool: str) -> str | None:
         if tool in ("docker", "st-docker-test"):
