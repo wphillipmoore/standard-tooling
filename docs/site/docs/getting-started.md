@@ -51,7 +51,19 @@ git config core.hooksPath ../standard-tooling/scripts/lib/git-hooks
 This tells git to use the standard-tooling hooks for branch naming and commit
 message validation.
 
-### 5. Create a repository profile
+### 5. GitHub authentication
+
+Container-based tools (e.g. `st-submit-pr`) need a GitHub token to create
+pull requests. Add to your shell profile (`~/.bashrc` or `~/.zshrc`):
+
+```bash
+export GH_TOKEN=$(gh auth token)
+```
+
+This passes your local `gh` authentication into the dev container
+automatically.
+
+### 6. Create a repository profile
 
 Create `docs/repository-standards.md` with the required attributes:
 
@@ -72,7 +84,7 @@ Create `docs/repository-standards.md` with the required attributes:
 - primary_language: <python|go|java|shell|none>
 ```
 
-### 6. Verify
+### 7. Verify
 
 Run a validator to confirm everything is wired up:
 

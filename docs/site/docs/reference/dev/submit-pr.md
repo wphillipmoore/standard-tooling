@@ -12,6 +12,11 @@ proper issue linkage, testing sections, and auto-merge configuration.
     `gh pr create`. The tool populates the PR template and
     configures auto-merge automatically.
 
+## Prerequisites
+
+When running inside a dev container, `GH_TOKEN` must be set so `gh` can
+authenticate. See [GitHub authentication](../../getting-started.md#5-github-authentication).
+
 ## Usage
 
 ```bash

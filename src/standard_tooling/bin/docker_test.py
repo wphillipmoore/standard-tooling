@@ -83,7 +83,7 @@ def build_docker_args(repo_root: Path, lang: str) -> list[str]:
                 docker_args.extend(["-v", vol])
 
     for name in os.environ:
-        if name.startswith("MQ_"):
+        if name.startswith(("MQ_", "GH_", "GITHUB_")):
             docker_args.extend(["-e", name])
 
     docker_args.append(image)
