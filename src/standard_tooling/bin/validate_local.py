@@ -47,7 +47,7 @@ def _run_validator(name: str, scripts_bin: Path) -> bool:
 
 
 def main(argv: list[str] | None = None) -> int:  # noqa: ARG001
-    required = {"docker": ("docker",), "docker-test": ("st-docker-test",)}
+    required = {"docker": ("docker",), "st-docker-test": ("st-docker-test",)}
     for tool, candidates in required.items():
         if not any(shutil.which(c) for c in candidates):
             print(f"ERROR: {tool} is required for local validation", file=sys.stderr)

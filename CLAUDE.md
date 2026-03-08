@@ -137,14 +137,14 @@ Grandfathered validators consumed via PATH (no `.sh` extensions):
 - `validate-local-python` — Python-specific validation
 - `validate-local-go` — Go-specific validation
 - `validate-local-java` — Java-specific validation
-- `docker-test` — run repo test suite inside a dev container
+- `st-docker-test` — run repo test suite inside a dev container
 
 ### Docker Dev Images
 
 Dev container images (Dockerfiles, build script, publish workflow) are
 maintained in [standard-tooling-docker](https://github.com/wphillipmoore/standard-tooling-docker).
 
-The `docker-test` script (`scripts/bin/docker-test`) auto-detects the project
+The `st-docker-test` entry point auto-detects the project
 language (Gemfile, pyproject.toml, go.mod, pom.xml/mvnw) and runs the test
 suite inside the appropriate container. Consuming repos call it directly or wrap
 it in a thin `scripts/dev/test.sh`. Environment overrides:
