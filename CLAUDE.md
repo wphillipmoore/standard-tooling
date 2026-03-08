@@ -99,7 +99,8 @@ cd ../standard-tooling-docker && docker/build.sh
 
 Environment overrides:
 
-- `DOCKER_DEV_IMAGE` — override the container image (default: `dev-python:3.12`)
+- `DOCKER_DEV_IMAGE` — override the container image
+  (default: `ghcr.io/wphillipmoore/dev-python:3.12`)
 - `DOCKER_TEST_CMD` — override the test command
 
 ## Architecture

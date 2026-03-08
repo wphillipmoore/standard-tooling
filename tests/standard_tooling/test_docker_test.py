@@ -2,13 +2,15 @@
 
 from __future__ import annotations
 
+import subprocess
 from typing import TYPE_CHECKING
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 
 from standard_tooling.bin.docker_test import (
     _detect_language,
+    _docker_is_available,
     build_docker_args,
     main,
 )
@@ -69,7 +71,7 @@ def test_detect_ruby_priority(tmp_path: Path) -> None:
 def test_build_docker_args_python(tmp_path: Path) -> None:
     with patch.dict("os.environ", {}, clear=True):
         args = build_docker_args(tmp_path, "python")
-    assert "dev-python:3.14" in args
+    assert "ghcr.io/wphillipmoore/dev-python:3.14" in args
     assert "uv sync && uv run pytest tests/ -v" in args
     assert "-v" in args
 
@@ -135,10 +137,24 @@ def test_main_no_language_no_env(tmp_path: Path) -> None:
         assert main() == 1
 
 
+def test_main_docker_not_available(tmp_path: Path) -> None:
+    (tmp_path / "pyproject.toml").write_text("[project]\n")
+    with (
+        patch("standard_tooling.bin.docker_test.git.repo_root", return_value=tmp_path),
+        patch("standard_tooling.bin.docker_test._docker_is_available", return_value=False),
+        patch("standard_tooling.bin.docker_test.os.execvp") as mock_exec,
+        patch.dict("os.environ", {}, clear=True),
+    ):
+        result = main()
+    assert result == 1
+    mock_exec.assert_not_called()
+
+
 def test_main_calls_execvp(tmp_path: Path) -> None:
     (tmp_path / "pyproject.toml").write_text("[project]\n")
     with (
         patch("standard_tooling.bin.docker_test.git.repo_root", return_value=tmp_path),
+        patch("standard_tooling.bin.docker_test._docker_is_available", return_value=True),
         patch("standard_tooling.bin.docker_test.os.execvp") as mock_exec,
         patch.dict("os.environ", {}, clear=True),
     ):
@@ -146,4 +162,32 @@ def test_main_calls_execvp(tmp_path: Path) -> None:
     mock_exec.assert_called_once()
     call_args = mock_exec.call_args
     assert call_args[0][0] == "docker"
-    assert "dev-python:3.14" in call_args[0][1]
+    assert "ghcr.io/wphillipmoore/dev-python:3.14" in call_args[0][1]
+
+
+# -- _docker_is_available ----------------------------------------------------
+
+
+def test_docker_is_available_true() -> None:
+    mock_result = MagicMock(returncode=0)
+    with patch("standard_tooling.bin.docker_test.subprocess.run", return_value=mock_result):
+        assert _docker_is_available() is True
+
+
+def test_docker_is_available_false() -> None:
+    mock_result = MagicMock(returncode=1)
+    with patch("standard_tooling.bin.docker_test.subprocess.run", return_value=mock_result):
+        assert _docker_is_available() is False
+
+
+def test_docker_is_available_not_installed() -> None:
+    with patch("standard_tooling.bin.docker_test.subprocess.run", side_effect=FileNotFoundError):
+        assert _docker_is_available() is False
+
+
+def test_docker_is_available_timeout() -> None:
+    with patch(
+        "standard_tooling.bin.docker_test.subprocess.run",
+        side_effect=subprocess.TimeoutExpired(cmd="docker info", timeout=10),
+    ):
+        assert _docker_is_available() is False
