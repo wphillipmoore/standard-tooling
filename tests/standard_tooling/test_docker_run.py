@@ -10,6 +10,8 @@ from standard_tooling.bin.docker_run import main
 if TYPE_CHECKING:
     from pathlib import Path
 
+    import pytest
+
 
 # -- argument parsing ---------------------------------------------------------
 
@@ -103,6 +105,38 @@ def test_command_without_separator(tmp_path: Path) -> None:
         main(["echo", "hi"])
     args = mock_exec.call_args[0][1]
     assert args[-2:] == ["echo", "hi"]
+
+
+# -- network output -----------------------------------------------------------
+
+
+def test_network_printed(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    env = {"GH_TOKEN": "tok", "DOCKER_NETWORK": "mynet"}
+    with (
+        patch("standard_tooling.bin.docker_run.git.repo_root", return_value=tmp_path),
+        patch("standard_tooling.bin.docker_run.assert_docker_available"),
+        patch("standard_tooling.bin.docker_run.os.execvp"),
+        patch.dict("os.environ", env, clear=True),
+    ):
+        main(["--", "cmd"])
+    assert "Network:  mynet" in capsys.readouterr().out
+
+
+# -- argv=None uses sys.argv --------------------------------------------------
+
+
+def test_argv_none_uses_sys_argv(tmp_path: Path) -> None:
+    env = {"GH_TOKEN": "tok"}
+    with (
+        patch("standard_tooling.bin.docker_run.git.repo_root", return_value=tmp_path),
+        patch("standard_tooling.bin.docker_run.assert_docker_available"),
+        patch("standard_tooling.bin.docker_run.os.execvp") as mock_exec,
+        patch("standard_tooling.bin.docker_run.sys.argv", ["st-docker-run", "--", "echo"]),
+        patch.dict("os.environ", env, clear=True),
+    ):
+        main()
+    mock_exec.assert_called_once()
+    assert mock_exec.call_args[0][1][-1] == "echo"
 
 
 # -- execvp call --------------------------------------------------------------
