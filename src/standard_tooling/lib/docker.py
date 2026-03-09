@@ -1,0 +1,119 @@
+"""Shared Docker container logic for st-docker-* commands."""
+
+from __future__ import annotations
+
+import os
+import subprocess
+import sys
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pathlib import Path
+
+_GHCR = "ghcr.io/wphillipmoore"
+
+_DEFAULT_IMAGES: dict[str, str] = {
+    "ruby": f"{_GHCR}/dev-ruby:3.4",
+    "python": f"{_GHCR}/dev-python:3.14",
+    "go": f"{_GHCR}/dev-go:1.26",
+    "rust": f"{_GHCR}/dev-rust:1.93",
+    "java": f"{_GHCR}/dev-java:21",
+}
+
+_DEFAULT_TEST_COMMANDS: dict[str, str] = {
+    "ruby": "bundle install --jobs 4 && bundle exec rake",
+    "python": "uv sync && uv run pytest tests/ -v",
+    "go": "go test ./...",
+    "rust": "cargo test",
+    "java": "./mvnw verify",
+}
+
+_FALLBACK_IMAGE = f"{_GHCR}/dev-docs:latest"
+
+
+def detect_language(repo_root: Path) -> str:
+    """Detect the project language from repo contents."""
+    if (repo_root / "Gemfile").is_file():
+        return "ruby"
+    if (repo_root / "pyproject.toml").is_file():
+        return "python"
+    if (repo_root / "go.mod").is_file():
+        return "go"
+    if (repo_root / "Cargo.toml").is_file():
+        return "rust"
+    if (repo_root / "pom.xml").is_file() or (repo_root / "mvnw").is_file():
+        return "java"
+    return ""
+
+
+def default_image(lang: str, *, fallback: bool = False) -> str:
+    """Return the default Docker image for a language.
+
+    When *fallback* is True, return the dev-docs image if no language
+    matches instead of returning an empty string.
+    """
+    image = _DEFAULT_IMAGES.get(lang, "")
+    if not image and fallback:
+        return _FALLBACK_IMAGE
+    return image
+
+
+def build_docker_args(
+    repo_root: Path,
+    image: str,
+    command: list[str],
+) -> list[str]:
+    """Build the ``docker run`` argument list."""
+    network = os.environ.get("DOCKER_NETWORK", "")
+
+    docker_args = [
+        "docker",
+        "run",
+        "--rm",
+        "-v",
+        f"{repo_root}:/workspace",
+        "-w",
+        "/workspace",
+    ]
+
+    if network:
+        docker_args.extend(["--network", network])
+
+    extra_volumes = os.environ.get("DOCKER_EXTRA_VOLUMES", "")
+    if extra_volumes:
+        for vol in extra_volumes.split(";"):
+            vol = vol.strip()
+            if vol:
+                docker_args.extend(["-v", vol])
+
+    for name in os.environ:
+        if name.startswith(("MQ_", "GH_", "GITHUB_")):
+            docker_args.extend(["-e", name])
+
+    docker_args.append(image)
+    docker_args.extend(command)
+
+    return docker_args
+
+
+def assert_docker_available() -> None:
+    """Exit with an error if the Docker daemon is not reachable."""
+    try:
+        result = subprocess.run(
+            ["docker", "info"],  # noqa: S603, S607
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            timeout=10,
+        )
+        if result.returncode != 0:
+            _docker_unavailable()
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        _docker_unavailable()
+
+
+def _docker_unavailable() -> None:
+    print(
+        "ERROR: Docker is not available. Ensure the Docker daemon is running.",
+        file=sys.stderr,
+    )
+    sys.exit(1)

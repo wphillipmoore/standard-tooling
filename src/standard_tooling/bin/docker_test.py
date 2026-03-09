@@ -13,48 +13,23 @@ import sys
 from typing import TYPE_CHECKING
 
 from standard_tooling.lib import git
+from standard_tooling.lib.docker import (
+    _DEFAULT_IMAGES,
+    _DEFAULT_TEST_COMMANDS,
+    build_docker_args,
+    detect_language,
+)
 
 if TYPE_CHECKING:
     from pathlib import Path
 
-_GHCR = "ghcr.io/wphillipmoore"
-
-_DEFAULT_IMAGES: dict[str, str] = {
-    "ruby": f"{_GHCR}/dev-ruby:3.4",
-    "python": f"{_GHCR}/dev-python:3.14",
-    "go": f"{_GHCR}/dev-go:1.26",
-    "rust": f"{_GHCR}/dev-rust:1.93",
-    "java": f"{_GHCR}/dev-java:21",
-}
-
-_DEFAULT_COMMANDS: dict[str, str] = {
-    "ruby": "bundle install --jobs 4 && bundle exec rake",
-    "python": "uv sync && uv run pytest tests/ -v",
-    "go": "go test ./...",
-    "rust": "cargo test",
-    "java": "./mvnw verify",
-}
+_detect_language = detect_language
 
 
-def _detect_language(repo_root: Path) -> str:
-    """Detect the project language from repo contents."""
-    if (repo_root / "Gemfile").is_file():
-        return "ruby"
-    if (repo_root / "pyproject.toml").is_file():
-        return "python"
-    if (repo_root / "go.mod").is_file():
-        return "go"
-    if (repo_root / "Cargo.toml").is_file():
-        return "rust"
-    if (repo_root / "pom.xml").is_file() or (repo_root / "mvnw").is_file():
-        return "java"
-    return ""
-
-
-def build_docker_args(repo_root: Path, lang: str) -> list[str]:
-    """Build the docker run argument list."""
+def build_test_docker_args(repo_root: Path, lang: str) -> list[str]:
+    """Build the docker run argument list for test execution."""
     image = os.environ.get("DOCKER_DEV_IMAGE") or _DEFAULT_IMAGES.get(lang, "")
-    test_cmd = os.environ.get("DOCKER_TEST_CMD") or _DEFAULT_COMMANDS.get(lang, "")
+    test_cmd = os.environ.get("DOCKER_TEST_CMD") or _DEFAULT_TEST_COMMANDS.get(lang, "")
     network = os.environ.get("DOCKER_NETWORK", "")
 
     if not image:
@@ -65,33 +40,6 @@ def build_docker_args(repo_root: Path, lang: str) -> list[str]:
         print(f"ERROR: no test command configured for language: {lang}", file=sys.stderr)
         sys.exit(1)
 
-    docker_args = [
-        "docker",
-        "run",
-        "--rm",
-        "-v",
-        f"{repo_root}:/workspace",
-        "-w",
-        "/workspace",
-    ]
-
-    if network:
-        docker_args.extend(["--network", network])
-
-    extra_volumes = os.environ.get("DOCKER_EXTRA_VOLUMES", "")
-    if extra_volumes:
-        for vol in extra_volumes.split(";"):
-            vol = vol.strip()
-            if vol:
-                docker_args.extend(["-v", vol])
-
-    for name in os.environ:
-        if name.startswith(("MQ_", "GH_", "GITHUB_")):
-            docker_args.extend(["-e", name])
-
-    docker_args.append(image)
-    docker_args.extend(["bash", "-c", test_cmd])
-
     print(f"Language: {lang or '<none>'}")
     print(f"Image:    {image}")
     print(f"Command:  {test_cmd}")
@@ -99,7 +47,7 @@ def build_docker_args(repo_root: Path, lang: str) -> list[str]:
         print(f"Network:  {network}")
     print("---")
 
-    return docker_args
+    return build_docker_args(repo_root, image, ["bash", "-c", test_cmd])
 
 
 def _docker_is_available() -> bool:
@@ -118,7 +66,7 @@ def _docker_is_available() -> bool:
 
 def main(argv: list[str] | None = None) -> int:  # noqa: ARG001
     repo_root = git.repo_root()
-    lang = _detect_language(repo_root)
+    lang = detect_language(repo_root)
 
     if not lang and not os.environ.get("DOCKER_DEV_IMAGE"):
         print(
@@ -128,7 +76,7 @@ def main(argv: list[str] | None = None) -> int:  # noqa: ARG001
         print("Set DOCKER_DEV_IMAGE and DOCKER_TEST_CMD explicitly.", file=sys.stderr)
         return 1
 
-    docker_args = build_docker_args(repo_root, lang)
+    docker_args = build_test_docker_args(repo_root, lang)
 
     if not _docker_is_available():
         print(
