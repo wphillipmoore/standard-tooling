@@ -32,26 +32,48 @@ CI checkout (GitHub Actions).
 
 ### Environment Setup
 
+This repository uses a **dual-venv** model:
+
+- **`.venv`** — Created inside dev containers. Shebang paths reference
+  `/workspace/.venv/...` and do not work on the host.
+- **`.venv-host`** — Created on the host for bootstrap tools like
+  `st-docker-run`. Shebang paths reference the real host Python.
+
 ```bash
-uv sync --group dev                                    # Install package + dev deps
-git config core.hooksPath scripts/lib/git-hooks        # Enable git hooks
-export PATH="$(pwd)/.venv/bin:$(pwd)/scripts/bin:$PATH" # Put tools on PATH
+# Host bootstrap (one-time) — provides st-docker-run on the host
+UV_PROJECT_ENVIRONMENT=.venv-host uv sync --group dev
+
+# Enable git hooks
+git config core.hooksPath scripts/lib/git-hooks
+
+# Put host tools on PATH
+export PATH="$(pwd)/.venv-host/bin:$(pwd)/scripts/bin:$PATH"
+```
+
+After the host venv is set up, use `st-docker-run` to run all other
+commands inside the dev container:
+
+```bash
+st-docker-run -- uv run ruff check src/ tests/         # Lint Python
+st-docker-run -- uv run pytest tests/ -v                # Run tests
+st-docker-run -- uv run st-validate-local               # Full validation
 ```
 
 ### Validation
 
+All validation runs inside the dev container via `st-docker-run`:
+
 ```bash
-uv run ruff check src/ tests/                          # Lint Python
-uv run ruff format --check .                           # Check formatting
-uv run mypy src/                                       # Type check
-uv run pytest tests/ -v                                # Run tests
-shellcheck scripts/bin/* scripts/lib/git-hooks/*       # Shell script lint
+st-docker-run -- uv run ruff check src/ tests/         # Lint Python
+st-docker-run -- uv run ruff format --check .          # Check formatting
+st-docker-run -- uv run mypy src/                      # Type check
+st-docker-run -- uv run pytest tests/ -v               # Run tests
 ```
 
 ### Quick full validation
 
 ```bash
-uv run st-validate-local                               # Runs all checks
+st-docker-run -- uv run st-validate-local              # Runs all checks
 ```
 
 ### Three-Tier CI Model
@@ -118,6 +140,8 @@ CLI tools installed as `st-*` console scripts:
 - **`st-ensure-label`** — Idempotent GitHub label creation
 - **`st-list-project-repos`** — List repos linked to a GitHub Project
 - **`st-set-project-field`** — Set single-select field on GitHub Project item
+- **`st-docker-run`** — Run arbitrary commands inside a dev container
+- **`st-docker-test`** — Run repo test suite inside a dev container
 
 Shared libraries under `src/standard_tooling/lib/`:
 
@@ -137,7 +161,6 @@ Grandfathered validators consumed via PATH (no `.sh` extensions):
 - `validate-local-python` — Python-specific validation
 - `validate-local-go` — Go-specific validation
 - `validate-local-java` — Java-specific validation
-- `st-docker-test` — run repo test suite inside a dev container
 
 ### Docker Dev Images
 
@@ -165,6 +188,18 @@ Consumed via `git config core.hooksPath scripts/lib/git-hooks`:
 **Dev containers** (primary): All `st-*` entry points are pre-installed in
 the dev container images (`dev-python`, `dev-java`, `dev-go`, `dev-rust`,
 `dev-ruby`, `dev-docs`). No local setup required.
+
+**Host bootstrap** (for `st-docker-run`): The host needs `st-docker-run`
+to bridge into containers. Consuming repos locate it by searching:
+
+1. `../standard-tooling/.venv-host/bin/st-docker-run` (sibling checkout)
+2. `st-docker-run` on PATH (installed globally)
+
+One-time setup in the `standard-tooling` checkout:
+
+```bash
+UV_PROJECT_ENVIRONMENT=.venv-host uv sync --group dev
+```
 
 **Git hooks** (any consuming repo):
 
