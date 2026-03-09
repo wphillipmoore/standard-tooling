@@ -11,7 +11,7 @@ import pytest
 from standard_tooling.bin.docker_test import (
     _detect_language,
     _docker_is_available,
-    build_docker_args,
+    build_test_docker_args,
     main,
 )
 
@@ -65,12 +65,12 @@ def test_detect_ruby_priority(tmp_path: Path) -> None:
     assert _detect_language(tmp_path) == "ruby"
 
 
-# -- build_docker_args -------------------------------------------------------
+# -- build_test_docker_args ---------------------------------------------------
 
 
 def test_build_docker_args_python(tmp_path: Path) -> None:
     with patch.dict("os.environ", {}, clear=True):
-        args = build_docker_args(tmp_path, "python")
+        args = build_test_docker_args(tmp_path, "python")
     assert "ghcr.io/wphillipmoore/dev-python:3.14" in args
     assert "uv sync && uv run pytest tests/ -v" in args
     assert "-v" in args
@@ -84,7 +84,7 @@ def test_build_docker_args_custom_env(tmp_path: Path) -> None:
         "DOCKER_EXTRA_VOLUMES": "/a:/b:ro;/c:/d",
     }
     with patch.dict("os.environ", env, clear=True):
-        args = build_docker_args(tmp_path, "")
+        args = build_test_docker_args(tmp_path, "")
     assert "custom:img" in args
     assert "echo ok" in args
     assert "--network" in args
@@ -96,7 +96,7 @@ def test_build_docker_args_custom_env(tmp_path: Path) -> None:
 def test_build_docker_args_mq_env(tmp_path: Path) -> None:
     env = {"MQ_HOST": "localhost", "MQ_PORT": "1414"}
     with patch.dict("os.environ", env, clear=True):
-        args = build_docker_args(tmp_path, "python")
+        args = build_test_docker_args(tmp_path, "python")
     assert "-e" in args
     assert "MQ_HOST" in args
     assert "MQ_PORT" in args
@@ -107,7 +107,7 @@ def test_build_docker_args_no_image(tmp_path: Path) -> None:
         patch.dict("os.environ", {}, clear=True),
         pytest.raises(SystemExit),
     ):
-        build_docker_args(tmp_path, "")
+        build_test_docker_args(tmp_path, "")
 
 
 def test_build_docker_args_no_command(tmp_path: Path) -> None:
@@ -115,12 +115,12 @@ def test_build_docker_args_no_command(tmp_path: Path) -> None:
         patch.dict("os.environ", {"DOCKER_DEV_IMAGE": "img:1"}, clear=True),
         pytest.raises(SystemExit),
     ):
-        build_docker_args(tmp_path, "")
+        build_test_docker_args(tmp_path, "")
 
 
 def test_build_docker_args_empty_extra_volumes(tmp_path: Path) -> None:
     with patch.dict("os.environ", {"DOCKER_EXTRA_VOLUMES": ";"}, clear=True):
-        args = build_docker_args(tmp_path, "python")
+        args = build_test_docker_args(tmp_path, "python")
     # Should not have extra -v entries beyond the workspace mount
     v_indices = [i for i, a in enumerate(args) if a == "-v"]
     assert len(v_indices) == 1
