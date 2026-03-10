@@ -25,7 +25,7 @@ _DEFAULT_TEST_COMMANDS: dict[str, str] = {
     "java": "./mvnw verify",
 }
 
-_FALLBACK_IMAGE = f"{_GHCR}/dev-docs:latest"
+_FALLBACK_IMAGE = f"{_GHCR}/dev-base:latest"
 
 
 def detect_language(repo_root: Path) -> str:
@@ -46,7 +46,7 @@ def detect_language(repo_root: Path) -> str:
 def default_image(lang: str, *, fallback: bool = False) -> str:
     """Return the default Docker image for a language.
 
-    When *fallback* is True, return the dev-docs image if no language
+    When *fallback* is True, return the dev-base image if no language
     matches instead of returning an empty string.
     """
     image = _DEFAULT_IMAGES.get(lang, "")

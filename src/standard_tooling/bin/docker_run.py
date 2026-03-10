@@ -1,7 +1,7 @@
 """Run an arbitrary command inside a dev container.
 
 Auto-detects the project language to select a default Docker image.
-Falls back to dev-docs:latest when no language is detected and
+Falls back to dev-base:latest when no language is detected and
 DOCKER_DEV_IMAGE is not set.  The command to run is taken from CLI
 arguments after ``--``.
 """
