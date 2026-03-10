@@ -50,31 +50,18 @@ git config core.hooksPath scripts/lib/git-hooks
 export PATH="$(pwd)/.venv-host/bin:$(pwd)/scripts/bin:$PATH"
 ```
 
-After the host venv is set up, use `st-docker-run` to run all other
-commands inside the dev container:
-
-```bash
-st-docker-run -- uv run ruff check src/ tests/         # Lint Python
-st-docker-run -- uv run pytest tests/ -v                # Run tests
-st-docker-run -- uv run st-validate-local               # Full validation
-```
+After the host venv is set up, use `st-docker-run` to run all commands
+inside the dev container. See [Validation](#validation) below.
 
 ### Validation
-
-All validation runs inside the dev container via `st-docker-run`:
-
-```bash
-st-docker-run -- uv run ruff check src/ tests/         # Lint Python
-st-docker-run -- uv run ruff format --check .          # Check formatting
-st-docker-run -- uv run mypy src/                      # Type check
-st-docker-run -- uv run pytest tests/ -v               # Run tests
-```
-
-### Quick full validation
 
 ```bash
 st-docker-run -- uv run st-validate-local              # Runs all checks
 ```
+
+This is the **only** validation command. Do not run individual linters,
+formatters, or other tools outside of `st-validate-local`. If a tool is not
+invoked by `st-validate-local`, it is not part of the validation pipeline.
 
 ### Three-Tier CI Model
 
