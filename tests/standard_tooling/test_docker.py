@@ -148,6 +148,31 @@ def test_build_docker_args_mounts_gitconfig(tmp_path: Path) -> None:
     assert f"{gitconfig}:/root/.gitconfig:ro" in args
 
 
+def test_build_docker_args_mounts_ssh_dir(tmp_path: Path) -> None:
+    fake_home = tmp_path / "home"
+    fake_home.mkdir()
+    ssh_dir = fake_home / ".ssh"
+    ssh_dir.mkdir()
+    (ssh_dir / "id_rsa").write_text("key\n")
+    with (
+        patch.dict("os.environ", {}, clear=True),
+        patch("standard_tooling.lib.docker.Path.home", return_value=fake_home),
+    ):
+        args = build_docker_args(tmp_path, "img:1", ["cmd"])
+    assert f"{ssh_dir}:/root/.ssh:ro" in args
+
+
+def test_build_docker_args_no_ssh_dir(tmp_path: Path) -> None:
+    fake_home = tmp_path / "home"
+    fake_home.mkdir()
+    with (
+        patch.dict("os.environ", {}, clear=True),
+        patch("standard_tooling.lib.docker.Path.home", return_value=fake_home),
+    ):
+        args = build_docker_args(tmp_path, "img:1", ["cmd"])
+    assert all("/root/.ssh" not in a for a in args)
+
+
 def test_build_docker_args_no_gitconfig(tmp_path: Path) -> None:
     fake_home = tmp_path / "home"
     fake_home.mkdir()
