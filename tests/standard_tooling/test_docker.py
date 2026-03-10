@@ -109,7 +109,12 @@ def test_build_docker_args_extra_volumes(tmp_path: Path) -> None:
 
 
 def test_build_docker_args_empty_extra_volumes(tmp_path: Path) -> None:
-    with patch.dict("os.environ", {"DOCKER_EXTRA_VOLUMES": ";"}, clear=True):
+    fake_home = tmp_path / "home"
+    fake_home.mkdir()
+    with (
+        patch.dict("os.environ", {"DOCKER_EXTRA_VOLUMES": ";"}, clear=True),
+        patch("standard_tooling.lib.docker.Path.home", return_value=fake_home),
+    ):
         args = build_docker_args(tmp_path, "img:1", ["cmd"])
     v_indices = [i for i, a in enumerate(args) if a == "-v"]
     assert len(v_indices) == 1
@@ -128,6 +133,30 @@ def test_build_docker_args_no_unrelated_env(tmp_path: Path) -> None:
     with patch.dict("os.environ", {"HOME": "/home/user"}, clear=True):
         args = build_docker_args(tmp_path, "img:1", ["cmd"])
     assert "HOME" not in args
+
+
+def test_build_docker_args_mounts_gitconfig(tmp_path: Path) -> None:
+    fake_home = tmp_path / "home"
+    fake_home.mkdir()
+    gitconfig = fake_home / ".gitconfig"
+    gitconfig.write_text("[user]\n\tname = Test\n")
+    with (
+        patch.dict("os.environ", {}, clear=True),
+        patch("standard_tooling.lib.docker.Path.home", return_value=fake_home),
+    ):
+        args = build_docker_args(tmp_path, "img:1", ["cmd"])
+    assert f"{gitconfig}:/root/.gitconfig:ro" in args
+
+
+def test_build_docker_args_no_gitconfig(tmp_path: Path) -> None:
+    fake_home = tmp_path / "home"
+    fake_home.mkdir()
+    with (
+        patch.dict("os.environ", {}, clear=True),
+        patch("standard_tooling.lib.docker.Path.home", return_value=fake_home),
+    ):
+        args = build_docker_args(tmp_path, "img:1", ["cmd"])
+    assert all("/root/.gitconfig" not in a for a in args)
 
 
 # -- assert_docker_available --------------------------------------------------
