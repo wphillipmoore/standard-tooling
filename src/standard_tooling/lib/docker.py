@@ -92,6 +92,11 @@ def build_docker_args(
     if gitconfig.exists():
         docker_args.extend(["-v", f"{gitconfig}:/root/.gitconfig:ro"])
 
+    # Mount host SSH directory so git can authenticate for remote operations.
+    ssh_dir = Path.home() / ".ssh"
+    if ssh_dir.is_dir():
+        docker_args.extend(["-v", f"{ssh_dir}:/root/.ssh:ro"])
+
     docker_args.append(image)
     docker_args.extend(command)
 
