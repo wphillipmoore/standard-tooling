@@ -119,7 +119,12 @@ def test_build_docker_args_no_command(tmp_path: Path) -> None:
 
 
 def test_build_docker_args_empty_extra_volumes(tmp_path: Path) -> None:
-    with patch.dict("os.environ", {"DOCKER_EXTRA_VOLUMES": ";"}, clear=True):
+    fake_home = tmp_path / "home"
+    fake_home.mkdir()
+    with (
+        patch.dict("os.environ", {"DOCKER_EXTRA_VOLUMES": ";"}, clear=True),
+        patch("standard_tooling.lib.docker.Path.home", return_value=fake_home),
+    ):
         args = build_test_docker_args(tmp_path, "python")
     # Should not have extra -v entries beyond the workspace mount
     v_indices = [i for i, a in enumerate(args) if a == "-v"]
