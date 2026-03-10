@@ -90,20 +90,28 @@ def main(argv: list[str] | None = None) -> int:
 
     validation_failed = False
     if not args.dry_run:
+        docker_run = shutil.which("st-docker-run")
         validator = shutil.which("st-validate-local")
-        if validator is not None:
+
+        if docker_run is not None:
+            print()
+            print("Running post-finalization validation via st-docker-run...")
+            cmd: tuple[str, ...] = (docker_run, "--", "st-validate-local")
+        elif validator is not None:
             print()
             print("Running post-finalization validation...")
-            result = subprocess.run((validator,), check=False)  # noqa: S603
-            if result.returncode != 0:
-                validation_failed = True
+            cmd = (validator,)
         else:
             print()
-            print("ERROR: st-validate-local not found on PATH.", file=sys.stderr)
+            print("ERROR: neither st-docker-run nor st-validate-local found on PATH.", file=sys.stderr)
             print("  Ensure standard-tooling is installed and on PATH.", file=sys.stderr)
             return 1
+
+        result = subprocess.run(cmd, check=False)  # noqa: S603
+        if result.returncode != 0:
+            validation_failed = True
     else:
-        print("  [dry-run] st-validate-local")
+        print("  [dry-run] st-docker-run -- st-validate-local")
 
     print()
     print("Finalization complete.")

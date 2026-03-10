@@ -38,6 +38,16 @@ def _validation_ok() -> CompletedProcess[bytes]:
     return CompletedProcess(args=("st-validate-local",), returncode=0)
 
 
+def _which_docker_only(name: str) -> str | None:
+    """Simulate st-docker-run on PATH, st-validate-local not."""
+    return "/usr/bin/st-docker-run" if name == "st-docker-run" else None
+
+
+def _which_validator_only(name: str) -> str | None:
+    """Simulate st-validate-local on PATH, st-docker-run not."""
+    return "/usr/bin/st-validate-local" if name == "st-validate-local" else None
+
+
 def test_main_library_release(tmp_path: Path) -> None:
     _make_profile(tmp_path, "library-release")
     with (
@@ -48,7 +58,7 @@ def test_main_library_release(tmp_path: Path) -> None:
             "standard_tooling.bin.finalize_repo.git.merged_branches",
             return_value=["feature/x", "develop"],
         ),
-        patch(_MOD + ".shutil.which", return_value="/usr/bin/st-validate-local"),
+        patch(_MOD + ".shutil.which", side_effect=_which_validator_only),
         patch(_MOD + ".subprocess.run", return_value=_validation_ok()),
     ):
         result = main([])
@@ -64,7 +74,7 @@ def test_main_already_on_target(tmp_path: Path) -> None:
         patch(_MOD + ".git.current_branch", return_value="develop"),
         patch(_MOD + ".git.run"),
         patch(_MOD + ".git.merged_branches", return_value=[]),
-        patch(_MOD + ".shutil.which", return_value="/usr/bin/st-validate-local"),
+        patch(_MOD + ".shutil.which", side_effect=_which_validator_only),
         patch(_MOD + ".subprocess.run", return_value=_validation_ok()),
     ):
         result = main([])
@@ -93,7 +103,7 @@ def test_main_no_profile(tmp_path: Path) -> None:
         patch(_MOD + ".git.current_branch", return_value="develop"),
         patch(_MOD + ".git.run"),
         patch(_MOD + ".git.merged_branches", return_value=[]),
-        patch(_MOD + ".shutil.which", return_value="/usr/bin/st-validate-local"),
+        patch(_MOD + ".shutil.which", side_effect=_which_validator_only),
         patch(_MOD + ".subprocess.run", return_value=_validation_ok()),
     ):
         result = main([])
@@ -119,7 +129,7 @@ def test_main_application_promotion(tmp_path: Path) -> None:
             "standard_tooling.bin.finalize_repo.git.merged_branches",
             return_value=["develop", "release", "main", "feature/y"],
         ),
-        patch(_MOD + ".shutil.which", return_value="/usr/bin/st-validate-local"),
+        patch(_MOD + ".shutil.which", side_effect=_which_validator_only),
         patch(_MOD + ".subprocess.run", return_value=_validation_ok()),
     ):
         result = main([])
@@ -133,7 +143,7 @@ def test_main_docs_single_branch(tmp_path: Path) -> None:
         patch(_MOD + ".git.current_branch", return_value="develop"),
         patch(_MOD + ".git.run"),
         patch(_MOD + ".git.merged_branches", return_value=[]),
-        patch(_MOD + ".shutil.which", return_value="/usr/bin/st-validate-local"),
+        patch(_MOD + ".shutil.which", side_effect=_which_validator_only),
         patch(_MOD + ".subprocess.run", return_value=_validation_ok()),
     ):
         result = main([])
@@ -147,7 +157,7 @@ def test_main_no_deleted_branches(tmp_path: Path) -> None:
         patch(_MOD + ".git.current_branch", return_value="develop"),
         patch(_MOD + ".git.run"),
         patch(_MOD + ".git.merged_branches", return_value=["develop"]),
-        patch(_MOD + ".shutil.which", return_value="/usr/bin/st-validate-local"),
+        patch(_MOD + ".shutil.which", side_effect=_which_validator_only),
         patch(_MOD + ".subprocess.run", return_value=_validation_ok()),
     ):
         result = main([])
@@ -161,7 +171,7 @@ def test_main_validation_fails(tmp_path: Path) -> None:
         patch(_MOD + ".git.current_branch", return_value="develop"),
         patch(_MOD + ".git.run"),
         patch(_MOD + ".git.merged_branches", return_value=[]),
-        patch(_MOD + ".shutil.which", return_value="/usr/bin/st-validate-local"),
+        patch(_MOD + ".shutil.which", side_effect=_which_validator_only),
         patch(
             "standard_tooling.bin.finalize_repo.subprocess.run",
             return_value=CompletedProcess(args=("st-validate-local",), returncode=1),
@@ -182,3 +192,36 @@ def test_main_validator_not_found(tmp_path: Path) -> None:
     ):
         result = main([])
     assert result == 1
+
+
+def test_main_prefers_docker_run(tmp_path: Path) -> None:
+    _make_profile(tmp_path, "library-release")
+    with (
+        patch(_MOD + ".git.repo_root", return_value=tmp_path),
+        patch(_MOD + ".git.current_branch", return_value="develop"),
+        patch(_MOD + ".git.run"),
+        patch(_MOD + ".git.merged_branches", return_value=[]),
+        patch(_MOD + ".shutil.which", side_effect=_which_docker_only),
+        patch(_MOD + ".subprocess.run", return_value=_validation_ok()) as mock_sub,
+    ):
+        result = main([])
+    assert result == 0
+    cmd = mock_sub.call_args[0][0]
+    assert cmd[0] == "/usr/bin/st-docker-run"
+    assert cmd[1:] == ("--", "st-validate-local")
+
+
+def test_main_falls_back_to_direct_validator(tmp_path: Path) -> None:
+    _make_profile(tmp_path, "library-release")
+    with (
+        patch(_MOD + ".git.repo_root", return_value=tmp_path),
+        patch(_MOD + ".git.current_branch", return_value="develop"),
+        patch(_MOD + ".git.run"),
+        patch(_MOD + ".git.merged_branches", return_value=[]),
+        patch(_MOD + ".shutil.which", side_effect=_which_validator_only),
+        patch(_MOD + ".subprocess.run", return_value=_validation_ok()) as mock_sub,
+    ):
+        result = main([])
+    assert result == 0
+    cmd = mock_sub.call_args[0][0]
+    assert cmd == ("/usr/bin/st-validate-local",)
