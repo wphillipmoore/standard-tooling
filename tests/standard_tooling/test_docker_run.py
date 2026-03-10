@@ -48,7 +48,7 @@ def test_fallback_image_no_language(tmp_path: Path) -> None:
     ):
         main(["--", "echo", "hi"])
     args = mock_exec.call_args[0][1]
-    assert "ghcr.io/wphillipmoore/dev-docs:latest" in args
+    assert "ghcr.io/wphillipmoore/dev-base:latest" in args
 
 
 def test_language_detected_image(tmp_path: Path) -> None:

@@ -174,7 +174,7 @@ Consumed via `git config core.hooksPath scripts/lib/git-hooks`:
 
 **Dev containers** (primary): All `st-*` entry points are pre-installed in
 the dev container images (`dev-python`, `dev-java`, `dev-go`, `dev-rust`,
-`dev-ruby`, `dev-docs`). No local setup required.
+`dev-ruby`, `dev-base`). No local setup required.
 
 **Host bootstrap** (for `st-docker-run`): The host needs `st-docker-run`
 to bridge into containers. Consuming repos locate it by searching:

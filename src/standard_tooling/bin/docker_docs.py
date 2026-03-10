@@ -21,7 +21,7 @@ def _usage(port: str) -> None:
     print("  build   Build the static documentation site")
     print()
     print("Environment variables:")
-    print("  DOCKER_DOCS_IMAGE  Docker image (default: ghcr.io/wphillipmoore/dev-docs:latest)")
+    print("  DOCKER_DOCS_IMAGE  Docker image (default: ghcr.io/wphillipmoore/dev-base:latest)")
     print("  MKDOCS_CONFIG      Path to mkdocs.yml (default: docs/site/mkdocs.yml)")
     print("  DOCS_PORT          Host port for serve (default: 8000)")
 
@@ -29,7 +29,7 @@ def _usage(port: str) -> None:
 def main(argv: list[str] | None = None) -> int:
     args = argv if argv is not None else sys.argv[1:]
 
-    image = os.environ.get("DOCKER_DOCS_IMAGE", "ghcr.io/wphillipmoore/dev-docs:latest")
+    image = os.environ.get("DOCKER_DOCS_IMAGE", "ghcr.io/wphillipmoore/dev-base:latest")
     config = os.environ.get("MKDOCS_CONFIG", "docs/site/mkdocs.yml")
     port = os.environ.get("DOCS_PORT", "8000")
 
