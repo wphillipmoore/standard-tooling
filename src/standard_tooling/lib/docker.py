@@ -5,10 +5,7 @@ from __future__ import annotations
 import os
 import subprocess
 import sys
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from pathlib import Path
+from pathlib import Path
 
 _GHCR = "ghcr.io/wphillipmoore"
 
@@ -89,6 +86,11 @@ def build_docker_args(
     for name in os.environ:
         if name.startswith(("MQ_", "GH_", "GITHUB_")):
             docker_args.extend(["-e", name])
+
+    # Mount host git config so git identity is available in the container.
+    gitconfig = Path.home() / ".gitconfig"
+    if gitconfig.exists():
+        docker_args.extend(["-v", f"{gitconfig}:/root/.gitconfig:ro"])
 
     docker_args.append(image)
     docker_args.extend(command)
