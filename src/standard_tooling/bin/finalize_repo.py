@@ -103,7 +103,10 @@ def main(argv: list[str] | None = None) -> int:
             cmd = (validator,)
         else:
             print()
-            print("ERROR: neither st-docker-run nor st-validate-local found on PATH.", file=sys.stderr)
+            print(
+                "ERROR: neither st-docker-run nor st-validate-local found on PATH.",
+                file=sys.stderr,
+            )
             print("  Ensure standard-tooling is installed and on PATH.", file=sys.stderr)
             return 1
 
