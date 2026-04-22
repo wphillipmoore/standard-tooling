@@ -13,6 +13,72 @@ belong in managed, version-controlled documentation (CLAUDE.md, AGENTS.md,
 skills, or docs/). If you want to persist something, tell the human what you
 would save and let them decide where it belongs.
 
+## Parallel AI agent development
+
+This repository supports running multiple Claude Code agents in parallel via
+git worktrees. The convention keeps parallel agents' working trees isolated
+while preserving shared project memory (which Claude Code derives from the
+session's starting CWD).
+
+**Canonical spec:**
+[`docs/specs/worktree-convention.md`](docs/specs/worktree-convention.md) —
+full rationale, trust model, failure modes, and memory-path implications.
+
+### Structure
+
+```text
+~/dev/github/standard-tooling/           ← sessions ALWAYS start here
+  .git/
+  CLAUDE.md, src/, docs/, …              ← main worktree (usually `develop`)
+  .worktrees/                            ← container for parallel worktrees
+    issue-258-worktree-convention/       ← worktree on feature/258-worktree-convention
+    …
+```
+
+### Rules
+
+1. **Sessions always start at the project root.**
+   `cd ~/dev/github/standard-tooling && claude` — never from inside
+   `.worktrees/<name>/`. This keeps the memory-path slug stable and shared.
+2. **Each parallel agent is assigned exactly one worktree.** The session
+   prompt names the worktree (see Agent prompt contract below).
+   - For Read / Edit / Write tools: use the worktree's absolute path.
+   - For Bash commands that touch files: `cd` into the worktree first,
+     or use absolute paths.
+3. **The main worktree is read-only.** All edits flow through a worktree
+   on a feature branch — the logical endpoint of the standing
+   "no direct commits to develop" policy.
+4. **One worktree per issue.** Don't stack in-flight issues. When a
+   branch lands, remove the worktree before starting the next.
+5. **Naming: `issue-<N>-<short-slug>`.** `<N>` is the GitHub issue
+   number; `<short-slug>` is 2–4 kebab-case tokens.
+
+### Agent prompt contract
+
+When launching a parallel-agent session, use this template (fill in the
+placeholders):
+
+```text
+You are working on issue #<N>: <issue title>.
+
+Your worktree is: /Users/pmoore/dev/github/standard-tooling/.worktrees/issue-<N>-<slug>/
+Your branch is:   feature/<N>-<slug>
+
+Rules for this session:
+- Do all git operations from inside your worktree:
+    cd <absolute-worktree-path> && git <command>
+- For Read / Edit / Write tools, use the absolute worktree path.
+- For Bash commands that touch files, cd into the worktree first
+  or use absolute paths.
+- Do not edit files at the project root. The main worktree is
+  read-only — all changes flow through your worktree on your
+  feature branch.
+- When you need to run validation, run it from inside your worktree
+  (st-docker-run mounts the current directory).
+```
+
+All fields are required.
+
 ## Project Overview
 
 This is a Python package providing shared development tooling for all managed
