@@ -1,7 +1,9 @@
 """Pre-commit hook enforcing branch naming conventions.
 
-Blocks detached HEAD, direct commits to protected branches, and
-validates branch names against the repository's branching model.
+Blocks detached HEAD, direct commits to protected branches, validates
+branch names against the repository's branching model, and — for repos
+that have adopted the worktree convention — refuses feature-branch
+commits from the main worktree.
 """
 
 from __future__ import annotations
@@ -30,6 +32,8 @@ _BRANCHING_MODELS: dict[str, tuple[str, str]] = {
 
 _ISSUE_REQUIRED_RE = re.compile(r"^(feature|bugfix|hotfix|chore)/")
 _ISSUE_FORMAT_RE = re.compile(r"^(feature|bugfix|hotfix|chore)/[0-9]+-[a-z0-9][a-z0-9.-]*$")
+_WORKTREE_SCOPED_RE = re.compile(r"^(feature|bugfix|hotfix|chore)/")
+_WORKTREES_DIRNAME = ".worktrees"
 
 
 def main(argv: list[str] | None = None) -> int:  # noqa: ARG001
@@ -91,6 +95,38 @@ def main(argv: list[str] | None = None) -> int:  # noqa: ARG001
         )
         print("Expected format: {type}/{issue}-{description}", file=sys.stderr)
         print("Example: feature/42-add-caching", file=sys.stderr)
+        return 1
+
+    if (
+        _WORKTREE_SCOPED_RE.search(current_branch)
+        and (root / _WORKTREES_DIRNAME).is_dir()
+        and git.is_main_worktree()
+    ):
+        print(
+            "ERROR: feature-branch commits from the main worktree are forbidden "
+            f"({current_branch}).",
+            file=sys.stderr,
+        )
+        print(
+            "The main worktree is read-only under the worktree convention; "
+            "edits flow through a worktree on a feature branch.",
+            file=sys.stderr,
+        )
+        print("To proceed:", file=sys.stderr)
+        print(
+            f"  cd {root}/{_WORKTREES_DIRNAME}/<issue-N-slug>  "
+            "# if a worktree already exists for this branch",
+            file=sys.stderr,
+        )
+        print(
+            f"  git worktree add {_WORKTREES_DIRNAME}/issue-N-<slug> "
+            f"-b {current_branch} origin/develop  # to create one",
+            file=sys.stderr,
+        )
+        print(
+            "See docs/specs/worktree-convention.md for the full convention.",
+            file=sys.stderr,
+        )
         return 1
 
     return 0

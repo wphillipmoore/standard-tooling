@@ -24,6 +24,19 @@ def repo_root() -> Path:
     return Path(read_output("rev-parse", "--show-toplevel"))
 
 
+def is_main_worktree() -> bool:
+    """Return True when the CWD belongs to the main worktree.
+
+    Secondary worktrees have a ``.git`` file whose git-dir points into
+    ``.git/worktrees/<name>/``, while the main worktree's git-dir is
+    ``.git`` itself — ``--git-dir`` and ``--git-common-dir`` are equal
+    only for the main worktree.
+    """
+    git_dir = Path(read_output("rev-parse", "--git-dir")).resolve()
+    common_dir = Path(read_output("rev-parse", "--git-common-dir")).resolve()
+    return git_dir == common_dir
+
+
 def current_branch() -> str:
     """Return the current branch name."""
     return read_output("rev-parse", "--abbrev-ref", "HEAD")
