@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "standard-tooling"
-version = "1.2.3"
+version = "1.3.0"
 description = "Shared development tooling for managed repositories"
 requires-python = ">=3.12,<4.0"
 dependencies = []
@@ -12,6 +12,7 @@ dependencies = []
 [project.scripts]
 st-commit = "standard_tooling.bin.commit:main"
 st-submit-pr = "standard_tooling.bin.submit_pr:main"
+st-merge-when-green = "standard_tooling.bin.merge_when_green:main"
 st-prepare-release = "standard_tooling.bin.prepare_release:main"
 st-finalize-repo = "standard_tooling.bin.finalize_repo:main"
 st-validate-local = "standard_tooling.bin.validate_local:main"

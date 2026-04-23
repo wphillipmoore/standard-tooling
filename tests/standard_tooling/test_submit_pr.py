@@ -140,13 +140,11 @@ def test_main_submits_pr(tmp_path: Path) -> None:
             "standard_tooling.bin.submit_pr.github.create_pr",
             return_value="https://github.com/pr/1",
         ) as mock_create_pr,
-        patch("standard_tooling.bin.submit_pr.github.auto_merge") as mock_auto_merge,
     ):
         result = main(["--issue", "42", "--summary", "Fix bug"])
     assert result == 0
     mock_git_run.assert_called_once_with("push", "-u", "origin", "feature/x")
     mock_create_pr.assert_called_once()
-    mock_auto_merge.assert_called_once_with("https://github.com/pr/1", strategy="--squash")
 
 
 def test_main_submits_pr_with_notes(tmp_path: Path) -> None:
@@ -159,7 +157,6 @@ def test_main_submits_pr_with_notes(tmp_path: Path) -> None:
             "standard_tooling.bin.submit_pr.github.create_pr",
             return_value="https://github.com/pr/1",
         ),
-        patch("standard_tooling.bin.submit_pr.github.auto_merge"),
     ):
         result = main(
             [

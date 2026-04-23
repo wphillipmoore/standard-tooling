@@ -178,7 +178,10 @@ CLI tools installed as `st-*` console scripts:
 
 - **`st-commit`** — Construct standards-compliant conventional
   commits with co-author resolution
-- **`st-submit-pr`** — Create standards-compliant PRs with auto-merge
+- **`st-submit-pr`** — Create standards-compliant PRs (manual merge)
+- **`st-merge-when-green`** — Wait for a PR's checks, then merge it
+  (release-workflow use only; normal PRs stay on the honor-system
+  manual-merge policy)
 - **`st-prepare-release`** — Automate release preparation (branch, changelog, PR)
 - **`st-finalize-repo`** — Post-merge cleanup (branch deletion, remote pruning)
 - **`st-validate-local`** — Driver for pre-PR local validation
