@@ -201,3 +201,87 @@ def test_application_promotion_hotfix_needs_issue(tmp_path: Path) -> None:
         patch("standard_tooling.bin.pre_commit_hook.git.repo_root", return_value=tmp_path),
     ):
         assert main() == 1
+
+
+def test_main_worktree_feature_commit_refused_when_worktrees_dir_exists(tmp_path: Path) -> None:
+    _write_profile(tmp_path, "library-release")
+    (tmp_path / ".worktrees").mkdir()
+    with (
+        patch(
+            "standard_tooling.bin.pre_commit_hook.git.current_branch",
+            return_value="feature/42-add-caching",
+        ),
+        patch("standard_tooling.bin.pre_commit_hook.git.repo_root", return_value=tmp_path),
+        patch(
+            "standard_tooling.bin.pre_commit_hook.git.is_main_worktree",
+            return_value=True,
+        ),
+    ):
+        assert main() == 1
+
+
+def test_secondary_worktree_feature_commit_allowed(tmp_path: Path) -> None:
+    _write_profile(tmp_path, "library-release")
+    (tmp_path / ".worktrees").mkdir()
+    with (
+        patch(
+            "standard_tooling.bin.pre_commit_hook.git.current_branch",
+            return_value="feature/42-add-caching",
+        ),
+        patch("standard_tooling.bin.pre_commit_hook.git.repo_root", return_value=tmp_path),
+        patch(
+            "standard_tooling.bin.pre_commit_hook.git.is_main_worktree",
+            return_value=False,
+        ),
+    ):
+        assert main() == 0
+
+
+def test_main_worktree_feature_commit_allowed_without_worktrees_dir(tmp_path: Path) -> None:
+    _write_profile(tmp_path, "library-release")
+    with (
+        patch(
+            "standard_tooling.bin.pre_commit_hook.git.current_branch",
+            return_value="feature/42-add-caching",
+        ),
+        patch("standard_tooling.bin.pre_commit_hook.git.repo_root", return_value=tmp_path),
+        patch(
+            "standard_tooling.bin.pre_commit_hook.git.is_main_worktree",
+            return_value=True,
+        ),
+    ):
+        assert main() == 0
+
+
+def test_main_worktree_release_branch_allowed_even_with_worktrees_dir(tmp_path: Path) -> None:
+    _write_profile(tmp_path, "library-release")
+    (tmp_path / ".worktrees").mkdir()
+    with (
+        patch(
+            "standard_tooling.bin.pre_commit_hook.git.current_branch",
+            return_value="release/1.2.3",
+        ),
+        patch("standard_tooling.bin.pre_commit_hook.git.repo_root", return_value=tmp_path),
+        patch(
+            "standard_tooling.bin.pre_commit_hook.git.is_main_worktree",
+            return_value=True,
+        ),
+    ):
+        assert main() == 0
+
+
+def test_main_worktree_bugfix_commit_refused(tmp_path: Path) -> None:
+    _write_profile(tmp_path, "library-release")
+    (tmp_path / ".worktrees").mkdir()
+    with (
+        patch(
+            "standard_tooling.bin.pre_commit_hook.git.current_branch",
+            return_value="bugfix/99-fix-parsing",
+        ),
+        patch("standard_tooling.bin.pre_commit_hook.git.repo_root", return_value=tmp_path),
+        patch(
+            "standard_tooling.bin.pre_commit_hook.git.is_main_worktree",
+            return_value=True,
+        ),
+    ):
+        assert main() == 1

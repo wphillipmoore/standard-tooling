@@ -39,7 +39,11 @@ full rationale, trust model, failure modes, and memory-path implications.
      or use absolute paths.
 3. **The main worktree is read-only.** All edits flow through a worktree
    on a feature branch — the logical endpoint of the standing
-   "no direct commits to develop" policy.
+   "no direct commits to develop" policy. The repo's pre-commit hook
+   (`scripts/lib/git-hooks/pre-commit`) enforces this: when a
+   `.worktrees/` directory is present, it refuses commits on
+   `feature/**`, `bugfix/**`, `hotfix/**`, or `chore/**` branches that
+   originate from the main worktree.
 4. **One worktree per issue.** Don't stack in-flight issues. When a
    branch lands, remove the worktree before starting the next.
 5. **Naming: `issue-<N>-<short-slug>`.** `<N>` is the GitHub issue
