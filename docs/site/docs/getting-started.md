@@ -1,101 +1,164 @@
 # Getting Started
 
-This guide covers setting up a consuming repository to use standard-tooling.
+A five-to-ten minute quickstart for wiring up a new repository to
+use standard-tooling. For the detailed walkthrough with rationale,
+CI config, and troubleshooting, see
+[Consuming Repo Setup](guides/consuming-repo-setup.md).
 
 ## Prerequisites
 
-- Git
-- Bash (macOS or Linux)
-- [uv](https://docs.astral.sh/uv/): Python package manager
-- [markdownlint-cli](https://github.com/igorshubovych/markdownlint-cli):
-  `npm install --global markdownlint-cli`
-- [shellcheck](https://www.shellcheck.net/): `brew install shellcheck`
+Install these on your host:
 
-## Initial Setup
+- **Docker** — the dev container engine
+- **uv** — Python package manager
+  ([install](https://docs.astral.sh/uv/getting-started/installation/))
+- **`gh` CLI** — GitHub CLI, authenticated
+  (`gh auth login`)
+- **macOS or Linux** (Bash)
 
-### 1. Clone standard-tooling
+Everything else — language runtimes, linters, test frameworks, all
+but one of the `st-*` tools — lives inside the dev container. The
+only `st-*` tool that runs on the host is `st-docker-run`, which
+bridges into the container.
 
-Clone standard-tooling as a sibling directory alongside your repository:
+## 1. Clone standard-tooling as a sibling
 
 ```bash
+cd ~/dev/github   # or wherever you keep your repos
 git clone https://github.com/wphillipmoore/standard-tooling.git
 ```
 
-### 2. Install the Python package
+## 2. Bootstrap the host venv
 
 ```bash
 cd standard-tooling
-uv sync
+UV_PROJECT_ENVIRONMENT=.venv-host uv sync --group dev
 ```
 
-This installs the `st-*` CLI tools into `.venv/bin/`.
+!!! important "The `UV_PROJECT_ENVIRONMENT` override matters"
+    Without it, `uv sync` creates a `.venv` with container-path
+    shebangs (`/workspace/.venv/...`) that don't work on the host.
+    The `.venv-host` name and the `--group dev` dependencies are
+    both required.
 
-### 3. Add standard-tooling to PATH
+This installs `st-docker-run` and the other host-side entry points
+into `.venv-host/bin/`.
 
-From your consuming repository:
+## 3. Put host tools on PATH
 
 ```bash
-export PATH="../standard-tooling/.venv/bin:$PATH"
+export PATH="$HOME/dev/github/standard-tooling/.venv-host/bin:$HOME/dev/github/standard-tooling/scripts/bin:$PATH"
 ```
 
-This makes the `st-*` CLI tools (`st-commit`, `st-submit-pr`, etc.)
-available by name.
+Add this to your shell profile so it persists across sessions.
 
-### 4. Configure git hooks
+## 4. Configure git hooks in your consuming repo
+
+From your repo:
 
 ```bash
 git config core.hooksPath ../standard-tooling/scripts/lib/git-hooks
 ```
 
-This tells git to use the standard-tooling hooks for branch naming and commit
-message validation.
+This must be re-run once per fresh clone; it's not persisted.
 
-### 5. GitHub authentication
+## 5. Enable the Claude Code plugin
 
-Container-based tools (e.g. `st-submit-pr`) need a GitHub token to create
-pull requests. Add to your shell profile (`~/.bashrc` or `~/.zshrc`):
+Create `.claude/settings.json` in your repo:
 
-```bash
-export GH_TOKEN=$(gh auth token)
+```json
+{
+  "extraKnownMarketplaces": {
+    "standard-tooling-marketplace": {
+      "source": {
+        "source": "github",
+        "repo": "wphillipmoore/standard-tooling-plugin"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "standard-tooling@standard-tooling-marketplace": true
+  }
+}
 ```
 
-This passes your local `gh` authentication into the dev container
-automatically.
+Commit this file — it's part of the repo's reproducible setup.
 
-### 6. Create a repository profile
+!!! note "Plugin install is a known rough edge"
+    The install/update flow for the plugin itself is tracked in
+    [standard-tooling-plugin#46](https://github.com/wphillipmoore/standard-tooling-plugin/issues/46).
+    For now, this settings.json entry is enough for Claude Code to
+    discover and enable the plugin on the next session restart.
 
-Create `docs/repository-standards.md` with the required attributes:
+## 6. Create your repository profile
+
+Create `docs/repository-standards.md` with the six required
+attributes (and AI co-author entries if you'll use them):
 
 ```markdown
 # Repository Standards
 
 ## Table of Contents
 
+- [AI co-authors](#ai-co-authors)
 - [Repository profile](#repository-profile)
+
+## AI co-authors
+
+- Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
 
 ## Repository profile
 
-- repository_type: <application|library|tooling|documentation>
-- versioning_scheme: <semver|calver|none>
-- branching_model: <library-release|application-promotion|docs-single-branch>
-- release_model: <tagged-release|continuous-deploy|none>
-- supported_release_lines: <number>
-- primary_language: <python|go|java|shell|none>
+- repository_type: library
+- versioning_scheme: semver
+- branching_model: library-release
+- release_model: tagged-release
+- supported_release_lines: 1
+- primary_language: python
 ```
 
-### 7. Verify
+Pick the values that match your repo. See
+[Consuming Repo Setup](guides/consuming-repo-setup.md) for the full
+attribute reference.
 
-Run a validator to confirm everything is wired up:
+## 7. Adopt the worktree convention
+
+Add `.worktrees/` to your `.gitignore`:
 
 ```bash
-st-repo-profile
+echo '.worktrees/' >> .gitignore
 ```
 
-## Next Steps
+Add a "Parallel AI agent development" section to your `CLAUDE.md`
+describing the convention. Every managed repo already has one you
+can copy from; the canonical source is
+[the worktree convention spec](../specs/worktree-convention.md).
 
-- Read the [Consuming Repo Setup](guides/consuming-repo-setup.md) guide for
-  detailed onboarding instructions including CI configuration
-- See the [Script Reference](reference/index.md) for documentation on each
-  tool
-- Review the [Validation Matrix](guides/validation-matrix.md) to understand
-  which checks run where
+## 8. Verify
+
+```bash
+# Host tooling reachable
+st-docker-run --help
+
+# Repo profile validates (runs inside the container)
+st-docker-run -- uv run st-repo-profile
+
+# Git hook fires on a misnamed branch
+git checkout -b bad-branch-name
+git commit --allow-empty -m "test"    # should be blocked by the hook
+git checkout -
+git branch -D bad-branch-name
+```
+
+If all three steps behave as expected, you're wired up correctly.
+
+## Next steps
+
+- **[Consuming Repo Setup](guides/consuming-repo-setup.md)** —
+  detailed walkthrough including CI workflow, markdownlint config,
+  plugin nuances, and troubleshooting.
+- **[Git Workflow](guides/git-workflow.md)** — branching, commit /
+  PR / finalize cycle, two-layer enforcement, worktrees in practice.
+- **[Worktree convention spec](../specs/worktree-convention.md)**
+  — full rationale for the parallel-agent convention, failure
+  modes, memory-path implications.

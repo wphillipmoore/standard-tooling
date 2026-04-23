@@ -290,16 +290,13 @@ High-level summary:
 
 ## Adoption for a new repo
 
-Onboarding a brand-new repository to this workflow has its own
-guide: [Consuming Repo Setup](consuming-repo-setup.md).
+Onboarding a brand-new repository has two entry points:
 
-!!! note "Setup docs are being refreshed"
-    The existing Getting Started and Consuming Repo Setup guides
-    predate the Docker-first, plugin-aware, worktree-aware setup.
-    Use them as a starting point, but cross-reference this guide,
-    the plugin repo, and each repo's CLAUDE.md for current
-    behavior. A rewrite is tracked as Phase 2 of
-    [standard-tooling#270](https://github.com/wphillipmoore/standard-tooling/issues/270).
+- **[Getting Started](../getting-started.md)** — five-to-ten minute
+  quickstart.
+- **[Consuming Repo Setup](consuming-repo-setup.md)** — full
+  walkthrough with rationale, CI configuration, plugin nuances,
+  and troubleshooting.
 
 At a minimum, a new repo needs:
 
