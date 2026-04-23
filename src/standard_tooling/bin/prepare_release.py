@@ -1,7 +1,10 @@
-"""Automate release preparation: branch, changelog, PR, auto-merge.
+"""Automate release preparation: branch, changelog, PR.
 
 Shared script for library repositories using the library-release branching
 model. Auto-detects the ecosystem to find the version source of truth.
+
+The release PR is created but not merged — callers (typically the publish
+skill) drive the merge via ``st-merge-when-green`` once CI passes.
 
 Supported ecosystems:
   - Python: reads version from pyproject.toml
@@ -284,11 +287,11 @@ def main(argv: list[str] | None = None) -> int:
     print(f"Pushing branch: {branch}")
     git.run("push", "-u", "origin", branch)
     url = _create_pr(version, args.issue)
-    github.auto_merge(url, strategy="--merge")
 
     git.run("checkout", "develop")
 
     print(f"Release {version} preparation complete.")
+    print(f"Merge when green: st-merge-when-green {url}")
     return 0
 
 

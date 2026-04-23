@@ -68,12 +68,7 @@ def main(argv: list[str] | None = None) -> int:
     root = git.repo_root()
     branch = git.current_branch()
 
-    if branch.startswith("release/"):
-        target_branch = "main"
-        merge_strategy = "--merge"
-    else:
-        target_branch = "develop"
-        merge_strategy = "--squash"
+    target_branch = "main" if branch.startswith("release/") else "develop"
 
     title = args.title or git.read_output("log", "-1", "--pretty=%s")
 
@@ -91,7 +86,7 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.dry_run:
         print(f"=== PR Title ===\n{title}\n")
-        print(f"=== Target Branch ===\n{target_branch} (strategy: {merge_strategy})\n")
+        print(f"=== Target Branch ===\n{target_branch}\n")
         print(f"=== PR Body ===\n{pr_body}")
         return 0
 
@@ -108,9 +103,6 @@ def main(argv: list[str] | None = None) -> int:
         print(f"PR created: {pr_url}")
     finally:
         Path(tmp_path).unlink(missing_ok=True)
-
-    print(f"Enabling auto-merge ({merge_strategy})...")
-    github.auto_merge(pr_url, strategy=merge_strategy)
 
     print(f"Done. PR URL: {pr_url}")
     return 0
