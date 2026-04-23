@@ -42,8 +42,7 @@ def main(argv: list[str] | None = None) -> int:
 
     if not git.is_main_worktree():
         print(
-            "ERROR: st-finalize-repo must be run from the main worktree, "
-            "not a secondary one.",
+            "ERROR: st-finalize-repo must be run from the main worktree, not a secondary one.",
             file=sys.stderr,
         )
         print(
