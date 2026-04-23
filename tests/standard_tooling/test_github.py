@@ -34,15 +34,23 @@ def test_create_pr_returns_url() -> None:
     assert url == "https://github.com/pr/1"
 
 
-def test_auto_merge_with_delete_branch() -> None:
+def test_wait_for_checks_passes_pr_ref() -> None:
     with patch("standard_tooling.lib.github.run") as mock_run:
-        github.auto_merge("https://github.com/pr/1", strategy="--squash")
+        github.wait_for_checks("https://github.com/pr/1")
     mock_run.assert_called_once_with(
-        "pr", "merge", "--auto", "--squash", "https://github.com/pr/1", "--delete-branch"
+        "pr", "checks", "https://github.com/pr/1", "--watch", "--fail-fast"
     )
 
 
-def test_auto_merge_without_delete_branch() -> None:
+def test_merge_with_delete_branch() -> None:
     with patch("standard_tooling.lib.github.run") as mock_run:
-        github.auto_merge("https://github.com/pr/1", strategy="--merge", delete_branch=False)
-    mock_run.assert_called_once_with("pr", "merge", "--auto", "--merge", "https://github.com/pr/1")
+        github.merge("https://github.com/pr/1", strategy="merge")
+    mock_run.assert_called_once_with(
+        "pr", "merge", "--merge", "https://github.com/pr/1", "--delete-branch"
+    )
+
+
+def test_merge_without_delete_branch() -> None:
+    with patch("standard_tooling.lib.github.run") as mock_run:
+        github.merge("https://github.com/pr/1", strategy="squash", delete_branch=False)
+    mock_run.assert_called_once_with("pr", "merge", "--squash", "https://github.com/pr/1")

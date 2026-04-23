@@ -377,7 +377,6 @@ def test_main_full_flow(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None
             "standard_tooling.bin.prepare_release.github.create_pr",
             return_value="https://github.com/pr/1",
         ),
-        patch("standard_tooling.bin.prepare_release.github.auto_merge"),
     ):
         result = main(["--issue", "42"])
     assert result == 0
@@ -562,7 +561,6 @@ def test_main_full_flow_with_release_notes(tmp_path: Path, monkeypatch: pytest.M
             "standard_tooling.bin.prepare_release.github.create_pr",
             return_value="https://github.com/pr/1",
         ),
-        patch("standard_tooling.bin.prepare_release.github.auto_merge"),
     ):
         result = main(["--issue", "42"])
     assert result == 0
