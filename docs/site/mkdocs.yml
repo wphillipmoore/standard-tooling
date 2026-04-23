@@ -75,6 +75,7 @@ nav:
           - st-finalize-repo: reference/dev/finalize-repo.md
           - st-validate-local: reference/dev/validate-local.md
   - Guides:
+      - Git Workflow: guides/git-workflow.md
       - Consuming Repo Setup: guides/consuming-repo-setup.md
       - Three-Tier CI: guides/three-tier-ci.md
       - Validation Matrix: guides/validation-matrix.md

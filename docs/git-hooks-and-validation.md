@@ -1,5 +1,12 @@
 # Git Hooks and Validation
 
+> **Looking for the overall workflow?** See
+> [Git Workflow](site/docs/guides/git-workflow.md) for the
+> big-picture guide covering branching, commit/PR/finalize cycle,
+> worktrees, and both enforcement layers together. This page is the
+> detailed reference for the pre-commit git hook and the local
+> validators only.
+
 ## Table of Contents
 
 - [Overview](#overview)
@@ -17,7 +24,7 @@
 
 ## Overview
 
-This repository enforces code quality through two complementary
+This repository enforces code quality through three complementary
 entry points that share a common set of validators:
 
 - **Git hooks** run locally on every commit, providing
@@ -25,6 +32,13 @@ entry points that share a common set of validators:
 - **CI workflows** run the same validators on pull requests,
   ensuring standards are enforced even when hooks are not
   installed.
+- **Claude Code plugin hooks** (delivered by
+  [`standard-tooling-plugin`](https://github.com/wphillipmoore/standard-tooling-plugin))
+  enforce a subset of the same rules at the agent-tool level —
+  catching problems before they reach the `git commit` that the
+  pre-commit hook would evaluate. Covered in detail in the plugin
+  repo; summarized under
+  [Validation Matrix](#validation-matrix) below.
 
 All hooks and validators are managed by standard-tooling.
 Consuming repositories resolve them via PATH from a sibling
@@ -148,18 +162,36 @@ as a list item.
 
 The following table shows where each validation runs:
 
-- **pre-commit**: runs locally before each commit
+- **pre-commit**: runs locally on every `git commit`
+- **plugin**: PreToolUse/PostToolUse hooks from
+  [`standard-tooling-plugin`](https://github.com/wphillipmoore/standard-tooling-plugin)
+  fire when Claude Code invokes Bash / Write / Edit tools. Catches
+  patterns earlier than a `git commit` would — including ones that
+  never reach git (e.g., raw `gh pr create`, heredoc escaping bugs).
 - **CI**: runs in GitHub Actions on pull requests
 
-| Validation             | pre-commit | CI  |
-|------------------------|:----------:|:---:|
-| Detached HEAD          | yes        |     |
-| Protected branch       | yes        |     |
-| Branch prefix          | yes        |     |
-| Issue number in branch | yes        |     |
-| Repository profile     |            | yes |
-| Markdown standards     |            | yes |
-| PR issue linkage       |            | yes |
+| Validation                          | pre-commit | plugin | CI  |
+|-------------------------------------|:----------:|:------:|:---:|
+| Detached HEAD                       | yes        |        |     |
+| Protected branch (commit on `develop`/`main`) | yes | yes | |
+| Branch prefix                       | yes        |        |     |
+| Issue number in branch              | yes        |        |     |
+| Raw `git commit` forbidden          |            | yes    |     |
+| Raw `gh pr create` forbidden        |            | yes    |     |
+| Heredoc in CLI args forbidden       |            | yes    |     |
+| Commit must originate from `.worktrees/*` | | yes (adopted repos) | |
+| MEMORY.md writes                    |            | *(removed 2026-04-23; formerly plugin)* | |
+| Repository profile                  |            |        | yes |
+| Markdown standards                  |            |        | yes |
+| PR issue linkage                    |            |        | yes |
+
+The pre-commit hook and plugin hook for protected-branch commits
+overlap deliberately: the plugin catches the case where Claude Code
+tries to invoke `git commit`/`st-commit` at all, and the pre-commit
+hook catches everything else (direct human `git commit`, scripts,
+etc.). Their rules are similar but not identical — see
+[Git Workflow → Two enforcement layers](site/docs/guides/git-workflow.md#two-enforcement-layers)
+for the coordinated view.
 
 ## Configuration Points
 
