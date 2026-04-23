@@ -350,7 +350,7 @@ PR itself was created successfully. See
 [standard-tooling#268](https://github.com/wphillipmoore/standard-tooling/issues/268)
 for the planned fix.
 
-### I can't find `st-markdown-standards` / `shfmt` / `yamllint` during a PostToolUse hook
+### Validator-not-on-PATH errors during PostToolUse
 
 The plugin's `validate-on-edit` hook expects those validators on
 PATH. Some are only installed inside the dev container image, not on
