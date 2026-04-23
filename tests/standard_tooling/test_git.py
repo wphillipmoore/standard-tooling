@@ -39,6 +39,22 @@ def test_current_branch_returns_name() -> None:
     assert result == "feature/test"
 
 
+def test_is_main_worktree_true() -> None:
+    with patch(
+        "standard_tooling.lib.git.read_output",
+        side_effect=["/repo/.git", "/repo/.git"],
+    ):
+        assert git.is_main_worktree() is True
+
+
+def test_is_main_worktree_false() -> None:
+    with patch(
+        "standard_tooling.lib.git.read_output",
+        side_effect=["/repo/.git/worktrees/feature-x", "/repo/.git"],
+    ):
+        assert git.is_main_worktree() is False
+
+
 def test_has_staged_changes_true() -> None:
     with patch("standard_tooling.lib.git.subprocess.run") as mock_run:
         mock_run.return_value = _completed(returncode=1)
