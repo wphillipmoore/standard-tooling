@@ -1,5 +1,18 @@
 # Git-URL dev-dependency convention
 
+> **Status: Rejected / Superseded (2026-04-24).**
+>
+> This convention was rejected during pushback review. It assumes every
+> consumer is a `uv`-managed Python project (`[tool.uv.sources]` +
+> `uv sync`), but the managed fleet is heterogeneous — most consuming
+> repos (plugin, docker, docs, `mq-rest-admin-*` language variants)
+> have no `pyproject.toml` and cannot adopt the pattern. See
+> [`paad/pushback-reviews/2026-04-24-git-url-dev-dependency-pushback.md`](../../paad/pushback-reviews/2026-04-24-git-url-dev-dependency-pushback.md)
+> for the full rejection record and the replacement direction
+> (standard-tooling as a host-level developer tool, tracked in
+> #286). This file is retained as an archival record — **do not
+> implement it.**
+
 ## Context
 
 `standard-tooling` provides host-side CLI tools (`st-docker-run`,
