@@ -129,14 +129,10 @@ invoked by `st-validate-local`, it is not part of the validation pipeline.
 
 Testing is split across three tiers with increasing scope and cost:
 
-**Tier 1 — Local pre-commit (seconds):** Fast smoke tests in a single
-container. Run before every commit. No matrix.
-
-```bash
-./scripts/dev/test.sh        # pytest + 100% coverage in dev-python:3.12
-./scripts/dev/lint.sh        # ruff check + format in dev-python:3.12
-./scripts/dev/audit.sh       # uv lock --check in dev-python:3.12
-```
+**Tier 1 — Local pre-commit (seconds):** The single entry point
+`st-docker-run -- uv run st-validate-local` runs everything
+(lint, typecheck, tests, audit, common checks) inside one dev
+container. Run before every commit.
 
 **Tier 2 — Push CI (~1-2 min):** Triggers automatically on push to
 `feature/**`, `bugfix/**`, `hotfix/**`, `chore/**`. Single Python version
@@ -150,7 +146,17 @@ Workflow: `.github/workflows/ci.yml`.
 
 ### Docker-First Testing
 
-All tests can run inside containers — Docker is the only host prerequisite.
+Docker is the only host prerequisite. The validation stack uses
+exactly one container per run:
+
+- **Outer layer**: `st-docker-run` launches the dev container once
+  and runs the validation driver inside.
+- **Inner layer**: `scripts/dev/{lint,test,typecheck,audit}.sh`
+  are tiny, container-local scripts. They assume they are already
+  running inside the dev container and invoke tooling directly
+  (`uv run ruff check`, `uv run pytest`, etc.). They do **not**
+  re-containerize.
+
 Dev container images are maintained in
 [standard-tooling-docker](https://github.com/wphillipmoore/standard-tooling-docker).
 
@@ -158,21 +164,14 @@ Dev container images are maintained in
 # Build the dev image (one-time)
 cd ../standard-tooling-docker && docker/build.sh
 
-# Run unit tests in container
-./scripts/dev/test.sh
-
-# Run linter in container
-./scripts/dev/lint.sh
-
-# Run dependency audit in container
-./scripts/dev/audit.sh
+# Run the full validation pipeline in one container
+st-docker-run -- uv run st-validate-local
 ```
 
-Environment overrides:
-
-- `DOCKER_DEV_IMAGE` — override the container image
-  (default: `ghcr.io/wphillipmoore/dev-python:3.12`)
-- `DOCKER_TEST_CMD` — override the test command
+If you need to tweak what validation runs for this repo, edit
+`scripts/dev/*.sh` — those scripts are the per-repo customization
+point. Keep them container-local (no `st-docker-run`, no
+`st-docker-test`, no `DOCKER_*` env vars).
 
 ## Architecture
 

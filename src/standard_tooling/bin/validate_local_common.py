@@ -1,23 +1,20 @@
-"""Shared checks run for all repos — containerised via docker-test.
+"""Shared validation checks run for all repos.
 
-Sets ``DOCKER_DEV_IMAGE`` and ``DOCKER_TEST_CMD`` then delegates to
-``docker_test.main()``.
+Container-local: assumes the caller (`st-validate-local`) is itself running
+inside a dev container via `st-docker-run`.  Delegates to the implementation
+in ``validate_local_common_container`` — the same work the old version
+dispatched to via ``st-docker-test``, now called directly.
 """
 
 from __future__ import annotations
 
-import os
 import sys
 
-from standard_tooling.bin import docker_test
+from standard_tooling.bin import validate_local_common_container
 
 
-def main(argv: list[str] | None = None) -> int:  # noqa: ARG001
-    if not os.environ.get("DOCKER_DEV_IMAGE"):
-        os.environ["DOCKER_DEV_IMAGE"] = "ghcr.io/wphillipmoore/dev-python:3.14"
-    os.environ["DOCKER_TEST_CMD"] = "st-validate-local-common-container"
-
-    return docker_test.main()
+def main(argv: list[str] | None = None) -> int:
+    return validate_local_common_container.main(argv)
 
 
 if __name__ == "__main__":
