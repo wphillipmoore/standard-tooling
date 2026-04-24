@@ -6,12 +6,26 @@ from subprocess import CompletedProcess
 from typing import TYPE_CHECKING
 from unittest.mock import patch
 
+import pytest
+
 from standard_tooling.bin.finalize_repo import main, parse_args
 
 _MOD = "standard_tooling.bin.finalize_repo"
 
 if TYPE_CHECKING:
+    from collections.abc import Iterator
     from pathlib import Path
+
+
+@pytest.fixture(autouse=True)
+def _main_worktree() -> Iterator[None]:
+    """Default every test to running in the main worktree.
+
+    Individual tests can override by patching is_main_worktree directly —
+    the innermost patch wins.
+    """
+    with patch(_MOD + ".git.is_main_worktree", return_value=True):
+        yield
 
 
 def test_parse_args_defaults() -> None:
@@ -24,6 +38,15 @@ def test_parse_args_custom() -> None:
     args = parse_args(["--target-branch", "main", "--dry-run"])
     assert args.target_branch == "main"
     assert args.dry_run is True
+
+
+def test_main_refuses_from_secondary_worktree(capsys: pytest.CaptureFixture[str]) -> None:
+    with patch(_MOD + ".git.is_main_worktree", return_value=False):
+        result = main([])
+    assert result == 1
+    stderr = capsys.readouterr().err
+    assert "main worktree" in stderr
+    assert "cd <repo-root>" in stderr
 
 
 def _make_profile(tmp_path: Path, model: str) -> None:
