@@ -94,13 +94,6 @@ def test_run_validator_not_found(tmp_path: Path) -> None:
         assert _run_validator("missing", tmp_path) is True
 
 
-def _which_allows_docker(tool: str) -> str | None:
-    """Mock shutil.which: allow docker and st-docker-test, block everything else."""
-    if tool in ("docker", "st-docker-test"):
-        return f"/usr/bin/{tool}"
-    return None
-
-
 def _make_profile(tmp_path: Path, language: str) -> None:
     docs = tmp_path / "docs"
     docs.mkdir(exist_ok=True)
@@ -109,53 +102,11 @@ def _make_profile(tmp_path: Path, language: str) -> None:
     )
 
 
-def test_main_docker_missing() -> None:
-    with patch("standard_tooling.bin.validate_local.shutil.which", return_value=None):
-        result = main([])
-    assert result == 1
-
-
-def test_main_docker_test_missing() -> None:
-    def which_only_docker(tool: str) -> str | None:
-        if tool == "docker":
-            return "/usr/bin/docker"
-        return None
-
-    with patch("standard_tooling.bin.validate_local.shutil.which", side_effect=which_only_docker):
-        result = main([])
-    assert result == 1
-
-
-def test_main_st_docker_test_found() -> None:
-    """st-docker-test entry point satisfies the st-docker-test requirement."""
-
-    def which_side_effect(tool: str) -> str | None:
-        if tool in ("docker", "st-docker-test"):
-            return f"/usr/bin/{tool}"
-        return None
-
-    with (
-        patch(
-            "standard_tooling.bin.validate_local.shutil.which",
-            side_effect=which_side_effect,
-        ),
-        patch("standard_tooling.bin.validate_local.git.repo_root") as mock_root,
-        patch("standard_tooling.bin.validate_local._find_validator", return_value=None),
-    ):
-        mock_root.return_value = Path("/tmp/repo")  # noqa: S108
-        result = main([])
-    assert result == 0
-
-
 def test_main_all_pass(tmp_path: Path) -> None:
     _make_profile(tmp_path, "python")
     scripts_bin = tmp_path / "scripts" / "bin"
     scripts_bin.mkdir(parents=True)
     with (
-        patch(
-            "standard_tooling.bin.validate_local.shutil.which",
-            side_effect=_which_allows_docker,
-        ),
         patch("standard_tooling.bin.validate_local.git.repo_root", return_value=tmp_path),
         patch("standard_tooling.bin.validate_local._find_validator", return_value=None),
     ):
@@ -165,18 +116,11 @@ def test_main_all_pass(tmp_path: Path) -> None:
 
 def test_main_common_fails(tmp_path: Path) -> None:
     _make_profile(tmp_path, "python")
-    call_count = 0
 
     def mock_run_validator(name: str, scripts_bin: Path) -> bool:
-        nonlocal call_count
-        call_count += 1
         return name != "validate-local-common"
 
     with (
-        patch(
-            "standard_tooling.bin.validate_local.shutil.which",
-            side_effect=_which_allows_docker,
-        ),
         patch("standard_tooling.bin.validate_local.git.repo_root", return_value=tmp_path),
         patch(
             "standard_tooling.bin.validate_local._run_validator",
@@ -194,10 +138,6 @@ def test_main_language_validator_fails(tmp_path: Path) -> None:
         return name != "validate-local-python"
 
     with (
-        patch(
-            "standard_tooling.bin.validate_local.shutil.which",
-            side_effect=_which_allows_docker,
-        ),
         patch("standard_tooling.bin.validate_local.git.repo_root", return_value=tmp_path),
         patch(
             "standard_tooling.bin.validate_local._run_validator",
@@ -210,10 +150,6 @@ def test_main_language_validator_fails(tmp_path: Path) -> None:
 
 def test_main_no_profile(tmp_path: Path) -> None:
     with (
-        patch(
-            "standard_tooling.bin.validate_local.shutil.which",
-            side_effect=_which_allows_docker,
-        ),
         patch("standard_tooling.bin.validate_local.git.repo_root", return_value=tmp_path),
         patch("standard_tooling.bin.validate_local._find_validator", return_value=None),
     ):
@@ -224,10 +160,6 @@ def test_main_no_profile(tmp_path: Path) -> None:
 def test_main_language_none(tmp_path: Path) -> None:
     _make_profile(tmp_path, "none")
     with (
-        patch(
-            "standard_tooling.bin.validate_local.shutil.which",
-            side_effect=_which_allows_docker,
-        ),
         patch("standard_tooling.bin.validate_local.git.repo_root", return_value=tmp_path),
         patch("standard_tooling.bin.validate_local._run_validator", return_value=True),
         patch("standard_tooling.bin.validate_local._find_validator", return_value=None),
@@ -251,10 +183,6 @@ def test_main_custom_validator_exists(tmp_path: Path) -> None:
         return True
 
     with (
-        patch(
-            "standard_tooling.bin.validate_local.shutil.which",
-            side_effect=_which_allows_docker,
-        ),
         patch("standard_tooling.bin.validate_local.git.repo_root", return_value=tmp_path),
         patch(
             "standard_tooling.bin.validate_local._run_validator",
@@ -281,10 +209,6 @@ def test_main_custom_validator_fails(tmp_path: Path) -> None:
 
     _make_profile(tmp_path, "python")
     with (
-        patch(
-            "standard_tooling.bin.validate_local.shutil.which",
-            side_effect=_which_allows_docker,
-        ),
         patch("standard_tooling.bin.validate_local.git.repo_root", return_value=tmp_path),
         patch(
             "standard_tooling.bin.validate_local._run_validator",
