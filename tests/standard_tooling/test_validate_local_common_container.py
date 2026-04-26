@@ -217,8 +217,12 @@ def test_find_yaml_files_mkdocs(tmp_path: Path) -> None:
 
 
 def test_find_yaml_files_skips_worktrees_and_venv(tmp_path: Path) -> None:
-    # Files in skipped subtrees must not appear, even though they have a
-    # YAML extension.
+    # Files inside vendored / worktree subtrees must not appear in the
+    # result. By design this is excluded structurally — discovery walks
+    # only `repo_root/.github`, `repo_root/docs/site/mkdocs.yml`, and
+    # `repo_root` itself; it never recurses into `.venv`, `.worktrees`,
+    # `.venv-host`, or `node_modules`. This test pins that behavior so a
+    # future "expand discovery" change can't regress it silently.
     for skip in (".worktrees", ".venv", ".venv-host", "node_modules"):
         nested = tmp_path / skip / ".github" / "workflows"
         nested.mkdir(parents=True)

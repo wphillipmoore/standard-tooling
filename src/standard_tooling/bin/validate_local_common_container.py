@@ -33,14 +33,17 @@ def _find_shell_files(repo_root: Path) -> list[str]:
 
 
 _YAML_EXTS = frozenset({".yml", ".yaml"})
-_YAML_SKIP_DIRS = frozenset({".worktrees", ".venv", ".venv-host", "node_modules"})
 
 
 def _find_yaml_files(repo_root: Path) -> list[str]:
-    """Discover YAML files we care about: workflows, issue templates,
-    repo-root config files (.markdownlint.yaml etc.), and
-    docs/site/mkdocs.yml. Skips vendored / venv / worktree paths.
-    The yamllint config lives at the repo root (`.yamllint`).
+    """Discover YAML files we care about: repo-root config
+    (.markdownlint.yaml etc.), `.github/` tree (workflows, issue
+    templates), and `docs/site/mkdocs.yml`. The yamllint config lives
+    at the repo root (`.yamllint`).
+
+    Vendored paths (`.worktrees`, `.venv`, `.venv-host`,
+    `node_modules`) are excluded by construction — discovery only
+    walks the listed locations, never venv/worktree subtrees.
     """
     files: list[str] = []
 
@@ -61,14 +64,7 @@ def _find_yaml_files(repo_root: Path) -> list[str]:
     if mkdocs.is_file():
         files.append(str(mkdocs))
 
-    # Filter out anything that wandered into a skipped subtree.
-    filtered: list[str] = []
-    for f in files:
-        rel_parts = set(Path(f).relative_to(repo_root).parts)
-        if rel_parts & _YAML_SKIP_DIRS:
-            continue
-        filtered.append(f)
-    return sorted(set(filtered))
+    return sorted(set(files))
 
 
 def main(argv: list[str] | None = None) -> int:  # noqa: ARG001
