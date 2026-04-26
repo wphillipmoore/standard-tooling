@@ -1,17 +1,24 @@
 """Finalize a repository after a PR merge.
 
 Switches to the target branch, fast-forward pulls, deletes merged local
-branches, and prunes stale remote-tracking references.
+branches, and prunes stale remote-tracking references. After
+validation succeeds, also checks the most recent Documentation
+workflow run on the target branch and surfaces a warning if it
+failed (issue #303 — docs publish is async and used to fail
+silently).
 """
 
 from __future__ import annotations
 
 import argparse
+import json
 import shutil
 import subprocess
 import sys
 
 from standard_tooling.lib import git, repo_profile
+
+_DOCS_WORKFLOW_NAME = "Documentation"
 
 _ETERNAL_BY_MODEL: dict[str, list[str]] = {
     "docs-single-branch": ["develop"],
@@ -35,6 +42,68 @@ def _run(args: list[str], *, dry_run: bool) -> None:
         print(f"  [dry-run] git {' '.join(args)}")
     else:
         git.run(*args)
+
+
+def _check_docs_workflow_status(target_branch: str) -> str | None:
+    """Inspect the most recent Documentation workflow run on
+    ``target_branch`` and return a one-line message if it failed,
+    None if it succeeded, is in progress, or doesn't exist.
+
+    Docs publication is async relative to the merge that triggers it,
+    so a failure here doesn't block any PR — but it does mean the
+    site is stale until the next successful run. This check surfaces
+    such failures during finalize so they can be investigated
+    immediately. Issue #303.
+
+    Returns None when:
+      - ``gh`` is not on PATH (can't query)
+      - no Documentation workflow exists in the repo
+      - the latest run succeeded or is still in progress
+      - the JSON response is malformed (defensive)
+    """
+    gh = shutil.which("gh")
+    if gh is None:
+        return None
+    result = subprocess.run(  # noqa: S603
+        [
+            gh,
+            "run",
+            "list",
+            "--workflow",
+            _DOCS_WORKFLOW_NAME,
+            "--branch",
+            target_branch,
+            "--limit",
+            "1",
+            "--json",
+            "conclusion,databaseId,headSha,createdAt,url",
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode != 0:
+        # gh failed (no workflow, no auth, network issue) — defensive
+        # silence rather than turning every finalize into a warning.
+        return None
+    stdout = result.stdout or ""
+    try:
+        runs = json.loads(stdout) if stdout.strip() else []
+    except json.JSONDecodeError:
+        return None
+    if not runs:
+        return None
+    run = runs[0]
+    conclusion = run.get("conclusion") or ""
+    if conclusion in ("", "success", "skipped", "neutral"):
+        # "" means still in_progress / queued / not_completed.
+        return None
+    sha = (run.get("headSha") or "")[:7]
+    return (
+        f"Documentation workflow run {run.get('databaseId')} on "
+        f"{target_branch} ({sha}) ended with conclusion '{conclusion}'.\n"
+        f"  {run.get('url') or ''}"
+    )
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -130,6 +199,14 @@ def main(argv: list[str] | None = None) -> int:
     else:
         print("  [dry-run] st-docker-run -- st-validate-local")
 
+    # Docs-publish sanity check (issue #303). Runs after validation
+    # so a real validation failure stays the headline; a docs failure
+    # is a softer warning since docs publishing is async and doesn't
+    # block subsequent merges.
+    docs_failure: str | None = None
+    if not args.dry_run:
+        docs_failure = _check_docs_workflow_status(args.target_branch)
+
     print()
     print("Finalization complete.")
     print(f"  Branch: {args.target_branch}")
@@ -142,6 +219,20 @@ def main(argv: list[str] | None = None) -> int:
         print(f"  The {args.target_branch} branch has issues that should be", file=sys.stderr)
         print("  fixed before creating the next PR.", file=sys.stderr)
         return 1
+
+    if docs_failure is not None:
+        print()
+        print(
+            "WARNING: most recent Documentation workflow run did not succeed.",
+            file=sys.stderr,
+        )
+        print(f"  {docs_failure}", file=sys.stderr)
+        print(
+            "  Docs publish is async — investigate before the next merge so",
+            file=sys.stderr,
+        )
+        print("  the site doesn't drift further from develop.", file=sys.stderr)
+        # Soft warning: keep exit code 0 since finalize itself succeeded.
 
     return 0
 

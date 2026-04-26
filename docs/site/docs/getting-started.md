@@ -132,7 +132,7 @@ echo '.worktrees/' >> .gitignore
 Add a "Parallel AI agent development" section to your `CLAUDE.md`
 describing the convention. Every managed repo already has one you
 can copy from; the canonical source is
-[the worktree convention spec](../specs/worktree-convention.md).
+[the worktree convention spec][worktree-spec].
 
 ## 8. Verify
 
@@ -159,6 +159,8 @@ If all three steps behave as expected, you're wired up correctly.
   plugin nuances, and troubleshooting.
 - **[Git Workflow](guides/git-workflow.md)** — branching, commit /
   PR / finalize cycle, two-layer enforcement, worktrees in practice.
-- **[Worktree convention spec](../specs/worktree-convention.md)**
+- **[Worktree convention spec][worktree-spec]**
   — full rationale for the parallel-agent convention, failure
   modes, memory-path implications.
+
+[worktree-spec]: https://github.com/wphillipmoore/standard-tooling/blob/develop/docs/specs/worktree-convention.md
