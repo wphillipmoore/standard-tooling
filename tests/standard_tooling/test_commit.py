@@ -4,13 +4,16 @@ from __future__ import annotations
 
 import contextlib
 import os
-from collections.abc import Iterator
 from pathlib import Path
+from typing import TYPE_CHECKING
 from unittest.mock import patch
 
 import pytest
 
 from standard_tooling.bin.commit import main, parse_args
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
 
 
 @contextlib.contextmanager

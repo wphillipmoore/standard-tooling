@@ -16,6 +16,7 @@ Reference: docs/specs/host-level-tool.md "Git hooks"; plan Task 1.3.
 from __future__ import annotations
 
 import os
+import shutil
 import subprocess
 from pathlib import Path
 
@@ -23,6 +24,7 @@ import pytest
 
 _REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 _GATE_PATH = _REPO_ROOT / ".githooks" / "pre-commit"
+_BASH_PATH = shutil.which("bash") or "/bin/bash"
 
 
 def _run_gate(env: dict[str, str]) -> subprocess.CompletedProcess[str]:
@@ -32,8 +34,8 @@ def _run_gate(env: dict[str, str]) -> subprocess.CompletedProcess[str]:
             f"gate not yet implemented at {_GATE_PATH} (RED phase)",
         )
     full_env = {"PATH": os.environ.get("PATH", "/usr/bin:/bin"), **env}
-    return subprocess.run(  # noqa: S603, S607
-        ["bash", str(_GATE_PATH)],
+    return subprocess.run(  # noqa: S603
+        [_BASH_PATH, str(_GATE_PATH)],
         env=full_env,
         capture_output=True,
         text=True,
