@@ -222,8 +222,14 @@ def _generate_release_notes(version: str, tag: str) -> None:
     releases_dir.mkdir(exist_ok=True)
     output_file = releases_dir / f"v{version}.md"
     print(f"Generating release notes: {output_file}")
+    # `--unreleased` (not `--latest`) — at release-prep time the target
+    # boundary tag (`develop-v{version}`) does not yet exist in git, so
+    # `--latest` falls back to the previous existing tag and renders
+    # the wrong section into the file. `--unreleased` correctly scopes
+    # to commits that are not yet under any tag, which under
+    # `--tag <name>` get grouped under that label. Issue #298.
     subprocess.run(  # noqa: S603, S607
-        ("git-cliff", "--config", str(config), "--tag", tag, "--latest", "-o", str(output_file)),
+        ("git-cliff", "--config", str(config), "--tag", tag, "--unreleased", "-o", str(output_file)),
         check=True,
     )
     _normalize_trailing_newline(output_file)
