@@ -127,6 +127,20 @@ so a git-URL install against `v1.2` always resolves to the latest
 patch on the current minor. Bump to `v1.3` etc. when the publisher
 cuts a new minor and decides consumers should opt in.
 
+> **Note on tag schemes.** The repository carries two parallel tag
+> families. Consumers only see and use the first; the second is
+> internal scaffolding for the changelog flow.
+>
+> | Tag pattern | Where | Purpose | User-facing? |
+> |---|---|---|---|
+> | `v1.3.0`, `v1.3` | `main` | Release tag + rolling minor tag (the install pins target these) | Yes |
+> | `develop-v1.3.0` | `develop` | Boundary marker for `git-cliff`'s changelog scoping during the next release | No |
+>
+> The `develop-` prefix is invisible to install / consumption; it
+> only exists so `st-prepare-release` can scope the next changelog
+> diff to the right starting point. Treat any `develop-v*` tag as
+> internal — never pin to one.
+
 ### `uv tool install` vs `pip install`
 
 `uv tool install` is canonical. `pip install` is a documented
