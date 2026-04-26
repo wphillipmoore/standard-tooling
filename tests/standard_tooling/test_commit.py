@@ -242,9 +242,7 @@ def test_validate_rejects_invalid_prefix_for_library_release(tmp_path: Path) -> 
 
 
 def test_validate_admits_release_branch_for_library_release(tmp_path: Path) -> None:
-    with _commit_environment(
-        tmp_path, branch="release/1.2.3", branching_model="library-release"
-    ):
+    with _commit_environment(tmp_path, branch="release/1.2.3", branching_model="library-release"):
         assert main(_DEFAULT_ARGS) == 0
 
 
@@ -264,9 +262,7 @@ def test_validate_admits_promotion_for_application_promotion(tmp_path: Path) -> 
 
 
 def test_validate_rejects_unknown_branching_model(tmp_path: Path) -> None:
-    with _commit_environment(
-        tmp_path, branch="feature/42-thing", branching_model="bogus-model"
-    ):
+    with _commit_environment(tmp_path, branch="feature/42-thing", branching_model="bogus-model"):
         assert main(_DEFAULT_ARGS) == 1
 
 
@@ -385,8 +381,6 @@ def test_st_commit_sets_st_commit_context_env_var(
     """
     monkeypatch.delenv("ST_COMMIT_CONTEXT", raising=False)
     captured: dict[str, str | None] = {}
-    with _commit_environment(
-        tmp_path, branch="feature/42-test", captured_env=captured
-    ):
+    with _commit_environment(tmp_path, branch="feature/42-test", captured_env=captured):
         assert main(_DEFAULT_ARGS) == 0
     assert captured.get("ST_COMMIT_CONTEXT") == "1"
