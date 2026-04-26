@@ -23,12 +23,23 @@ def create_pr(*, base: str, title: str, body_file: str) -> str:
     return read_output("pr", "create", "--base", base, "--title", title, "--body-file", body_file)
 
 
-def auto_merge(ref: str, *, strategy: str, delete_branch: bool = True) -> None:
-    """Enable auto-merge on a PR.
+def wait_for_checks(pr: str) -> None:
+    """Block until all required checks on ``pr`` complete; fail fast on the first red.
 
-    *strategy* must be ``--squash``, ``--merge``, or ``--rebase``.
+    Surfaces the failure via ``subprocess.CalledProcessError`` — callers are
+    responsible for deciding how to react (the release-workflow convention is
+    to stop and surface; do not retry).
     """
-    cmd = ["pr", "merge", "--auto", strategy, ref]
+    run("pr", "checks", pr, "--watch", "--fail-fast")
+
+
+def merge(pr: str, *, strategy: str, delete_branch: bool = True) -> None:
+    """Merge a PR synchronously (without ``--auto``).
+
+    ``strategy`` is one of ``"merge"``, ``"squash"``, ``"rebase"`` — passed
+    through as ``--merge``, ``--squash``, ``--rebase``.
+    """
+    cmd = ["pr", "merge", f"--{strategy}", pr]
     if delete_branch:
         cmd.append("--delete-branch")
     run(*cmd)

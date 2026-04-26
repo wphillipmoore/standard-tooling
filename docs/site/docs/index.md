@@ -11,9 +11,9 @@ commits, PRs, releases, and validation alongside bash validators and git hooks
 `st-commit`, `st-submit-pr`, `st-prepare-release`,
 `st-finalize-repo`, `st-validate-local`
 
-**Bash validators** (`scripts/bin/`):
-`commit-message`, `repo-profile`, `markdown-standards`,
-`pr-issue-linkage`, validation drivers
+**Lint tools** (installed as `st-*`):
+`st-repo-profile`, `st-markdown-standards`,
+`st-pr-issue-linkage`, validation drivers
 
 **Git hooks** (`scripts/lib/git-hooks/`):
 Branch naming enforcement, commit message validation
@@ -33,7 +33,7 @@ Branch naming enforcement, commit message validation
    or checked out in CI (GitHub Actions).
 2. The Python package is installed via `uv sync`, making `st-*` CLI
    tools available in `.venv/bin/`.
-3. Both `.venv/bin/` and `scripts/bin/` are added to PATH.
+3. `.venv/bin/` is added to PATH.
 4. Git hooks are configured to point at `scripts/lib/git-hooks/`.
 5. Consuming repos call tools by bare name -- no file copying or syncing.
 

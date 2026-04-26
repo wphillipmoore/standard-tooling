@@ -24,12 +24,12 @@ def _find_validator(name: str, scripts_bin: Path) -> str | None:
     """Locate a validator by *name*.
 
     Search order:
-      1. PATH (via ``shutil.which``)
+      1. ``st-{name}`` on PATH (installed entry point)
       2. The repository's own ``scripts/bin/`` directory
     """
-    on_path = shutil.which(name)
-    if on_path is not None:
-        return on_path
+    entry_point = shutil.which(f"st-{name}")
+    if entry_point is not None:
+        return entry_point
     local = scripts_bin / name
     if local.is_file() and os.access(local, os.X_OK):
         return str(local)
@@ -47,6 +47,11 @@ def _run_validator(name: str, scripts_bin: Path) -> bool:
 
 
 def main(argv: list[str] | None = None) -> int:  # noqa: ARG001
+    # st-validate-local is designed to run inside a dev container
+    # (launched by `st-docker-run`).  No host-level docker check is
+    # appropriate — if a caller runs this on the host, the inner scripts
+    # will surface missing tooling (uv, ruff, etc.) with their own errors.
+
     root = git.repo_root()
     scripts_bin = root / "scripts" / "bin"
 

@@ -8,12 +8,15 @@ Thumbs.db
 .env.*
 *.log
 .venv/
+.venv-host/
 __pycache__/
 *.pyc
 *.egg-info/
 src/standard_tooling.egg-info/
 dist/
 build/
+.coverage
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
+.worktrees/

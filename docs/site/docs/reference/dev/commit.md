@@ -59,8 +59,7 @@ st-commit \
    co-author identity matching the `--agent` value.
 3. Verifies staged changes exist.
 4. Constructs the commit message in a temporary file.
-5. Runs `git commit --file` (which triggers the `commit-msg` hook
-   for validation).
+5. Runs `git commit --file`.
 
 ## Exit Codes
 

@@ -1,6 +1,6 @@
-# pr-issue-linkage
+# st-pr-issue-linkage
 
-**Path:** `scripts/bin/pr-issue-linkage`
+**Installed as:** `st-pr-issue-linkage` (Python console script)
 
 Validates that a pull request body contains issue linkage. Runs in
 CI using the GitHub event payload.

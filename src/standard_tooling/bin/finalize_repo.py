@@ -7,6 +7,8 @@ branches, and prunes stale remote-tracking references.
 from __future__ import annotations
 
 import argparse
+import shutil
+import subprocess
 import sys
 
 from standard_tooling.lib import git, repo_profile
@@ -37,6 +39,20 @@ def _run(args: list[str], *, dry_run: bool) -> None:
 
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
+
+    if not git.is_main_worktree():
+        print(
+            "ERROR: st-finalize-repo must be run from the main worktree, not a secondary one.",
+            file=sys.stderr,
+        )
+        print(
+            "  The target branch is already checked out in the main "
+            "worktree; git will refuse to check it out a second time.",
+            file=sys.stderr,
+        )
+        print("  Run:  cd <repo-root> && st-finalize-repo", file=sys.stderr)
+        return 1
+
     root = git.repo_root()
 
     try:
@@ -81,11 +97,52 @@ def main(argv: list[str] | None = None) -> int:
     else:
         git.run("remote", "prune", "origin")
 
+    # -- post-finalization validation ------------------------------------------
+    # Run canonical validation to catch problems on the target branch before
+    # the next PR is created.  Failures are reported as warnings — the
+    # finalization itself already succeeded.
+
+    validation_failed = False
+    if not args.dry_run:
+        docker_run = shutil.which("st-docker-run")
+        validator = shutil.which("st-validate-local")
+
+        if docker_run is not None:
+            print()
+            print("Running post-finalization validation via st-docker-run...")
+            cmd: tuple[str, ...] = (docker_run, "--", "st-validate-local")
+        elif validator is not None:
+            print()
+            print("Running post-finalization validation...")
+            cmd = (validator,)
+        else:
+            print()
+            print(
+                "ERROR: neither st-docker-run nor st-validate-local found on PATH.",
+                file=sys.stderr,
+            )
+            print("  Ensure standard-tooling is installed and on PATH.", file=sys.stderr)
+            return 1
+
+        result = subprocess.run(cmd, check=False)  # noqa: S603
+        if result.returncode != 0:
+            validation_failed = True
+    else:
+        print("  [dry-run] st-docker-run -- st-validate-local")
+
     print()
     print("Finalization complete.")
     print(f"  Branch: {args.target_branch}")
     print(f"  Deleted: {' '.join(deleted) if deleted else '(none)'}")
     print("  Remotes: pruned")
+
+    if validation_failed:
+        print()
+        print("WARNING: post-finalization validation failed.", file=sys.stderr)
+        print(f"  The {args.target_branch} branch has issues that should be", file=sys.stderr)
+        print("  fixed before creating the next PR.", file=sys.stderr)
+        return 1
+
     return 0
 
 

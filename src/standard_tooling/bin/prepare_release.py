@@ -1,13 +1,18 @@
-"""Automate release preparation: branch, changelog, PR, auto-merge.
+"""Automate release preparation: branch, changelog, PR.
 
 Shared script for library repositories using the library-release branching
 model. Auto-detects the ecosystem to find the version source of truth.
+
+The release PR is created but not merged — callers (typically the publish
+skill) drive the merge via ``st-merge-when-green`` once CI passes.
 
 Supported ecosystems:
   - Python: reads version from pyproject.toml
   - Maven:  reads version from pom.xml
   - Go:     reads version from **/version.go
   - Ruby:   reads version from **/version.rb
+  - Cargo:  reads version from Cargo.toml
+  - Claude plugin: reads version from .claude-plugin/plugin.json
   - VERSION file: reads version from VERSION (fallback)
 """
 
@@ -66,6 +71,26 @@ def _detect_ruby() -> str | None:
     return None
 
 
+def _detect_cargo() -> str | None:
+    path = Path("Cargo.toml")
+    if not path.is_file():
+        return None
+    text = path.read_text(encoding="utf-8")
+    match = re.search(r'^version\s*=\s*"([^"]+)"', text, re.MULTILINE)
+    return match.group(1) if match else None
+
+
+def _detect_claude_plugin() -> str | None:
+    import json
+
+    path = Path(".claude-plugin/plugin.json")
+    if not path.is_file():
+        return None
+    data = json.loads(path.read_text(encoding="utf-8"))
+    version: str | None = data.get("version")
+    return version
+
+
 def _detect_version_file() -> str | None:
     path = Path("VERSION")
     if not path.is_file():
@@ -87,6 +112,8 @@ _DETECTORS: list[tuple[str, _Detector]] = [
     ("maven", _detect_maven),
     ("go", _detect_go),
     ("ruby", _detect_ruby),
+    ("cargo", _detect_cargo),
+    ("claude-plugin", _detect_claude_plugin),
     ("version-file", _detect_version_file),
 ]
 
@@ -103,6 +130,8 @@ def detect_ecosystem() -> tuple[str, str]:
         "  - pom.xml with version (Maven)\n"
         "  - go.mod + **/version.go (Go)\n"
         "  - Gemfile + **/version.rb (Ruby)\n"
+        "  - Cargo.toml with version (Cargo/Rust)\n"
+        "  - .claude-plugin/plugin.json with version (Claude plugin)\n"
         "  - VERSION file with MAJOR.MINOR.PATCH"
     )
     raise SystemExit(msg)
@@ -258,11 +287,11 @@ def main(argv: list[str] | None = None) -> int:
     print(f"Pushing branch: {branch}")
     git.run("push", "-u", "origin", branch)
     url = _create_pr(version, args.issue)
-    github.auto_merge(url, strategy="--merge")
 
     git.run("checkout", "develop")
 
     print(f"Release {version} preparation complete.")
+    print(f"Merge when green: st-merge-when-green {url}")
     return 0
 
 

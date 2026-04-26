@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "standard-tooling"
-version = "1.2.2"
+version = "1.3.0"
 description = "Shared development tooling for managed repositories"
 requires-python = ">=3.12,<4.0"
 dependencies = []
@@ -12,6 +12,7 @@ dependencies = []
 [project.scripts]
 st-commit = "standard_tooling.bin.commit:main"
 st-submit-pr = "standard_tooling.bin.submit_pr:main"
+st-merge-when-green = "standard_tooling.bin.merge_when_green:main"
 st-prepare-release = "standard_tooling.bin.prepare_release:main"
 st-finalize-repo = "standard_tooling.bin.finalize_repo:main"
 st-validate-local = "standard_tooling.bin.validate_local:main"
@@ -20,6 +21,18 @@ st-list-project-repos = "standard_tooling.bin.list_project_repos:main"
 st-set-project-field = "standard_tooling.bin.set_project_field:main"
 st-observatory = "standard_tooling.bin.observatory:main"
 st-generate-commands = "standard_tooling.bin.generate_commands:main"
+st-docker-run = "standard_tooling.bin.docker_run:main"
+st-docker-test = "standard_tooling.bin.docker_test:main"
+st-docker-docs = "standard_tooling.bin.docker_docs:main"
+st-repo-profile = "standard_tooling.bin.repo_profile_cli:main"
+st-validate-local-python = "standard_tooling.bin.validate_local_lang:main"
+st-validate-local-rust = "standard_tooling.bin.validate_local_lang:main"
+st-validate-local-go = "standard_tooling.bin.validate_local_lang:main"
+st-validate-local-java = "standard_tooling.bin.validate_local_lang:main"
+st-validate-local-common = "standard_tooling.bin.validate_local_common:main"
+st-validate-local-common-container = "standard_tooling.bin.validate_local_common_container:main"
+st-markdown-standards = "standard_tooling.bin.markdown_standards:main"
+st-pr-issue-linkage = "standard_tooling.bin.pr_issue_linkage:main"
 
 [dependency-groups]
 dev = ["ruff", "mypy", "pytest", "pytest-cov", "pip-audit", "pip-licenses"]

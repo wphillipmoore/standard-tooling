@@ -50,8 +50,6 @@ Local hard gates (pre-commit hooks):
 
 - Branch naming enforcement (`scripts/lib/git-hooks/pre-commit`):
   branching-model-aware prefix validation.
-- Commit message lint (`scripts/lib/git-hooks/commit-msg`): Conventional Commits
-  required.
 
 ## Commit and PR scripts
 

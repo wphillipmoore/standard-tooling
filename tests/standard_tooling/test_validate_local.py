@@ -9,10 +9,15 @@ from unittest.mock import patch
 from standard_tooling.bin.validate_local import _find_validator, _run_validator, main
 
 
-def test_find_validator_on_path() -> None:
-    with patch("standard_tooling.bin.validate_local.shutil.which", return_value="/usr/bin/v"):
+def test_find_validator_entry_point() -> None:
+    def which_side_effect(name: str) -> str | None:
+        if name == "st-v":
+            return "/usr/bin/st-v"
+        return None
+
+    with patch("standard_tooling.bin.validate_local.shutil.which", side_effect=which_side_effect):
         result = _find_validator("v", Path("/scripts/bin"))
-    assert result == "/usr/bin/v"
+    assert result == "/usr/bin/st-v"
 
 
 def test_find_validator_local_fallback(tmp_path: Path) -> None:
@@ -24,6 +29,19 @@ def test_find_validator_local_fallback(tmp_path: Path) -> None:
     with patch("standard_tooling.bin.validate_local.shutil.which", return_value=None):
         result = _find_validator("validate-local-common", scripts_bin)
     assert result == str(validator)
+
+
+def test_find_validator_entry_point_found(tmp_path: Path) -> None:
+    """st- entry point is found on PATH."""
+
+    def which_side_effect(name: str) -> str | None:
+        if name == "st-validate-local-common":
+            return "/usr/bin/st-validate-local-common"
+        return None
+
+    with patch("standard_tooling.bin.validate_local.shutil.which", side_effect=which_side_effect):
+        result = _find_validator("validate-local-common", tmp_path)
+    assert result == "/usr/bin/st-validate-local-common"
 
 
 def test_find_validator_not_found(tmp_path: Path) -> None:
@@ -98,11 +116,8 @@ def test_main_all_pass(tmp_path: Path) -> None:
 
 def test_main_common_fails(tmp_path: Path) -> None:
     _make_profile(tmp_path, "python")
-    call_count = 0
 
     def mock_run_validator(name: str, scripts_bin: Path) -> bool:
-        nonlocal call_count
-        call_count += 1
         return name != "validate-local-common"
 
     with (
