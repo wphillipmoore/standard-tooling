@@ -61,11 +61,12 @@ def _check_docs_workflow_status(target_branch: str) -> str | None:
       - the latest run succeeded or is still in progress
       - the JSON response is malformed (defensive)
     """
-    if shutil.which("gh") is None:
+    gh = shutil.which("gh")
+    if gh is None:
         return None
-    result = subprocess.run(  # noqa: S603, S607
+    result = subprocess.run(  # noqa: S603
         [
-            "gh",
+            gh,
             "run",
             "list",
             "--workflow",
