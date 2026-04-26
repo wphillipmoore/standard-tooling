@@ -55,6 +55,34 @@ def default_image(lang: str, *, fallback: bool = False) -> str:
     return image
 
 
+def worktree_parent_gitdir(repo_root: Path) -> Path | None:
+    """Return the parent repo's ``.git`` directory if *repo_root* is a worktree.
+
+    A git worktree's ``.git`` is a one-line file pointing at the parent
+    repo's ``<.git>/worktrees/<name>`` directory; the parent's ``.git``
+    must be visible inside the container at the same absolute path for
+    the pointer to resolve. The main worktree's ``.git`` is a directory,
+    so this returns ``None`` for it.
+
+    Returns ``None`` when the layout is unrecognized rather than raising
+    — the caller falls back to the existing single-mount behavior so
+    container launches do not regress on edge cases (issue #293).
+    """
+    marker = repo_root / ".git"
+    if not marker.is_file():
+        return None
+    try:
+        content = marker.read_text(encoding="utf-8").strip()
+    except OSError:
+        return None
+    if not content.startswith("gitdir:"):
+        return None
+    gitdir = Path(content.removeprefix("gitdir:").strip())
+    if gitdir.parent.name != "worktrees":
+        return None
+    return gitdir.parent.parent
+
+
 def build_docker_args(
     repo_root: Path,
     image: str,
@@ -72,6 +100,14 @@ def build_docker_args(
         "-w",
         "/workspace",
     ]
+
+    # When repo_root is a git worktree, the worktree's `.git` is a file
+    # pointing at <parent>/.git/worktrees/<name>. Mount the parent .git
+    # at the same absolute path so the pointer resolves in-container.
+    # Without this, every git command in the container fails (#293).
+    parent_gitdir = worktree_parent_gitdir(repo_root)
+    if parent_gitdir is not None:
+        docker_args.extend(["-v", f"{parent_gitdir}:{parent_gitdir}"])
 
     if network:
         docker_args.extend(["--network", network])

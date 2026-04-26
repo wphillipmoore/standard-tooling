@@ -14,6 +14,7 @@ from standard_tooling.lib.docker import (
     build_docker_args,
     default_image,
     detect_language,
+    worktree_parent_gitdir,
 )
 
 if TYPE_CHECKING:
@@ -219,3 +220,94 @@ def test_assert_docker_available_timeout() -> None:
         pytest.raises(SystemExit),
     ):
         assert_docker_available()
+
+
+# -- worktree_parent_gitdir ---------------------------------------------------
+
+
+def test_worktree_parent_gitdir_main_worktree(tmp_path: Path) -> None:
+    """Main worktree has `.git` as a directory; returns None."""
+    (tmp_path / ".git").mkdir()
+    assert worktree_parent_gitdir(tmp_path) is None
+
+
+def test_worktree_parent_gitdir_no_git_at_all(tmp_path: Path) -> None:
+    """No `.git` present; returns None (defensive)."""
+    assert worktree_parent_gitdir(tmp_path) is None
+
+
+def test_worktree_parent_gitdir_secondary_worktree(tmp_path: Path) -> None:
+    """`.git` file points at <parent>/.git/worktrees/<name>; returns parent .git."""
+    parent_git = tmp_path / "main-repo" / ".git"
+    parent_git.mkdir(parents=True)
+    worktree_metadata = parent_git / "worktrees" / "issue-1-x"
+    worktree_metadata.mkdir(parents=True)
+    worktree = tmp_path / "main-repo" / ".worktrees" / "issue-1-x"
+    worktree.mkdir(parents=True)
+    (worktree / ".git").write_text(f"gitdir: {worktree_metadata}\n", encoding="utf-8")
+
+    assert worktree_parent_gitdir(worktree) == parent_git
+
+
+def test_worktree_parent_gitdir_malformed_no_gitdir_prefix(tmp_path: Path) -> None:
+    """Unexpected file content; returns None (don't crash)."""
+    (tmp_path / ".git").write_text("not a real gitdir pointer\n", encoding="utf-8")
+    assert worktree_parent_gitdir(tmp_path) is None
+
+
+def test_worktree_parent_gitdir_unrecognized_layout(tmp_path: Path) -> None:
+    """`.git` points somewhere that isn't `<parent>/worktrees/<name>`; returns None."""
+    target = tmp_path / "elsewhere" / "custom-path"
+    target.mkdir(parents=True)
+    (tmp_path / ".git").write_text(f"gitdir: {target}\n", encoding="utf-8")
+    assert worktree_parent_gitdir(tmp_path) is None
+
+
+def test_worktree_parent_gitdir_oserror_on_read(tmp_path: Path) -> None:
+    """Unreadable `.git` file (permissions, race, etc.) returns None safely."""
+    (tmp_path / ".git").write_text("gitdir: /irrelevant\n", encoding="utf-8")
+    with patch(
+        "standard_tooling.lib.docker.Path.read_text",
+        side_effect=OSError("permission denied"),
+    ):
+        assert worktree_parent_gitdir(tmp_path) is None
+
+
+def test_build_docker_args_mounts_parent_git_when_worktree(tmp_path: Path) -> None:
+    """Issue #293: secondary worktree triggers an extra parent-.git mount
+    so the worktree's `.git` gitdir pointer resolves inside the container.
+    """
+    parent_git = tmp_path / "main-repo" / ".git"
+    parent_git.mkdir(parents=True)
+    worktree_metadata = parent_git / "worktrees" / "issue-1-x"
+    worktree_metadata.mkdir(parents=True)
+    worktree = tmp_path / "main-repo" / ".worktrees" / "issue-1-x"
+    worktree.mkdir(parents=True)
+    (worktree / ".git").write_text(f"gitdir: {worktree_metadata}\n", encoding="utf-8")
+
+    fake_home = tmp_path / "home"
+    fake_home.mkdir()
+    with (
+        patch.dict("os.environ", {}, clear=True),
+        patch("standard_tooling.lib.docker.Path.home", return_value=fake_home),
+    ):
+        args = build_docker_args(worktree, "img:1", ["cmd"])
+
+    assert f"{parent_git}:{parent_git}" in args
+
+
+def test_build_docker_args_no_extra_mount_for_main_worktree(tmp_path: Path) -> None:
+    """Main worktree (`.git` is a directory) gets no extra mount."""
+    (tmp_path / ".git").mkdir()
+    fake_home = tmp_path / "home"
+    fake_home.mkdir()
+    with (
+        patch.dict("os.environ", {}, clear=True),
+        patch("standard_tooling.lib.docker.Path.home", return_value=fake_home),
+    ):
+        args = build_docker_args(tmp_path, "img:1", ["cmd"])
+
+    # Only the workspace mount; no parent-.git mount.
+    v_indices = [i for i, a in enumerate(args) if a == "-v"]
+    assert len(v_indices) == 1
+    assert args[v_indices[0] + 1] == f"{tmp_path}:/workspace"
