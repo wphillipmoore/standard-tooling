@@ -11,7 +11,6 @@ admits the resulting commit.
 from __future__ import annotations
 
 import argparse
-import os
 import re
 import sys
 import tempfile
@@ -42,13 +41,6 @@ _ISSUE_REQUIRED_RE = re.compile(r"^(feature|bugfix|hotfix|chore)/")
 _ISSUE_FORMAT_RE = re.compile(r"^(feature|bugfix|hotfix|chore)/[0-9]+-[a-z0-9][a-z0-9.-]*$")
 _WORKTREE_SCOPED_RE = re.compile(r"^(feature|bugfix|hotfix|chore)/")
 _WORKTREES_DIRNAME = ".worktrees"
-
-# Env-var contract with `.githooks/pre-commit`. The gate admits any
-# `git commit` that runs with this variable set to "1"; st-commit sets
-# it just before invoking git commit. See docs/specs/host-level-tool.md
-# "Git hooks" section.
-_GATE_ENV_VAR = "ST_COMMIT_CONTEXT"
-_GATE_ENABLED_VALUE = "1"
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
@@ -194,9 +186,10 @@ def main(argv: list[str] | None = None) -> int:
         tmp_path = f.name
 
     try:
-        # Set the env-var gate signal so `.githooks/pre-commit` admits the
-        # resulting `git commit`. See docs/specs/host-level-tool.md.
-        os.environ[_GATE_ENV_VAR] = _GATE_ENABLED_VALUE
+        # `git.run` sets ST_COMMIT_CONTEXT=1 in the subprocess env when
+        # the first arg is "commit", so the `.githooks/pre-commit` gate
+        # admits the resulting commit. See lib/git.py and
+        # docs/specs/host-level-tool.md "Git hooks".
         git.run("commit", "--file", tmp_path)
     finally:
         Path(tmp_path).unlink(missing_ok=True)

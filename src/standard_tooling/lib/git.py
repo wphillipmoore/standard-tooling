@@ -2,13 +2,31 @@
 
 from __future__ import annotations
 
+import os
 import subprocess
 from pathlib import Path
 
+# Env-var contract with `.githooks/pre-commit`. Any internal caller
+# that runs `git commit` via this helper is by definition an
+# st-* tool invocation — admit it via the gate. See
+# docs/specs/host-level-tool.md "Git hooks".
+_GATE_ENV_VAR = "ST_COMMIT_CONTEXT"
+_GATE_ENABLED_VALUE = "1"
+
 
 def run(*args: str) -> None:
-    """Run a git command and raise on failure."""
-    subprocess.run(("git", *args), check=True)  # noqa: S603, S607
+    """Run a git command and raise on failure.
+
+    When the first positional arg is ``"commit"``, automatically sets
+    ``ST_COMMIT_CONTEXT=1`` in the subprocess environment so the
+    repository's pre-commit gate admits the commit. This makes the
+    env-var contract a property of the helper rather than something
+    every internal caller has to remember (issue #295).
+    """
+    env = None
+    if args and args[0] == "commit":
+        env = {**os.environ, _GATE_ENV_VAR: _GATE_ENABLED_VALUE}
+    subprocess.run(("git", *args), check=True, env=env)  # noqa: S603, S607
 
 
 def read_output(*args: str) -> str:
