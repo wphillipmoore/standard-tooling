@@ -229,7 +229,16 @@ def _generate_release_notes(version: str, tag: str) -> None:
     # to commits that are not yet under any tag, which under
     # `--tag <name>` get grouped under that label. Issue #298.
     subprocess.run(  # noqa: S603, S607
-        ("git-cliff", "--config", str(config), "--tag", tag, "--unreleased", "-o", str(output_file)),
+        (
+            "git-cliff",
+            "--config",
+            str(config),
+            "--tag",
+            tag,
+            "--unreleased",
+            "-o",
+            str(output_file),
+        ),
         check=True,
     )
     _normalize_trailing_newline(output_file)
