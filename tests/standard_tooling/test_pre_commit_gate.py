@@ -46,7 +46,11 @@ def _run_gate(env: dict[str, str]) -> subprocess.CompletedProcess[str]:
 def test_gate_admits_st_commit_context() -> None:
     result = _run_gate({"ST_COMMIT_CONTEXT": "1"})
     assert result.returncode == 0, result.stderr
-    assert result.stderr == ""
+    # Admits print a diagnostic so the admission is visible in commit
+    # output — this branch is also the documented escape hatch and a
+    # silent admit would hide manual workarounds.
+    assert "admitted" in result.stderr
+    assert "ST_COMMIT_CONTEXT" in result.stderr
 
 
 @pytest.mark.parametrize(
@@ -66,7 +70,8 @@ def test_gate_admits_st_commit_context() -> None:
 def test_gate_admits_git_reflog_action(reflog_action: str) -> None:
     result = _run_gate({"GIT_REFLOG_ACTION": reflog_action})
     assert result.returncode == 0, result.stderr
-    assert result.stderr == ""
+    assert "admitted" in result.stderr
+    assert reflog_action in result.stderr
 
 
 def test_gate_rejects_raw_git_commit() -> None:
@@ -86,9 +91,12 @@ def test_gate_rejects_unrelated_reflog_action() -> None:
 
 def test_gate_admits_when_st_commit_context_set_even_with_unrelated_reflog() -> None:
     # ST_COMMIT_CONTEXT takes precedence: if st-commit set the env var,
-    # the gate admits regardless of GIT_REFLOG_ACTION value.
+    # the gate admits regardless of GIT_REFLOG_ACTION value. The
+    # diagnostic identifies the path taken (ST_COMMIT_CONTEXT, not
+    # GIT_REFLOG_ACTION).
     result = _run_gate({"ST_COMMIT_CONTEXT": "1", "GIT_REFLOG_ACTION": "commit"})
     assert result.returncode == 0, result.stderr
+    assert "ST_COMMIT_CONTEXT" in result.stderr
 
 
 def test_gate_st_commit_context_other_value_does_not_admit() -> None:
