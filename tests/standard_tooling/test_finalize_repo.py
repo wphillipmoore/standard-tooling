@@ -382,7 +382,10 @@ def test_main_warns_on_docs_failure_but_returns_zero(
         patch(_MOD + ".subprocess.run", return_value=_validation_ok()),
         patch(
             _MOD + "._check_docs_workflow_status",
-            return_value="Documentation workflow run 999 on develop (deadbee) ended with conclusion 'failure'.",
+            return_value=(
+                "Documentation workflow run 999 on develop (deadbee) "
+                "ended with conclusion 'failure'."
+            ),
         ),
     ):
         result = main([])
