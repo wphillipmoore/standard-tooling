@@ -5,6 +5,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.3.1] - 2026-04-26
+
+### Bug fixes
+
+- regenerate v1.3.0 release notes with correct content
+- use --unreleased instead of --latest for release notes (#298)
+- remove dead skip-filter from _find_yaml_files
+- move Path import into TYPE_CHECKING block (TC003)
+- use reference-style links to satisfy markdownlint and lint
+- add S607 noqa for gh CLI invocation
+- use shutil.which to get gh absolute path (S607)
+- use 'git branch -D' for already-vetted merged branches (#307)
+
+### Documentation
+
+- document patch/minor/major release workflow; add docs-publish sanity check (#303)
+
+### Features
+
+- dispatch standard-tooling-released event after release tag (#301)
+- add yamllint to canonical validation; pin rules in .yamllint (#302)
+
+### Styling
+
+- wrap git-cliff cmd tuple to satisfy line-length lint
+- apply ruff format
+
 ## [1.3.0] - 2026-04-26
 
 ### Bug fixes
