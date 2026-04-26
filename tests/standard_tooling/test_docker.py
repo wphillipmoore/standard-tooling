@@ -263,6 +263,16 @@ def test_worktree_parent_gitdir_unrecognized_layout(tmp_path: Path) -> None:
     assert worktree_parent_gitdir(tmp_path) is None
 
 
+def test_worktree_parent_gitdir_oserror_on_read(tmp_path: Path) -> None:
+    """Unreadable `.git` file (permissions, race, etc.) returns None safely."""
+    (tmp_path / ".git").write_text("gitdir: /irrelevant\n", encoding="utf-8")
+    with patch(
+        "standard_tooling.lib.docker.Path.read_text",
+        side_effect=OSError("permission denied"),
+    ):
+        assert worktree_parent_gitdir(tmp_path) is None
+
+
 def test_build_docker_args_mounts_parent_git_when_worktree(tmp_path: Path) -> None:
     """Issue #293: secondary worktree triggers an extra parent-.git mount
     so the worktree's `.git` gitdir pointer resolves inside the container.
