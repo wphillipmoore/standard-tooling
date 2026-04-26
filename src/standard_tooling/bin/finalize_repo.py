@@ -63,7 +63,7 @@ def _check_docs_workflow_status(target_branch: str) -> str | None:
     """
     if shutil.which("gh") is None:
         return None
-    result = subprocess.run(  # noqa: S603
+    result = subprocess.run(  # noqa: S603, S607
         [
             "gh",
             "run",
