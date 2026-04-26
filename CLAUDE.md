@@ -39,11 +39,11 @@ full rationale, trust model, failure modes, and memory-path implications.
      or use absolute paths.
 3. **The main worktree is read-only.** All edits flow through a worktree
    on a feature branch — the logical endpoint of the standing
-   "no direct commits to develop" policy. The repo's pre-commit hook
-   (`scripts/lib/git-hooks/pre-commit`) enforces this: when a
-   `.worktrees/` directory is present, it refuses commits on
-   `feature/**`, `bugfix/**`, `hotfix/**`, or `chore/**` branches that
-   originate from the main worktree.
+   "no direct commits to develop" policy. `st-commit` itself enforces
+   this: when a `.worktrees/` directory is present, it refuses commits
+   on `feature/**`, `bugfix/**`, `hotfix/**`, or `chore/**` branches
+   that originate from the main worktree. The `.githooks/pre-commit`
+   gate then refuses any raw `git commit` that bypasses `st-commit`.
 4. **One worktree per issue.** Don't stack in-flight issues. When a
    branch lands, remove the worktree before starting the next.
 5. **Naming: `issue-<N>-<short-slug>`.** `<N>` is the GitHub issue
@@ -105,11 +105,11 @@ This repository uses a **dual-venv** model:
 # Host bootstrap (one-time) — provides st-docker-run on the host
 UV_PROJECT_ENVIRONMENT=.venv-host uv sync --group dev
 
-# Enable git hooks
-git config core.hooksPath scripts/lib/git-hooks
+# Enable the pre-commit gate (refuses raw `git commit`; admits st-commit)
+git config core.hooksPath .githooks
 
 # Put host tools on PATH
-export PATH="$(pwd)/.venv-host/bin:$(pwd)/scripts/bin:$PATH"
+export PATH="$(pwd)/.venv-host/bin:$PATH"
 ```
 
 After the host venv is set up, use `st-docker-run` to run all commands
@@ -200,19 +200,6 @@ Shared libraries under `src/standard_tooling/lib/`:
 - **`github.py`** — gh CLI subprocess wrappers
 - **`repo_profile.py`** — Parse `docs/repository-standards.md`
 
-### Bash Scripts (`scripts/bin/`)
-
-Grandfathered validators consumed via PATH (no `.sh` extensions):
-
-- `markdown-standards` — markdownlint + structural checks
-- `repo-profile` — repository profile validation
-- `pr-issue-linkage` — PR body issue linkage validation
-- `validate-local-common` — shared validation checks
-  (shellcheck, markdownlint, repo-profile)
-- `validate-local-python` — Python-specific validation
-- `validate-local-go` — Go-specific validation
-- `validate-local-java` — Java-specific validation
-
 ### Docker Dev Images
 
 Dev container images (Dockerfiles, build script, publish workflow) are
@@ -228,11 +215,16 @@ it in a thin `scripts/dev/test.sh`. Environment overrides:
 - `DOCKER_NETWORK` — join a Docker network (e.g., for MQ integration tests)
 - `MQ_*` env vars are automatically passed through to the container
 
-### Git Hooks (`scripts/lib/git-hooks/`)
+### Git Hooks (`.githooks/`)
 
-Consumed via `git config core.hooksPath scripts/lib/git-hooks`:
+Consumed via `git config core.hooksPath .githooks`:
 
-- `pre-commit` — Branch naming enforcement
+- `pre-commit` — Env-var-plus-`GIT_REFLOG_ACTION` gate. Admits commits
+  with `ST_COMMIT_CONTEXT=1` (set by `st-commit`) and admits derived
+  workflows (`amend`, `cherry-pick`, `revert`, `rebase*`, `merge*`).
+  Rejects raw `git commit -m "..."`. The five branch / context checks
+  (detached HEAD, protected branches, branch prefix, issue number,
+  worktree convention) live in `st-commit` itself, not the hook.
 
 ### Consumption Model
 
@@ -252,15 +244,20 @@ One-time setup in the `standard-tooling` checkout:
 UV_PROJECT_ENVIRONMENT=.venv-host uv sync --group dev
 ```
 
-**Git hooks** (any consuming repo):
+**Git hooks** (any consuming repo): each repo vendors its own
+`.githooks/pre-commit` (the env-var gate from this repo's spec) and
+points its `core.hooksPath` at it:
 
 ```bash
-git config core.hooksPath ../standard-tooling/scripts/lib/git-hooks
+git config core.hooksPath .githooks
 ```
 
-**CI (GitHub Actions)**: The `standards-compliance` action clones
-standard-tooling and puts `scripts/bin/` on PATH. The bash wrappers
-include a PYTHONPATH fallback for non-installed environments.
+**CI (GitHub Actions)**: under the host-level-tool spec, CI uses
+the same two paths as developers — Python repos via `uv sync --group
+dev` (the dev-dep declaration), non-Python repos via the dev
+container image's pre-baked `standard-tooling`. The
+`standards-compliance` composite action no longer clones
+`standard-tooling` onto runners.
 
 ### Key Constraints
 

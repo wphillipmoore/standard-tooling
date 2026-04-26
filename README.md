@@ -5,16 +5,15 @@
 - [Purpose](#purpose)
 - [Installation](#installation)
 - [CLI tools](#cli-tools)
-- [Bash validators](#bash-validators)
 - [Git hooks](#git-hooks)
 - [Releasing](#releasing)
 
 ## Purpose
 
 Shared development tooling for all managed repositories. Structured as a
-Python package with CLI entry points (`st-*`) and grandfathered bash
-validators, consumed via PATH from a sibling checkout (local) or CI checkout
-(GitHub Actions).
+Python package with CLI entry points (`st-*`), distributed as a
+host-level developer tool per
+[`docs/specs/host-level-tool.md`](docs/specs/host-level-tool.md).
 
 ## Installation
 
@@ -23,8 +22,8 @@ validators, consumed via PATH from a sibling checkout (local) or CI checkout
 ```bash
 cd standard-tooling
 uv sync --group dev
-export PATH="$(pwd)/.venv/bin:$(pwd)/scripts/bin:$PATH"
-git config core.hooksPath scripts/lib/git-hooks
+export PATH="$(pwd)/.venv/bin:$PATH"
+git config core.hooksPath .githooks
 ```
 
 ### CI (GitHub Actions)
@@ -40,7 +39,6 @@ git config core.hooksPath scripts/lib/git-hooks
   run: |
     cd .standard-tooling && uv sync --frozen
     echo "$GITHUB_WORKSPACE/.standard-tooling/.venv/bin" >> "$GITHUB_PATH"
-    echo "$GITHUB_WORKSPACE/.standard-tooling/scripts/bin" >> "$GITHUB_PATH"
 ```
 
 ## CLI tools
@@ -54,23 +52,15 @@ git config core.hooksPath scripts/lib/git-hooks
 - `st-list-project-repos` — List repos linked to a GitHub Project
 - `st-set-project-field` — Set field on a GitHub Project item
 
-## Bash validators
-
-Grandfathered bash scripts in `scripts/bin/` consumed via PATH:
-
-- `markdown-standards` — markdownlint + structural checks
-- `repo-profile` — repository profile validation
-- `pr-issue-linkage` — PR body issue linkage validation
-- `validate-local-common` — shared checks for all repos
-- `validate-local-python` — Python-specific validation
-- `validate-local-go` — Go-specific validation
-- `validate-local-java` — Java-specific validation
-
 ## Git hooks
 
-Consumed via `git config core.hooksPath scripts/lib/git-hooks`:
+Consumed via `git config core.hooksPath .githooks`:
 
-- `pre-commit` — branch naming enforcement
+- `pre-commit` — env-var-plus-`GIT_REFLOG_ACTION` gate. Admits
+  `st-commit`-driven commits (`ST_COMMIT_CONTEXT=1`) and derived
+  workflows (`amend`, `cherry-pick`, `revert`, `rebase*`, `merge*`).
+  Rejects raw `git commit`. Branch / context validation lives in
+  `st-commit` itself.
 
 ## Releasing
 
