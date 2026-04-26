@@ -130,7 +130,7 @@ The pre-commit hook enforces:
 - Work branches (`feature/*`, `bugfix/*`, `hotfix/*`, `chore/*`)
   must include a repository issue number
 
-Full reference: [Git Hooks and Validation](../../git-hooks-and-validation.md).
+Full reference: [Git Hooks and Validation](https://github.com/wphillipmoore/standard-tooling/blob/develop/docs/git-hooks-and-validation.md).
 
 ## Step 5: Repository profile
 
@@ -421,10 +421,10 @@ For a broader troubleshooting index see
 
 - [Git Workflow](git-workflow.md) — how the per-change cycle
   actually unfolds once setup is done
-- [Git Hooks and Validation](../../git-hooks-and-validation.md) —
+- [Git Hooks and Validation](https://github.com/wphillipmoore/standard-tooling/blob/develop/docs/git-hooks-and-validation.md) —
   pre-commit hook + validator reference
 - [Three-Tier CI](three-tier-ci.md) — per-language test/lint/audit
   tier wiring
 - [Releasing](releasing.md) — release workflow
-- [Worktree convention spec](../../specs/worktree-convention.md)
+- [Worktree convention spec](https://github.com/wphillipmoore/standard-tooling/blob/develop/docs/specs/worktree-convention.md)
   — canonical reference for the parallel-agent convention

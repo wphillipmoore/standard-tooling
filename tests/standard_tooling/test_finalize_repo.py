@@ -2,13 +2,18 @@
 
 from __future__ import annotations
 
+import json
 from subprocess import CompletedProcess
 from typing import TYPE_CHECKING
 from unittest.mock import patch
 
 import pytest
 
-from standard_tooling.bin.finalize_repo import main, parse_args
+from standard_tooling.bin.finalize_repo import (
+    _check_docs_workflow_status,
+    main,
+    parse_args,
+)
 
 _MOD = "standard_tooling.bin.finalize_repo"
 
@@ -248,3 +253,159 @@ def test_main_falls_back_to_direct_validator(tmp_path: Path) -> None:
     assert result == 0
     cmd = mock_sub.call_args[0][0]
     assert cmd == ("/usr/bin/st-validate-local",)
+
+
+# -- _check_docs_workflow_status (issue #303) --------------------------------
+
+
+def _gh_run_json(conclusion: str | None) -> str:
+    """Build a single-element gh run list JSON response."""
+    return json.dumps(
+        [
+            {
+                "conclusion": conclusion,
+                "databaseId": 12345,
+                "headSha": "abc123def456",
+                "createdAt": "2026-04-26T18:00:00Z",
+                "url": "https://github.com/owner/repo/actions/runs/12345",
+            }
+        ]
+    )
+
+
+def test_check_docs_workflow_returns_none_when_gh_missing() -> None:
+    with patch(_MOD + ".shutil.which", return_value=None):
+        assert _check_docs_workflow_status("develop") is None
+
+
+def test_check_docs_workflow_returns_none_when_gh_fails() -> None:
+    with (
+        patch(_MOD + ".shutil.which", return_value="/usr/bin/gh"),
+        patch(
+            _MOD + ".subprocess.run",
+            return_value=CompletedProcess(args=(), returncode=1, stdout="", stderr="oops"),
+        ),
+    ):
+        assert _check_docs_workflow_status("develop") is None
+
+
+def test_check_docs_workflow_returns_none_when_no_runs() -> None:
+    with (
+        patch(_MOD + ".shutil.which", return_value="/usr/bin/gh"),
+        patch(
+            _MOD + ".subprocess.run",
+            return_value=CompletedProcess(args=(), returncode=0, stdout="[]"),
+        ),
+    ):
+        assert _check_docs_workflow_status("develop") is None
+
+
+def test_check_docs_workflow_returns_none_on_success() -> None:
+    with (
+        patch(_MOD + ".shutil.which", return_value="/usr/bin/gh"),
+        patch(
+            _MOD + ".subprocess.run",
+            return_value=CompletedProcess(
+                args=(), returncode=0, stdout=_gh_run_json("success")
+            ),
+        ),
+    ):
+        assert _check_docs_workflow_status("develop") is None
+
+
+def test_check_docs_workflow_returns_none_on_in_progress() -> None:
+    # gh reports null conclusion (in_progress / queued).
+    with (
+        patch(_MOD + ".shutil.which", return_value="/usr/bin/gh"),
+        patch(
+            _MOD + ".subprocess.run",
+            return_value=CompletedProcess(
+                args=(), returncode=0, stdout=_gh_run_json(None)
+            ),
+        ),
+    ):
+        assert _check_docs_workflow_status("develop") is None
+
+
+def test_check_docs_workflow_returns_message_on_failure() -> None:
+    with (
+        patch(_MOD + ".shutil.which", return_value="/usr/bin/gh"),
+        patch(
+            _MOD + ".subprocess.run",
+            return_value=CompletedProcess(
+                args=(), returncode=0, stdout=_gh_run_json("failure")
+            ),
+        ),
+    ):
+        msg = _check_docs_workflow_status("develop")
+    assert msg is not None
+    assert "12345" in msg
+    assert "develop" in msg
+    assert "abc123d" in msg  # short sha
+    assert "failure" in msg
+    assert "actions/runs/12345" in msg
+
+
+def test_check_docs_workflow_returns_none_on_malformed_json() -> None:
+    with (
+        patch(_MOD + ".shutil.which", return_value="/usr/bin/gh"),
+        patch(
+            _MOD + ".subprocess.run",
+            return_value=CompletedProcess(args=(), returncode=0, stdout="not json"),
+        ),
+    ):
+        assert _check_docs_workflow_status("develop") is None
+
+
+def test_check_docs_workflow_returns_none_on_empty_stdout() -> None:
+    # Defensive: stdout missing entirely (None) shouldn't crash.
+    with (
+        patch(_MOD + ".shutil.which", return_value="/usr/bin/gh"),
+        patch(
+            _MOD + ".subprocess.run",
+            return_value=CompletedProcess(args=(), returncode=0, stdout=None),
+        ),
+    ):
+        assert _check_docs_workflow_status("develop") is None
+
+
+def test_main_warns_on_docs_failure_but_returns_zero(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    _make_profile(tmp_path, "library-release")
+    with (
+        patch(_MOD + ".git.repo_root", return_value=tmp_path),
+        patch(_MOD + ".git.current_branch", return_value="develop"),
+        patch(_MOD + ".git.run"),
+        patch(_MOD + ".git.merged_branches", return_value=[]),
+        patch(_MOD + ".shutil.which", side_effect=_which_validator_only),
+        patch(_MOD + ".subprocess.run", return_value=_validation_ok()),
+        patch(
+            _MOD + "._check_docs_workflow_status",
+            return_value="Documentation workflow run 999 on develop (deadbee) ended with conclusion 'failure'.",
+        ),
+    ):
+        result = main([])
+    # Soft warning: finalize itself succeeded, so exit 0.
+    assert result == 0
+    stderr = capsys.readouterr().err
+    assert "Documentation workflow" in stderr
+    assert "Docs publish is async" in stderr
+
+
+def test_main_skips_docs_check_on_dry_run(tmp_path: Path) -> None:
+    _make_profile(tmp_path, "library-release")
+    with (
+        patch(_MOD + ".git.repo_root", return_value=tmp_path),
+        patch(_MOD + ".git.current_branch", return_value="develop"),
+        patch(_MOD + ".git.run"),
+        patch(_MOD + ".git.merged_branches", return_value=[]),
+        patch(_MOD + ".shutil.which", side_effect=_which_validator_only),
+        patch(
+            _MOD + "._check_docs_workflow_status",
+            return_value="should not appear",
+        ) as mock_check,
+    ):
+        result = main(["--dry-run"])
+    assert result == 0
+    mock_check.assert_not_called()

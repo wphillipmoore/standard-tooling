@@ -7,7 +7,7 @@ through from branching to finalization.
 
 For per-tool detail, each `st-*` command has its own reference page.
 For the rationale behind the worktree convention,
-see [the worktree convention spec](../../../specs/worktree-convention.md).
+see [the worktree convention spec](https://github.com/wphillipmoore/standard-tooling/blob/develop/docs/specs/worktree-convention.md).
 
 ## At a glance
 
@@ -79,7 +79,7 @@ Claude-Code-tool level — some of which never reach a `git commit`
 close the loop.
 
 For the pre-commit-hook detail, see
-[Git Hooks and Validation](../../../git-hooks-and-validation.md).
+[Git Hooks and Validation](https://github.com/wphillipmoore/standard-tooling/blob/develop/docs/git-hooks-and-validation.md).
 For the plugin hook detail, see
 [standard-tooling-plugin/docs → Hooks](https://github.com/wphillipmoore/standard-tooling-plugin/blob/develop/docs/site/docs/hooks/index.md).
 
@@ -189,7 +189,7 @@ issue before the first is merged.
 
 For the full spec (rationale, trust model, failure modes, memory-path
 implications), see
-[the worktree convention](../../../specs/worktree-convention.md).
+[the worktree convention](https://github.com/wphillipmoore/standard-tooling/blob/develop/docs/specs/worktree-convention.md).
 This section is the user-level "how to."
 
 ### When a worktree is required
@@ -359,9 +359,9 @@ clean; then proceed.
 
 ## Related
 
-- [Git Hooks and Validation](../../../git-hooks-and-validation.md)
+- [Git Hooks and Validation](https://github.com/wphillipmoore/standard-tooling/blob/develop/docs/git-hooks-and-validation.md)
   — pre-commit hook + validator reference
-- [Worktree convention spec](../../../specs/worktree-convention.md)
+- [Worktree convention spec](https://github.com/wphillipmoore/standard-tooling/blob/develop/docs/specs/worktree-convention.md)
   — rationale, failure modes, trust model
 - [Releasing](releasing.md) — release workflow detail
 - [standard-tooling-plugin — Hooks](https://github.com/wphillipmoore/standard-tooling-plugin/blob/develop/docs/site/docs/hooks/index.md)
