@@ -305,9 +305,7 @@ def test_check_docs_workflow_returns_none_on_success() -> None:
         patch(_MOD + ".shutil.which", return_value="/usr/bin/gh"),
         patch(
             _MOD + ".subprocess.run",
-            return_value=CompletedProcess(
-                args=(), returncode=0, stdout=_gh_run_json("success")
-            ),
+            return_value=CompletedProcess(args=(), returncode=0, stdout=_gh_run_json("success")),
         ),
     ):
         assert _check_docs_workflow_status("develop") is None
@@ -319,9 +317,7 @@ def test_check_docs_workflow_returns_none_on_in_progress() -> None:
         patch(_MOD + ".shutil.which", return_value="/usr/bin/gh"),
         patch(
             _MOD + ".subprocess.run",
-            return_value=CompletedProcess(
-                args=(), returncode=0, stdout=_gh_run_json(None)
-            ),
+            return_value=CompletedProcess(args=(), returncode=0, stdout=_gh_run_json(None)),
         ),
     ):
         assert _check_docs_workflow_status("develop") is None
@@ -332,9 +328,7 @@ def test_check_docs_workflow_returns_message_on_failure() -> None:
         patch(_MOD + ".shutil.which", return_value="/usr/bin/gh"),
         patch(
             _MOD + ".subprocess.run",
-            return_value=CompletedProcess(
-                args=(), returncode=0, stdout=_gh_run_json("failure")
-            ),
+            return_value=CompletedProcess(args=(), returncode=0, stdout=_gh_run_json("failure")),
         ),
     ):
         msg = _check_docs_workflow_status("develop")
