@@ -92,7 +92,7 @@ def test_main_library_release(tmp_path: Path) -> None:
         result = main([])
     assert result == 0
     mock_run.assert_any_call("checkout", "develop")
-    mock_run.assert_any_call("branch", "-d", "feature/x")
+    mock_run.assert_any_call("branch", "-D", "feature/x")
 
 
 def test_main_already_on_target(tmp_path: Path) -> None:
