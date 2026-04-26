@@ -63,6 +63,33 @@ jobs:
 
             - [Documentation](https://wphillipmoore.github.io/standard-tooling/)
 
+      # Issue #301 (Phase 3 sender). After the release tag is published,
+      # fire a repository_dispatch at standard-tooling-docker so its
+      # publish workflow rebuilds the dev images against the freshly-
+      # tagged rolling-minor version. Receiver: docker-publish.yml in
+      # standard-tooling-docker (closed by #52 there).
+      - name: Generate cross-repo token for docker dispatch
+        if: steps.tag_check.outputs.exists == 'false'
+        id: dispatch-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          repositories: standard-tooling-docker
+
+      - name: Trigger standard-tooling-docker rebuild
+        if: steps.tag_check.outputs.exists == 'false'
+        env:
+          GH_TOKEN: ${{ steps.dispatch-token.outputs.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          gh api -X POST \
+            repos/wphillipmoore/standard-tooling-docker/dispatches \
+            -f event_type=standard-tooling-released \
+            -F "client_payload[version]=$VERSION" \
+            -F "client_payload[tag]=$TAG"
+
       - name: Generate app token for bump PR
         if: steps.tag_check.outputs.exists == 'false'
         id: app-token
