@@ -5,6 +5,56 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.3.0] - 2026-04-26
+
+### Bug fixes
+
+- scope markdownlint to docs/site and README.md only (#197) (#200)
+- accept st-docker-test entry point in validate-local preflight (#218)
+- use GHCR image URLs as default dev container references (#232)
+- update docker-test references to st-docker-test (#234)
+- mount host .gitconfig into container for git identity (#245)
+- mock Path.home in docker_test empty volumes test (#246)
+- remove individual validation commands from CLAUDE.md (#250)
+- refuse to run from a secondary worktree (#278)
+- set ST_COMMIT_CONTEXT=1 in git.run for commit calls (#295) (#296)
+
+### CI
+
+- use dev-docs container for docs CI (#210)
+- restore standards-compliance after wrapper fallback landed (#219)
+
+### Documentation
+
+- add consolidated git-workflow guide as canonical entry point (#271)
+- rewrite onboarding docs for Docker/plugin/worktree reality (#273)
+- add git-URL dev-dependency convention spec (#285)
+- reject git-URL dev-dep approach; add pushback report (#287)
+- add host-level-tool spec, plan, pushback, and alignment artifacts (#290)
+
+### Features
+
+- add Rust/Cargo ecosystem support to st-prepare-release (#176)
+- add claude-plugin ecosystem detector (#186)
+- run st-validate-local after finalization (#201)
+- add single-file mode and remove sphinx references (#203)
+- container-first validation infrastructure (#205)
+- add docker-docs wrapper for containerised docs preview (#209)
+- port all bash scripts to Python entry points (#216)
+- pass GH_TOKEN through to dev containers (#223)
+- add st-docker-run general-purpose container command wrapper (#239)
+- add dual-venv host bootstrap for st-docker-run (#240)
+- mount ~/.ssh in container for git SSH remote operations (#253)
+- run validation via st-docker-run in st-finalize-repo (#254)
+- adopt git worktree convention for parallel AI agent development (#264)
+- add st-merge-when-green and stop auto-merging PRs in st-submit-pr/st-prepare-release (#276)
+- refuse feature-branch commits from main worktree (#259) (#275)
+
+### Refactoring
+
+- normalize validation stack to one container per run (#282)
+- consolidate pre-commit checks into st-commit; add env-var gate (#292)
+
 ## [1.2.2] - 2026-03-01
 
 ### Bug fixes
