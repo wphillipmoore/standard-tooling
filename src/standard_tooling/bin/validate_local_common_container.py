@@ -11,10 +11,13 @@ from __future__ import annotations
 
 import subprocess
 import sys
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 from standard_tooling.bin import markdown_standards, repo_profile_cli
 from standard_tooling.lib import git
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 def _find_shell_files(repo_root: Path) -> list[str]:
