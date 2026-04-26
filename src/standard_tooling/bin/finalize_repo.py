@@ -156,8 +156,14 @@ def main(argv: list[str] | None = None) -> int:
     for branch in git.merged_branches(args.target_branch):
         if branch in eternal:
             continue
+        # `git branch -D` (force) rather than `-d` because `--merged`
+        # already vetted these branches as reachable from the target;
+        # `-d`'s redundant safety check rejects branches whose tips
+        # were rewritten by rebase + force-push during a CI fixup loop
+        # (the upstream-tracking ref is gone after `fetch --prune`).
+        # Trusting our own filter avoids the disagreement. Issue #307.
         print(f"  Deleting merged branch: {branch}")
-        _run(["branch", "-d", branch], dry_run=args.dry_run)
+        _run(["branch", "-D", branch], dry_run=args.dry_run)
         deleted.append(branch)
 
     print("Pruning stale remote-tracking references...")
