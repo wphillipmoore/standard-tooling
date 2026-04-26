@@ -15,7 +15,10 @@ proper issue linkage, testing sections, and auto-merge configuration.
 ## Prerequisites
 
 When running inside a dev container, `GH_TOKEN` must be set so `gh` can
-authenticate. See [GitHub authentication](../../getting-started.md#5-github-authentication).
+authenticate. The
+[Getting Started prerequisites](../../getting-started.md#prerequisites)
+cover `gh auth login` and how `GH_TOKEN` flows through to the
+container.
 
 ## Usage
 

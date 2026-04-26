@@ -489,9 +489,12 @@ def test_generate_release_notes_creates_file(
     monkeypatch.chdir(tmp_path)
     (tmp_path / RELEASE_NOTES_CONFIG).write_text("[changelog]\nbody = ''\n")
 
+    captured_cmds: list[tuple[str, ...]] = []
+
     def mock_subprocess_run(
         cmd: tuple[str, ...], **kwargs: object
     ) -> subprocess.CompletedProcess[str]:
+        captured_cmds.append(tuple(cmd))
         if "git-cliff" in cmd:
             output_idx = list(cmd).index("-o") + 1
             Path(cmd[output_idx]).write_text("# Release 1.0.0\n")
@@ -508,6 +511,13 @@ def test_generate_release_notes_creates_file(
 
     assert (tmp_path / RELEASE_NOTES_DIR / "v1.0.0.md").is_file()
     assert (tmp_path / RELEASE_NOTES_DIR / "v1.0.0.md").read_text() == "# Release 1.0.0\n"
+
+    # Pin the --unreleased flag (issue #298). At release-prep time the
+    # target boundary tag does not yet exist in git, so `--latest`
+    # would render the previous tag's section instead of the new one.
+    cliff_cmd = next(c for c in captured_cmds if "git-cliff" in c)
+    assert "--unreleased" in cliff_cmd
+    assert "--latest" not in cliff_cmd
 
 
 def test_main_full_flow_with_release_notes(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
