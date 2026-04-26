@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import contextlib
-import os
 from pathlib import Path
 from typing import TYPE_CHECKING
 from unittest.mock import patch
@@ -24,7 +23,6 @@ def _commit_environment(
     is_main_worktree: bool = False,
     branching_model: str | None = None,
     has_staged: bool = True,
-    captured_env: dict[str, str | None] | None = None,
 ) -> Iterator[None]:
     """Set up mocks for `commit.main()`.
 
@@ -32,14 +30,9 @@ def _commit_environment(
     profile (branching_model resolves from disk if profile is written),
     valid `feature/42-test` branch, staged changes present.
 
-    `captured_env` (if provided) is updated with the value of
-    `os.environ.get("ST_COMMIT_CONTEXT")` at the moment `git.run` is
-    invoked, so tests can pin Task 1.2's contract.
+    The ST_COMMIT_CONTEXT=1 contract is pinned in test_git.py — it's
+    `git.run`'s responsibility under issue #295.
     """
-
-    def _capture_run(*args: str) -> None:
-        if captured_env is not None and args[:2] == ("commit", "--file"):
-            captured_env["ST_COMMIT_CONTEXT"] = os.environ.get("ST_COMMIT_CONTEXT")
 
     if branching_model is not None:
         docs = tmp_path / "docs"
@@ -60,7 +53,7 @@ def _commit_environment(
             "standard_tooling.bin.commit.git.has_staged_changes",
             return_value=has_staged,
         ),
-        patch("standard_tooling.bin.commit.git.run", side_effect=_capture_run),
+        patch("standard_tooling.bin.commit.git.run"),
         patch(
             "standard_tooling.bin.commit.repo_profile.resolve_co_author",
             return_value=co_author,
@@ -367,20 +360,7 @@ def test_validate_admits_main_worktree_feature_commit_without_worktrees_dir(
 
 
 # --------------------------------------------------------------------------
-# Task 1.2 — st-commit sets ST_COMMIT_CONTEXT=1 before invoking git commit
-# --------------------------------------------------------------------------
-
-
-def test_st_commit_sets_st_commit_context_env_var(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    """The env-var gate (`.githooks/pre-commit`) reads ST_COMMIT_CONTEXT.
-    `st-commit` must set it to "1" before invoking `git commit`, otherwise
-    the gate rejects the commit. Contract is documented in
-    docs/specs/host-level-tool.md and is load-bearing for the fleet.
-    """
-    monkeypatch.delenv("ST_COMMIT_CONTEXT", raising=False)
-    captured: dict[str, str | None] = {}
-    with _commit_environment(tmp_path, branch="feature/42-test", captured_env=captured):
-        assert main(_DEFAULT_ARGS) == 0
-    assert captured.get("ST_COMMIT_CONTEXT") == "1"
+# Task 1.2 — `git.run` is responsible for setting ST_COMMIT_CONTEXT=1
+# (issue #295 moved the contract from commit.py to lib/git.py). The
+# pinning test for that contract lives in tests/standard_tooling/test_git.py;
+# commit.py just calls `git.run("commit", ...)` and trusts the helper.
