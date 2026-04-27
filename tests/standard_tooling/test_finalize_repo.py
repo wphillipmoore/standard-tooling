@@ -11,6 +11,7 @@ import pytest
 
 from standard_tooling.bin.finalize_repo import (
     _check_docs_workflow_status,
+    _worktree_for_branch,
     main,
     parse_args,
 )
@@ -86,6 +87,7 @@ def test_main_library_release(tmp_path: Path) -> None:
             "standard_tooling.bin.finalize_repo.git.merged_branches",
             return_value=["feature/x", "develop"],
         ),
+        patch(_MOD + ".git.read_output", return_value=""),
         patch(_MOD + ".shutil.which", side_effect=_which_validator_only),
         patch(_MOD + ".subprocess.run", return_value=_validation_ok()),
     ):
@@ -157,6 +159,7 @@ def test_main_application_promotion(tmp_path: Path) -> None:
             "standard_tooling.bin.finalize_repo.git.merged_branches",
             return_value=["develop", "release", "main", "feature/y"],
         ),
+        patch(_MOD + ".git.read_output", return_value=""),
         patch(_MOD + ".shutil.which", side_effect=_which_validator_only),
         patch(_MOD + ".subprocess.run", return_value=_validation_ok()),
     ):
@@ -406,3 +409,135 @@ def test_main_skips_docs_check_on_dry_run(tmp_path: Path) -> None:
         result = main(["--dry-run"])
     assert result == 0
     mock_check.assert_not_called()
+
+
+# -- _worktree_for_branch (issue #315) ---------------------------------------
+
+
+def _porcelain(*records: tuple[str, str | None]) -> str:
+    """Build a `git worktree list --porcelain` output from (path, branch)
+    tuples. branch=None means a detached worktree.
+    """
+    lines: list[str] = []
+    for path, branch in records:
+        lines.append(f"worktree {path}")
+        lines.append("HEAD 0123456789abcdef0123456789abcdef01234567")
+        if branch is None:
+            lines.append("detached")
+        else:
+            lines.append(f"branch refs/heads/{branch}")
+        lines.append("")
+    return "\n".join(lines)
+
+
+def test_worktree_for_branch_finds_canonical(tmp_path: Path) -> None:
+    """A branch checked out under `.worktrees/<name>/` is auto-removable."""
+    wt_dir = tmp_path / ".worktrees" / "issue-1-x"
+    wt_dir.mkdir(parents=True)
+    porcelain = _porcelain(
+        (str(tmp_path), "develop"),
+        (str(wt_dir), "feature/1-x"),
+    )
+    with patch(_MOD + ".git.read_output", return_value=porcelain):
+        result = _worktree_for_branch("feature/1-x", tmp_path)
+    assert result == wt_dir.resolve()
+
+
+def test_worktree_for_branch_returns_none_when_branch_absent(tmp_path: Path) -> None:
+    porcelain = _porcelain((str(tmp_path), "develop"))
+    with patch(_MOD + ".git.read_output", return_value=porcelain):
+        assert _worktree_for_branch("feature/missing", tmp_path) is None
+
+
+def test_worktree_for_branch_skips_non_canonical_location(tmp_path: Path) -> None:
+    """A branch checked out OUTSIDE `.worktrees/` is deliberately ignored —
+    user-managed worktrees are never silently removed.
+    """
+    rogue = tmp_path / "elsewhere" / "feature-branch"
+    rogue.mkdir(parents=True)
+    porcelain = _porcelain(
+        (str(tmp_path), "develop"),
+        (str(rogue), "feature/1-x"),
+    )
+    with patch(_MOD + ".git.read_output", return_value=porcelain):
+        assert _worktree_for_branch("feature/1-x", tmp_path) is None
+
+
+def test_worktree_for_branch_ignores_detached_worktrees(tmp_path: Path) -> None:
+    wt_dir = tmp_path / ".worktrees" / "issue-1-x"
+    wt_dir.mkdir(parents=True)
+    porcelain = _porcelain(
+        (str(tmp_path), "develop"),
+        (str(wt_dir), None),
+    )
+    with patch(_MOD + ".git.read_output", return_value=porcelain):
+        assert _worktree_for_branch("feature/1-x", tmp_path) is None
+
+
+def test_main_removes_worktree_before_deleting_branch(tmp_path: Path) -> None:
+    """Issue #315: when a merged branch is checked out in a `.worktrees/`
+    worktree, finalize must `git worktree remove` it before
+    `git branch -D` — otherwise -D refuses to delete a checked-out
+    branch and the whole finalize crashes.
+    """
+    _make_profile(tmp_path, "library-release")
+    wt_dir = tmp_path / ".worktrees" / "issue-99-x"
+    wt_dir.mkdir(parents=True)
+    porcelain = _porcelain(
+        (str(tmp_path), "develop"),
+        (str(wt_dir), "feature/99-x"),
+    )
+
+    git_run_calls: list[tuple[str, ...]] = []
+
+    def mock_git_run(*args: str) -> None:
+        git_run_calls.append(args)
+
+    with (
+        patch(_MOD + ".git.repo_root", return_value=tmp_path),
+        patch(_MOD + ".git.current_branch", return_value="develop"),
+        patch(_MOD + ".git.run", side_effect=mock_git_run),
+        patch(_MOD + ".git.merged_branches", return_value=["feature/99-x"]),
+        patch(_MOD + ".git.read_output", return_value=porcelain),
+        patch(_MOD + ".shutil.which", side_effect=_which_validator_only),
+        patch(_MOD + ".subprocess.run", return_value=_validation_ok()),
+    ):
+        result = main([])
+
+    assert result == 0
+    # `worktree remove` must come before `branch -D`.
+    remove_call = ("worktree", "remove", str(wt_dir.resolve()))
+    delete_call = ("branch", "-D", "feature/99-x")
+    assert remove_call in git_run_calls
+    assert delete_call in git_run_calls
+    assert git_run_calls.index(remove_call) < git_run_calls.index(delete_call)
+
+
+def test_main_skips_worktree_remove_when_branch_not_in_worktree(tmp_path: Path) -> None:
+    """If `_worktree_for_branch` returns None, no worktree-remove call
+    fires — only `branch -D`. Pins the existing path for branches that
+    aren't checked out anywhere.
+    """
+    _make_profile(tmp_path, "library-release")
+    porcelain = _porcelain((str(tmp_path), "develop"))
+
+    git_run_calls: list[tuple[str, ...]] = []
+
+    def mock_git_run(*args: str) -> None:
+        git_run_calls.append(args)
+
+    with (
+        patch(_MOD + ".git.repo_root", return_value=tmp_path),
+        patch(_MOD + ".git.current_branch", return_value="develop"),
+        patch(_MOD + ".git.run", side_effect=mock_git_run),
+        patch(_MOD + ".git.merged_branches", return_value=["feature/99-x"]),
+        patch(_MOD + ".git.read_output", return_value=porcelain),
+        patch(_MOD + ".shutil.which", side_effect=_which_validator_only),
+        patch(_MOD + ".subprocess.run", return_value=_validation_ok()),
+    ):
+        result = main([])
+
+    assert result == 0
+    assert ("branch", "-D", "feature/99-x") in git_run_calls
+    # No `worktree remove` call.
+    assert not any(c[:1] == ("worktree",) for c in git_run_calls)
