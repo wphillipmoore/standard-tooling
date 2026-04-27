@@ -1,15 +1,14 @@
-# Three-Tier CI Architecture
+# CI Architecture
 
-This guide explains the three-tier continuous integration model used
-across all `mq-rest-admin-*` repositories, and how to implement it in
-new projects.
+This guide explains the continuous integration model used across all
+`mq-rest-admin-*` repositories and the standard-tooling ecosystem, and
+how to implement it in new projects.
 
 ## Table of Contents
 
 - [Overview](#overview)
 - [Tier 1: Local pre-commit](#tier-1-local-pre-commit)
-- [Tier 2: Push CI](#tier-2-push-ci)
-- [Tier 3: PR CI](#tier-3-pr-ci)
+- [Tier 2: PR CI](#tier-2-pr-ci)
 - [Architecture](#architecture)
 - [Implementation guide](#implementation-guide)
 - [CI gates](#ci-gates)
@@ -17,22 +16,32 @@ new projects.
 
 ## Overview
 
-Testing is split into three tiers with increasing scope, cost, and
-feedback latency:
+Testing is split into two tiers with increasing scope, cost, and feedback
+latency:
 
 | Tier | Trigger | Time | Security |
 | ---- | ------- | ---- | -------- |
 | 1 | Manual (before commit) | Seconds | No |
-| 2 | Push to feature branch | ~3-5 min | No |
-| 3 | Pull request | ~8-10 min | Yes |
+| 2 | Pull request | ~8-10 min | Yes |
 
-- **Tier 1**: Single version, unit tests only
-- **Tier 2**: Single version, unit + integration tests
-- **Tier 3**: Full version matrix, all checks
+- **Tier 1**: Single version, full local validation, dockerized
+- **Tier 2**: Full version matrix, all checks, security uploads
 
-The goal is fast local feedback for the developer, rapid push-to-CI
-validation before PR submission, and comprehensive gated checks on the
-PR itself.
+The goal is fast local feedback for the developer and comprehensive gated
+checks on the PR itself. The pre-commit gate in `.githooks` enforces that
+Tier 1 runs before any commit lands, so by the time a PR opens, it should
+already be green.
+
+!!! note "Historical: three-tier CI"
+    Earlier versions of this guide documented a third tier — push-CI — as
+    a thin `workflow_call` wrapper that ran a subset of checks on every
+    push to a feature branch. That tier was removed once `st-validate-local`
+    reached parity with PR-CI; the push-CI workflow added no coverage that
+    PR-CI didn't already provide and created a concurrency-group deadlock
+    with `ci.yml`. Integration-test coverage at push-time was deliberately
+    dropped and is tracked separately as future work on local integration
+    testing. See wphillipmoore/standard-actions#176 for the parity audit
+    and removal rationale.
 
 ## Tier 1: Local pre-commit
 
@@ -61,56 +70,11 @@ Environment overrides:
     Build the dev images locally before first use:
     `cd ../standard-tooling && docker/build.sh`
 
-## Tier 2: Push CI
+The `.githooks` pre-commit gate runs `st-validate-local` on every commit,
+which dispatches to the per-language scripts above. Hook bypass
+(`--no-verify`) is disallowed by policy.
 
-Triggers automatically on push to `feature/**`, `bugfix/**`,
-`hotfix/**`, or `chore/**` branches.
-
-**What runs:**
-
-- Unit tests (single latest version)
-- Integration tests (single latest version)
-- Dependency audit
-
-**What is skipped:**
-
-- Security scanners (CodeQL, Trivy, Semgrep)
-- Standards compliance
-- Release gates
-- Full version matrix
-
-The workflow file is `.github/workflows/ci-push.yml`, a thin wrapper
-that calls `ci.yml` with restricted inputs:
-
-```yaml
-name: CI (push)
-
-on:
-  push:
-    branches:
-      - "feature/**"
-      - "bugfix/**"
-      - "hotfix/**"
-      - "chore/**"
-
-permissions:
-  contents: read
-  security-events: write
-
-jobs:
-  ci:
-    uses: ./.github/workflows/ci.yml
-    permissions:
-      contents: read
-      security-events: write
-    with:
-      versions: '["<latest>"]'
-      integration-matrix: '[{...single entry...}]'
-      run-security: "false"
-      run-release-gates: "false"
-```
-
-## Tier 3: PR CI
+## Tier 2: PR CI
 
 Triggers on `pull_request` events. Runs the full validation suite.
 
@@ -123,8 +87,9 @@ Triggers on `pull_request` events. Runs the full validation suite.
 - Dependency audit
 - Release gates (version divergence, format validation)
 
-The workflow file is `.github/workflows/ci.yml`, which doubles as both
-the direct PR trigger and a reusable workflow via `workflow_call`.
+The workflow file is `.github/workflows/ci.yml`, which runs directly on
+`pull_request` and is also exposed as a reusable workflow via
+`workflow_call` for any specialized callers (release pipelines, etc.).
 
 ## Architecture
 
@@ -145,8 +110,9 @@ the direct PR trigger and a reusable workflow via `workflow_call`.
 - `run-release-gates` — enable release gate checks
 
 When triggered directly by `pull_request`, all inputs are empty and
-defaults produce the full Tier 3 behavior. When called from
-`ci-push.yml`, inputs restrict scope to Tier 2.
+defaults produce the full Tier 2 behavior. The inputs remain in place so
+specialized callers (e.g., release pipelines) can constrain scope when
+needed.
 
 !!! warning "String inputs, not booleans"
     Use `type: string` for gate inputs, not `type: boolean`. Boolean
@@ -202,28 +168,24 @@ This avoids needing a separate job to compute the matrix.
 
 ## Implementation guide
 
-### Step 1: Convert ci.yml to reusable workflow
+### Step 1: Define ci.yml
 
-Add `workflow_call` alongside `pull_request` in the `on:` block. Define
-inputs with string types and sensible defaults.
+Trigger on `pull_request` and (optionally) expose `workflow_call`
+alongside it for specialized callers. Define inputs with string types
+and sensible defaults.
 
-### Step 2: Create ci-push.yml
-
-Create a thin wrapper that calls `ci.yml` with single-version inputs
-and security/release gates disabled.
-
-### Step 3: Factor security into shared workflow
+### Step 2: Factor security into shared workflow
 
 Replace inline CodeQL, Trivy, Semgrep, and standards-compliance jobs
 with a single call to `ci-security.yml`.
 
-### Step 4: Add dev scripts
+### Step 3: Add dev scripts
 
 Create `scripts/dev/test.sh`, `scripts/dev/lint.sh`, and
 `scripts/dev/audit.sh` following the Docker-first pattern. See
 [Dev container images](#dev-container-images) for image details.
 
-### Step 5: Update CI gates
+### Step 4: Update CI gates
 
 Update the repository ruleset to match new check names. Key changes:
 
@@ -238,9 +200,9 @@ Use the GitHub API to update rulesets:
 gh api repos/OWNER/REPO/rulesets/RULESET_ID -X PUT --input gates.json
 ```
 
-### Step 6: Update CLAUDE.md
+### Step 5: Update CLAUDE.md
 
-Add three-tier CI model and Docker-first testing sections to the
+Add the two-tier CI model and Docker-first testing sections to the
 repository's `CLAUDE.md`.
 
 ## CI gates
