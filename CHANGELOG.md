@@ -5,7 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.3.3] - 2026-04-27
+
+### Bug fixes
+
+- auto-remove worktree before deleting merged branch (#315)
+
 ## [1.3.2] - 2026-04-26
+
+### Bug fixes
+
+- regenerate v1.3.1 notes with --unreleased
+
+## [1.3.1] - 2026-04-26
 
 ### Bug fixes
 
@@ -17,7 +29,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - add S607 noqa for gh CLI invocation
 - use shutil.which to get gh absolute path (S607)
 - use 'git branch -D' for already-vetted merged branches (#307)
-- regenerate v1.3.1 notes with --unreleased
 
 ### Documentation
 
