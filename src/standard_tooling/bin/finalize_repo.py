@@ -15,6 +15,7 @@ import json
 import shutil
 import subprocess
 import sys
+from pathlib import Path
 
 from standard_tooling.lib import git, repo_profile
 
@@ -42,6 +43,37 @@ def _run(args: list[str], *, dry_run: bool) -> None:
         print(f"  [dry-run] git {' '.join(args)}")
     else:
         git.run(*args)
+
+
+def _worktree_for_branch(branch: str, repo_root: Path) -> Path | None:
+    """Return the worktree path that has *branch* checked out, or None.
+
+    Constrains the search to worktrees inside ``repo_root/.worktrees/``
+    — the canonical location per the worktree convention. Worktrees
+    elsewhere (developer-managed, outside the convention) are
+    deliberately ignored: auto-removing them would surprise the user
+    in cases the convention doesn't account for. Issue #315.
+    """
+    output = git.read_output("worktree", "list", "--porcelain")
+    canonical_root = (repo_root / ".worktrees").resolve()
+
+    current_path: Path | None = None
+    target_ref = f"refs/heads/{branch}"
+    for line in output.splitlines():
+        if line.startswith("worktree "):
+            current_path = Path(line.removeprefix("worktree ").strip())
+        elif line.startswith("branch ") and current_path is not None:
+            ref = line.removeprefix("branch ").strip()
+            if ref == target_ref:
+                resolved = current_path.resolve()
+                # Only auto-remove worktrees inside the canonical
+                # `.worktrees/` directory.
+                try:
+                    resolved.relative_to(canonical_root)
+                except ValueError:
+                    return None
+                return resolved
+    return None
 
 
 def _check_docs_workflow_status(target_branch: str) -> str | None:
@@ -156,6 +188,17 @@ def main(argv: list[str] | None = None) -> int:
     for branch in git.merged_branches(args.target_branch):
         if branch in eternal:
             continue
+        # If the branch is still checked out in a `.worktrees/` worktree
+        # (typical: the worktree we did the PR's work in), `git branch -D`
+        # refuses to delete it — there's no force past "branch is
+        # checked out somewhere." Auto-remove the worktree first.
+        # Constrained to the canonical `.worktrees/` location so user-
+        # created worktrees elsewhere are never silently removed.
+        # Issue #315.
+        wt = _worktree_for_branch(branch, root)
+        if wt is not None:
+            print(f"  Removing worktree: {wt}")
+            _run(["worktree", "remove", str(wt)], dry_run=args.dry_run)
         # `git branch -D` (force) rather than `-d` because `--merged`
         # already vetted these branches as reachable from the target;
         # `-d`'s redundant safety check rejects branches whose tips
