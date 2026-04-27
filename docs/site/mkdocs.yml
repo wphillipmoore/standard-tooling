@@ -77,6 +77,6 @@ nav:
   - Guides:
       - Git Workflow: guides/git-workflow.md
       - Consuming Repo Setup: guides/consuming-repo-setup.md
-      - Three-Tier CI: guides/three-tier-ci.md
+      - CI Architecture: guides/ci-architecture.md
       - Validation Matrix: guides/validation-matrix.md
       - Releasing: guides/releasing.md
