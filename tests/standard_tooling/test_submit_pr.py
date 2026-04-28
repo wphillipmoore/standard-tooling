@@ -40,7 +40,7 @@ def test_parse_args_required() -> None:
     args = parse_args(["--issue", "42", "--summary", "Fix bug"])
     assert args.issue == "42"
     assert args.summary == "Fix bug"
-    assert args.linkage == "Fixes"
+    assert args.linkage == "Ref"
     assert args.dry_run is False
 
 
