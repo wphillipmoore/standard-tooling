@@ -48,7 +48,7 @@ Hard gates (required status checks on `develop`):
 
 Local hard gates (pre-commit hooks):
 
-- Branch naming enforcement (`scripts/lib/git-hooks/pre-commit`):
+- Branch naming enforcement (`.githooks/pre-commit` gate + `st-commit`):
   branching-model-aware prefix validation.
 
 ## Commit and PR scripts

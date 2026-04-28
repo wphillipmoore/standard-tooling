@@ -41,26 +41,33 @@ entry points that share a common set of validators:
   [Validation Matrix](#validation-matrix) below.
 
 All hooks and validators are managed by standard-tooling.
-Consuming repositories resolve them via PATH from a sibling
-checkout (local) or CI checkout (GitHub Actions).
+Consuming repositories resolve host-side `st-*` tools via
+`uv tool install` and in-container validators via the dev
+container image's pre-bake or a Python dev-dep declaration.
 
 ## Git Hooks
 
 ### Enabling Hooks
 
-Point Git at the managed hooks directory:
+Point Git at the repo's hooks directory:
 
 ```bash
-git config core.hooksPath scripts/lib/git-hooks
+git config core.hooksPath .githooks
 ```
 
 This must be run once per clone. It is not persisted across
-fresh clones.
+fresh clones. Every managed repo checks in a `.githooks/pre-commit`
+env-var gate that admits `st-commit`-driven commits and rejects
+raw `git commit`.
 
 ### pre-commit
 
-The pre-commit hook runs five checks in order. Any failure
-blocks the commit.
+The pre-commit hook is an env-var gate: it admits commits
+driven by `st-commit` (which sets `ST_COMMIT_CONTEXT=1`) and
+derived workflows (`amend`, `cherry-pick`, `revert`, `rebase`,
+`merge`), and rejects everything else. The five commit-context
+checks below live in `st-commit` itself and run before `git
+commit` is invoked.
 
 **1. Detached HEAD check** — Commits on a detached HEAD are
 blocked unconditionally. Create a named branch first.
@@ -69,7 +76,7 @@ blocked unconditionally. Create a named branch first.
 `release`, and `main` are forbidden. These branches accept
 changes only through pull requests.
 
-**3. Branching model lookup** — The hook reads
+**3. Branching model lookup** — `st-commit` reads
 `branching_model` from `docs/repository-standards.md` to
 determine which branch prefixes are allowed.
 

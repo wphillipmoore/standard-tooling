@@ -68,7 +68,7 @@ Environment overrides:
 
 !!! tip
     Build the dev images locally before first use:
-    `cd ../standard-tooling && docker/build.sh`
+    `cd ../standard-tooling-docker && docker/build.sh`
 
 The `.githooks` pre-commit gate runs `st-validate-local` on every commit,
 which dispatches to the per-language scripts above. Hook bypass

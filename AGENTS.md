@@ -1,7 +1,5 @@
 # Standard Tooling - Agent Instructions
 
-<!-- include: ./docs/repository-standards.md -->
-
 ## User Overrides (Optional)
 
 Always apply this repository's `AGENTS.md` as the baseline. If
@@ -28,8 +26,9 @@ MUST:
 ## Working Rules
 
 - This repository is a Python package providing shared tooling scripts.
-  Consumers resolve tools via PATH (from a sibling checkout locally,
-  or a CI checkout in workflows).
+  Consumers resolve host-side `st-*` tools via `uv tool install` and
+  in-container tools via the dev container image's pre-bake (non-Python
+  repos) or a `[tool.uv.sources]` dev dep (Python repos).
 - Test scripts with shellcheck before committing.
 - Keep scripts portable across macOS and Linux.
 - Do not add repo-specific logic; scripts must work in any consuming repo.

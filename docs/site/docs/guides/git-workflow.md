@@ -69,7 +69,7 @@ mechanisms. Both exist; they complement each other.
 
 | Layer | Where it runs | Catches |
 |---|---|---|
-| **Pre-commit git hook** | `scripts/lib/git-hooks/pre-commit` in standard-tooling; consumed via `git config core.hooksPath`. Fires on every `git commit`, regardless of how it was invoked. | Detached HEAD • direct commits to protected branches • wrong branch prefix • missing issue number in branch name |
+| **Pre-commit git hook** | `.githooks/pre-commit` checked into each repo; enabled via `git config core.hooksPath .githooks`. The hook is an env-var gate that admits `st-commit`-driven commits and rejects raw `git commit`. The five branch/context checks live in `st-commit` itself. | Detached HEAD • direct commits to protected branches • wrong branch prefix • missing issue number in branch name |
 | **Plugin PreToolUse hooks** | Delivered by the [`standard-tooling-plugin`](https://github.com/wphillipmoore/standard-tooling-plugin). Fires on Claude Code's `Bash`/`Write`/`Edit` tool invocations. | Raw `git commit` (forces `st-commit`) • Raw `gh pr create` (forces `st-submit-pr`) • commits originating from outside `.worktrees/*` on repos that have adopted the worktree convention • heredoc syntax in CLI args • associative-array bashisms |
 
 **Why both?** The pre-commit hook catches anyone (human or agent)
@@ -302,8 +302,8 @@ At a minimum, a new repo needs:
 
 1. `docs/repository-standards.md` with the six required attributes
    (see the existing setup guide).
-2. `git config core.hooksPath ../standard-tooling/scripts/lib/git-hooks`
-   (or equivalent path) so the pre-commit hook fires.
+2. A `.githooks/pre-commit` env-var gate checked into the repo, plus
+   `git config core.hooksPath .githooks` (once per clone).
 3. `.claude/settings.json` enabling the `standard-tooling` plugin
    so the plugin hooks fire in Claude Code sessions.
 4. `.worktrees/` in `.gitignore` and a Parallel-AI-agent-development
@@ -353,9 +353,8 @@ The plugin's `validate-on-edit` hook expects those validators on
 PATH. Some are only installed inside the dev container image, not on
 the host. Hook-level PATH discovery is tracked in
 [standard-tooling#265](https://github.com/wphillipmoore/standard-tooling/issues/265).
-Workaround: run the validator explicitly with an absolute path
-(`.venv-host/bin/st-markdown-standards …`) to confirm the file is
-clean; then proceed.
+Workaround: run the validator explicitly via `st-docker-run` to
+confirm the file is clean; then proceed.
 
 ## Related
 
