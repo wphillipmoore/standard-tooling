@@ -1657,26 +1657,30 @@ commits, PRs, releases, and validation alongside bash validators and git hooks
 <p><strong>Lint tools</strong> (installed as <code>st-*</code>):
 <code>st-repo-profile</code>, <code>st-markdown-standards</code>,
 <code>st-pr-issue-linkage</code>, validation drivers</p>
-<p><strong>Git hooks</strong> (<code>scripts/lib/git-hooks/</code>):
-Branch naming enforcement, commit message validation</p>
+<p><strong>Git hooks</strong> (<code>.githooks/</code>):
+Env-var gate that admits <code>st-commit</code> and blocks raw <code>git commit</code></p>
 <h2 id="design-principles">Design Principles<a class="headerlink" href="#design-principles" title="Permanent link">&para;</a></h2>
 <ul>
 <li><strong>Portability</strong> -- scripts run on both macOS and Linux</li>
 <li><strong>shellcheck clean</strong> -- all shell scripts pass shellcheck</li>
 <li><strong>No repo-specific logic</strong> -- every script works in any consuming
   repository</li>
-<li><strong>PATH-based consumption</strong> -- consuming repos add standard-tooling to
-  PATH rather than copying files</li>
+<li><strong>Host-level install</strong> -- <code>uv tool install</code> puts <code>st-*</code> on PATH;
+  no sibling checkout required</li>
 </ul>
 <h2 id="how-it-works">How It Works<a class="headerlink" href="#how-it-works" title="Permanent link">&para;</a></h2>
 <ol>
-<li>Standard-tooling is cloned as a sibling directory (local development)
-   or checked out in CI (GitHub Actions).</li>
-<li>The Python package is installed via <code>uv sync</code>, making <code>st-*</code> CLI
-   tools available in <code>.venv/bin/</code>.</li>
-<li><code>.venv/bin/</code> is added to PATH.</li>
-<li>Git hooks are configured to point at <code>scripts/lib/git-hooks/</code>.</li>
-<li>Consuming repos call tools by bare name -- no file copying or syncing.</li>
+<li><code>standard-tooling</code> is installed on the developer's host via
+   <code>uv tool install</code>, placing <code>st-*</code> scripts in <code>~/.local/bin/</code>.</li>
+<li><code>st-docker-run</code> bridges host commands into dev container images
+   where language runtimes and validators live.</li>
+<li>Python consumers also declare <code>standard-tooling</code> as a dev dep
+   via <code>[tool.uv.sources]</code> so <code>uv run st-*</code> inside the container
+   resolves the pinned version.</li>
+<li>Each repo checks in a <code>.githooks/pre-commit</code> env-var gate,
+   enabled via <code>git config core.hooksPath .githooks</code>.</li>
+<li>Consuming repos call tools by bare name -- no file copying or
+   syncing.</li>
 </ol>
 <h2 id="quick-links">Quick Links<a class="headerlink" href="#quick-links" title="Permanent link">&para;</a></h2>
 <ul>
