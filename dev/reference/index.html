@@ -14,7 +14,7 @@
         <link rel="prev" href="../getting-started/">
       
       
-        <link rel="next" href="hooks/pre-commit/">
+        <link rel="next" href="cli-tools-overview/">
       
       
       <link rel="icon" href="../assets/images/favicon.png">
@@ -880,6 +880,8 @@
       
         
       
+        
+      
     
     
     
@@ -934,6 +936,29 @@
   
   
   
+    <li class="md-nav__item">
+      <a href="cli-tools-overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    CLI Tools Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
     
     
       
@@ -955,10 +980,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_2" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_3" >
         
           
-          <label class="md-nav__link" for="__nav_4_2" id="__nav_4_2_label" tabindex="">
+          <label class="md-nav__link" for="__nav_4_3" id="__nav_4_3_label" tabindex="">
             
   
   
@@ -971,8 +996,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_2_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_4_2">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_3">
             <span class="md-nav__icon md-icon"></span>
             Git Hooks
           </label>
@@ -1040,15 +1065,15 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_3" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_4" >
         
           
-          <label class="md-nav__link" for="__nav_4_3" id="__nav_4_3_label" tabindex="">
+          <label class="md-nav__link" for="__nav_4_4" id="__nav_4_4_label" tabindex="">
             
   
   
   <span class="md-ellipsis">
-    Bash Validators
+    Validators
     
   </span>
   
@@ -1056,10 +1081,10 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_3_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_4_3">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_4">
             <span class="md-nav__icon md-icon"></span>
-            Bash Validators
+            Validators
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -1175,10 +1200,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_4" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_5" >
         
           
-          <label class="md-nav__link" for="__nav_4_4" id="__nav_4_4_label" tabindex="">
+          <label class="md-nav__link" for="__nav_4_5" id="__nav_4_5_label" tabindex="">
             
   
   
@@ -1191,8 +1216,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_4_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_4_4">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_5">
             <span class="md-nav__icon md-icon"></span>
             CLI Tools
           </label>
@@ -1532,9 +1557,27 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#python-cli-tools" class="md-nav__link">
+  <a href="#host-tools" class="md-nav__link">
     <span class="md-ellipsis">
-      Python CLI Tools
+      Host tools
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#container-tools" class="md-nav__link">
+    <span class="md-ellipsis">
+      Container tools
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ci-only-tools" class="md-nav__link">
+    <span class="md-ellipsis">
+      CI-only tools
     </span>
   </a>
   
@@ -1544,15 +1587,6 @@
   <a href="#git-hooks" class="md-nav__link">
     <span class="md-ellipsis">
       Git Hooks
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#validation-drivers" class="md-nav__link">
-    <span class="md-ellipsis">
-      Validation Drivers
     </span>
   </a>
   
@@ -1576,8 +1610,12 @@
 
 <h1 id="script-reference">Script Reference<a class="headerlink" href="#script-reference" title="Permanent link">&para;</a></h1>
 <p>Standard-tooling provides Python CLI tools installed as <code>st-*</code> console
-scripts, plus git hooks -- all consumed via PATH.</p>
-<h2 id="python-cli-tools">Python CLI Tools<a class="headerlink" href="#python-cli-tools" title="Permanent link">&para;</a></h2>
+scripts, plus git hooks. For the full audit of every tool's runtime
+preconditions, host-vs-container classification, and failure modes,
+see the <a href="cli-tools-overview/">CLI Tools Overview</a>.</p>
+<h2 id="host-tools">Host tools<a class="headerlink" href="#host-tools" title="Permanent link">&para;</a></h2>
+<p>Run on the developer's machine. Installed via <code>uv tool install</code> or
+the dev-tree override venv.</p>
 <table>
 <thead>
 <tr>
@@ -1595,6 +1633,10 @@ scripts, plus git hooks -- all consumed via PATH.</p>
 <td>Standards-compliant PR submission wrapper</td>
 </tr>
 <tr>
+<td><a href="cli-tools-overview/#st-merge-when-green">st-merge-when-green</a></td>
+<td>Poll PR checks, then merge</td>
+</tr>
+<tr>
 <td><a href="dev/prepare-release/">st-prepare-release</a></td>
 <td>Automated release preparation</td>
 </tr>
@@ -1603,8 +1645,60 @@ scripts, plus git hooks -- all consumed via PATH.</p>
 <td>Post-merge repository cleanup</td>
 </tr>
 <tr>
+<td><a href="cli-tools-overview/#st-ensure-label">st-ensure-label</a></td>
+<td>Ensure GitHub labels exist</td>
+</tr>
+<tr>
+<td><a href="cli-tools-overview/#st-docker-run">st-docker-run</a></td>
+<td>Run commands inside a dev container</td>
+</tr>
+<tr>
+<td><a href="cli-tools-overview/#st-docker-test">st-docker-test</a></td>
+<td>Run test suite inside a dev container</td>
+</tr>
+<tr>
+<td><a href="cli-tools-overview/#st-docker-docs">st-docker-docs</a></td>
+<td>Preview/build MkDocs in a dev container</td>
+</tr>
+<tr>
+<td><a href="cli-tools-overview/#st-generate-commands">st-generate-commands</a></td>
+<td>Generate MQSC command methods</td>
+</tr>
+</tbody>
+</table>
+<h2 id="container-tools">Container tools<a class="headerlink" href="#container-tools" title="Permanent link">&para;</a></h2>
+<p>Run inside dev containers launched by <code>st-docker-run</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
 <td><a href="dev/validate-local/">st-validate-local</a></td>
 <td>Local validation driver</td>
+</tr>
+<tr>
+<td><code>st-validate-local-common</code></td>
+<td>Shared checks (repo profile, markdown, shellcheck, yamllint)</td>
+</tr>
+<tr>
+<td><code>st-validate-local-python</code></td>
+<td>Python-specific validation (lint, typecheck, test, audit)</td>
+</tr>
+<tr>
+<td><code>st-validate-local-rust</code></td>
+<td>Rust-specific validation</td>
+</tr>
+<tr>
+<td><code>st-validate-local-go</code></td>
+<td>Go-specific validation</td>
+</tr>
+<tr>
+<td><code>st-validate-local-java</code></td>
+<td>Java-specific validation</td>
 </tr>
 <tr>
 <td><a href="lint/repo-profile/">st-repo-profile</a></td>
@@ -1614,6 +1708,17 @@ scripts, plus git hooks -- all consumed via PATH.</p>
 <td><a href="lint/markdown-standards/">st-markdown-standards</a></td>
 <td>Markdown linting and structural checks</td>
 </tr>
+</tbody>
+</table>
+<h2 id="ci-only-tools">CI-only tools<a class="headerlink" href="#ci-only-tools" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
 <tr>
 <td><a href="lint/pr-issue-linkage/">st-pr-issue-linkage</a></td>
 <td>PR body issue linkage validation</td>
@@ -1631,40 +1736,10 @@ scripts, plus git hooks -- all consumed via PATH.</p>
 <tbody>
 <tr>
 <td><a href="hooks/pre-commit/">pre-commit</a></td>
-<td>Branch naming enforcement</td>
+<td>Env-var gate (admits <code>st-commit</code>, rejects raw <code>git commit</code>)</td>
 </tr>
 </tbody>
 </table>
-<h2 id="validation-drivers">Validation Drivers<a class="headerlink" href="#validation-drivers" title="Permanent link">&para;</a></h2>
-<p>The following <code>st-*</code> tools orchestrate language-specific local validation:</p>
-<table>
-<thead>
-<tr>
-<th>Tool</th>
-<th>Purpose</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>st-validate-local-common</code></td>
-<td>Shared checks (shellcheck, markdownlint)</td>
-</tr>
-<tr>
-<td><code>st-validate-local-python</code></td>
-<td>Python-specific validation</td>
-</tr>
-<tr>
-<td><code>st-validate-local-go</code></td>
-<td>Go-specific validation</td>
-</tr>
-<tr>
-<td><code>st-validate-local-java</code></td>
-<td>Java-specific validation</td>
-</tr>
-</tbody>
-</table>
-<p>These are called by <code>st-validate-local</code> based on the <code>primary_language</code>
-in the repository profile.</p>
 
 
 
