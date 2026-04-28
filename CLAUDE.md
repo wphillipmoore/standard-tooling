@@ -188,8 +188,6 @@ CLI tools installed as `st-*` console scripts:
 - **`st-finalize-repo`** — Post-merge cleanup (branch deletion, remote pruning)
 - **`st-validate-local`** — Driver for pre-PR local validation
 - **`st-ensure-label`** — Idempotent GitHub label creation
-- **`st-list-project-repos`** — List repos linked to a GitHub Project
-- **`st-set-project-field`** — Set single-select field on GitHub Project item
 - **`st-docker-run`** — Run arbitrary commands inside a dev container
 - **`st-docker-test`** — Run repo test suite inside a dev container
 

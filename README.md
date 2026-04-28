@@ -49,8 +49,6 @@ git config core.hooksPath .githooks
 - `st-finalize-repo` — Post-merge cleanup
 - `st-validate-local` — Pre-PR local validation driver
 - `st-ensure-label` — Idempotent GitHub label creation
-- `st-list-project-repos` — List repos linked to a GitHub Project
-- `st-set-project-field` — Set field on a GitHub Project item
 
 ## Git hooks
 
