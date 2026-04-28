@@ -19,6 +19,28 @@ from standard_tooling.lib.docker import (
     detect_language,
 )
 
+_USAGE = """\
+usage: st-docker-run [--] <command> [args...]
+
+Run a command inside the project's dev container.
+
+The project language is auto-detected to select the right Docker image;
+falls back to dev-base:latest when detection fails.
+
+options:
+  -h, --help          show this help message and exit
+
+environment variables:
+  GH_TOKEN            (required) GitHub token passed into the container
+  DOCKER_DEV_IMAGE    override the auto-detected container image
+  DOCKER_NETWORK      join a Docker network (e.g. for integration tests)
+
+examples:
+  st-docker-run -- uv run st-validate-local
+  st-docker-run -- uv run pytest tests/
+  DOCKER_DEV_IMAGE=custom:img st-docker-run -- make build
+"""
+
 
 def main(argv: list[str] | None = None) -> int:
     args = argv if argv is not None else sys.argv[1:]
@@ -26,9 +48,15 @@ def main(argv: list[str] | None = None) -> int:
     # Split on -- separator
     if "--" in args:
         idx = args.index("--")
+        pre_separator = args[:idx]
         command = args[idx + 1 :]
     else:
+        pre_separator = args
         command = args
+
+    if {"-h", "--help"} & set(pre_separator):
+        print(_USAGE, end="")
+        return 0
 
     if not command:
         print("Usage: st-docker-run [--] <command> [args...]", file=sys.stderr)
