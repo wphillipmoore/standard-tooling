@@ -50,7 +50,7 @@ jobs:
 
       - name: Tag and release
         if: steps.tag_check.outputs.exists == 'false'
-        uses: wphillipmoore/standard-actions/actions/publish/tag-and-release@v1.1
+        uses: wphillipmoore/standard-actions/actions/publish/tag-and-release@v1.3
         with:
           version: ${{ steps.version.outputs.version }}
           release-title: standard-tooling
@@ -104,7 +104,7 @@ jobs:
 
       - name: Version bump PR
         if: steps.tag_check.outputs.exists == 'false'
-        uses: wphillipmoore/standard-actions/actions/publish/version-bump-pr@v1.1
+        uses: wphillipmoore/standard-actions/actions/publish/version-bump-pr@v1.3
         with:
           current-version: ${{ steps.version.outputs.version }}
           version-file: pyproject.toml
