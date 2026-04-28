@@ -12,15 +12,16 @@ The setup steps below wire up each one:
 
 | Surface | What it is | How you consume it |
 |---|---|---|
-| **Host bridge** | A single host-side CLI tool, `st-docker-run`, that runs commands inside a dev container image. | `uv sync` into `.venv-host`; add its `bin/` to PATH. |
+| **Host tools** | `st-docker-run`, `st-commit`, `st-submit-pr`, and other host-side CLI tools. | `uv tool install` from the standard-tooling git URL; scripts land in `~/.local/bin/`. |
 | **Dev container** | `ghcr.io/wphillipmoore/dev-<lang>:<version>` — pre-baked images with language runtimes, validators, and every other `st-*` tool installed. | Pulled automatically by `st-docker-run`; nothing to install manually. |
 | **Claude Code plugin** | `standard-tooling-plugin` — hooks, skills, agents, and slash commands that enforce the workflow at the Claude-Code-tool level. | Declared in `.claude/settings.json`; Claude Code loads on session start. |
 
-Plus two scripted layers that aren't installed as packages but are
-expected to be present in every consuming repo:
+Plus two layers that aren't installed as packages but are expected
+to be present in every consuming repo:
 
-- **Local git hooks** — `scripts/lib/git-hooks/pre-commit` from
-  standard-tooling, wired via `git config core.hooksPath`.
+- **Local git hooks** — a `.githooks/pre-commit` env-var gate
+  checked into the repo, wired via `git config core.hooksPath
+  .githooks`.
 - **CI workflow** — the `standards-compliance` composite action
   from `wphillipmoore/standard-actions`, invoked from your repo's
   `.github/workflows/ci.yml`.
@@ -37,9 +38,10 @@ Install on your host (macOS or Linux):
 **Docker** — the container engine. Docker Desktop on macOS is fine;
 Docker Engine on Linux works too.
 
-**uv** — Python package manager. Used to bootstrap the host venv and
-(inside the container) to manage Python dependencies. Install via
-the [official installer](https://docs.astral.sh/uv/getting-started/installation/).
+**uv** — Python package manager. Used to install `standard-tooling`
+on the host and (inside the container) to manage Python
+dependencies. Install via the
+[official installer](https://docs.astral.sh/uv/getting-started/installation/).
 
 **gh** — GitHub CLI. Must be authenticated
 (`gh auth login`). Used by `st-submit-pr` to create PRs and, inside
@@ -49,57 +51,25 @@ the container, to pass through your GitHub token for push operations.
 Linux.
 
 You do **not** need to install language runtimes, linters, test
-frameworks, markdownlint, shellcheck, or any `st-*` tool other than
-`st-docker-run` on the host. All of those live inside the container.
+frameworks, markdownlint, or shellcheck on the host. All of those
+live inside the container.
 
-## Step 2: Clone and bootstrap standard-tooling
-
-Clone standard-tooling as a sibling directory. The exact location
-doesn't matter much — just make sure you can reference it with a
-consistent relative path from your consuming repo.
+## Step 2: Install standard-tooling
 
 ```bash
-cd ~/dev/github   # or wherever
-git clone https://github.com/wphillipmoore/standard-tooling.git
+uv tool install 'standard-tooling @ git+https://github.com/wphillipmoore/standard-tooling@v1.4'
 ```
 
-Bootstrap the host venv:
+This installs all `st-*` console scripts into `~/.local/bin/`,
+which `uv`'s official installer already configures on `PATH`. No
+sibling checkout, no custom PATH entries, no venv bootstrapping.
+
+Verify:
 
 ```bash
-cd standard-tooling
-UV_PROJECT_ENVIRONMENT=.venv-host uv sync --group dev
+which st-docker-run    # should resolve to ~/.local/bin/st-docker-run
+st-docker-run --help   # should print usage
 ```
-
-!!! important "Why `UV_PROJECT_ENVIRONMENT=.venv-host`"
-    The project also uses a `.venv` inside the dev container (at
-    `/workspace/.venv/`). Running a plain `uv sync` on the host
-    would create that container-venv on your host filesystem, with
-    shebangs pointing at `/workspace/.venv/bin/python` — which
-    doesn't exist on your host, making every `st-*` entry point
-    unrunnable. Setting `UV_PROJECT_ENVIRONMENT=.venv-host` creates
-    a separate host-specific venv with the correct host-Python
-    shebangs, and `--group dev` pulls the dependencies
-    `st-docker-run` needs.
-
-This creates `.venv-host/bin/` with `st-docker-run` and a handful of
-other host-side scripts.
-
-## Step 3: PATH configuration
-
-Add two directories to your PATH:
-
-```bash
-export PATH="$HOME/dev/github/standard-tooling/.venv-host/bin:$HOME/dev/github/standard-tooling/scripts/bin:$PATH"
-```
-
-- `.venv-host/bin/` — the Python-packaged host entry points,
-  including `st-docker-run`.
-- `scripts/bin/` — grandfathered bash validators consumed via PATH.
-  Most still have `st-*` Python equivalents, but some CI paths
-  still reach for the bash versions.
-
-Add this to `~/.bashrc`, `~/.zshrc`, or your shell's equivalent so
-it persists.
 
 Optional — add `gh`'s token to your environment so it flows into
 the container automatically on `st-docker-run` invocations:
@@ -108,31 +78,46 @@ the container automatically on `st-docker-run` invocations:
 export GH_TOKEN=$(gh auth token)
 ```
 
-## Step 4: Git hook setup
+!!! note "Dev-tree override for standard-tooling development"
+    If you are developing standard-tooling itself and want to test
+    unreleased code on the host, use the `.venv-host` dev-tree
+    override described in the standard-tooling `CLAUDE.md`. This
+    does not apply to consuming repos.
 
-From your consuming repo's root:
+## Step 3: Git hook setup
+
+Every managed repo checks in a `.githooks/pre-commit` env-var gate.
+Create it in your repo:
 
 ```bash
-git config core.hooksPath ../standard-tooling/scripts/lib/git-hooks
+#!/usr/bin/env bash
+# Admit st-commit-driven commits.
+if [[ "${ST_COMMIT_CONTEXT:-}" == "1" ]]; then exit 0; fi
+# Admit derived-commit workflows (amend, cherry-pick, revert, rebase, merge).
+case "${GIT_REFLOG_ACTION:-}" in
+  amend|cherry-pick|revert|rebase*|merge*) exit 0 ;;
+esac
+echo "ERROR: raw 'git commit' is blocked. Use 'st-commit' instead." >&2
+echo "See docs/repository-standards.md" >&2
+exit 1
 ```
 
-Adjust the relative path if standard-tooling lives somewhere other
-than the parent directory. This must be re-run per fresh clone —
-it lives in `.git/config`, which isn't versioned.
+Save this as `.githooks/pre-commit`, make it executable, and commit
+it. Then enable the hook once per clone:
 
-The pre-commit hook enforces:
+```bash
+chmod +x .githooks/pre-commit
+git config core.hooksPath .githooks
+```
 
-- Detached-HEAD commits blocked
-- Direct commits to protected branches (`develop`/`release`/`main`)
-  blocked
-- Branch names must use one of the allowed prefixes for the repo's
-  `branching_model`
-- Work branches (`feature/*`, `bugfix/*`, `hotfix/*`, `chore/*`)
-  must include a repository issue number
+The gate admits commits from `st-commit` (which sets
+`ST_COMMIT_CONTEXT=1`) and from derived workflows like rebase and
+cherry-pick. All branch/context checks (detached HEAD, protected
+branches, branch prefix, issue number) live in `st-commit` itself.
 
 Full reference: [Git Hooks and Validation][hooks-doc].
 
-## Step 5: Repository profile
+## Step 4: Repository profile
 
 Create `docs/repository-standards.md` at your repo root. This is
 the primary configuration surface for the validators:
@@ -165,7 +150,7 @@ Required attributes and accepted values:
 |---|---|---|
 | `repository_type` | `application`, `library`, `tooling`, `documentation` | Informational; some validators branch on this. |
 | `versioning_scheme` | `semver`, `calver`, `none` | How releases are versioned. |
-| `branching_model` | `library-release`, `application-promotion`, `docs-single-branch` | Determines which branch prefixes the pre-commit hook allows. |
+| `branching_model` | `library-release`, `application-promotion`, `docs-single-branch` | Determines which branch prefixes `st-commit` allows. |
 | `release_model` | `tagged-release`, `continuous-deploy`, `none` | Affects release-flow tooling expectations. |
 | `supported_release_lines` | integer (commonly `1`) | How many concurrent major lines you support. |
 | `primary_language` | `python`, `go`, `java`, `rust`, `ruby`, `shell`, `none` | Determines which per-language validators run. |
@@ -177,7 +162,7 @@ agent identity.
 Values containing `<`, `>`, or `|` are rejected as placeholders by
 `st-repo-profile`.
 
-## Step 6: Enable the Claude Code plugin
+## Step 5: Enable the Claude Code plugin
 
 Create `.claude/settings.json` in your repo:
 
@@ -229,7 +214,7 @@ for the full list.
     `~/.claude/plugins/marketplaces/standard-tooling-marketplace/`
     if a hook seems outdated.
 
-## Step 7: Worktree convention
+## Step 6: Worktree convention
 
 Every managed repo adopts the worktree convention so multiple
 Claude Code agents can work in parallel without colliding. Two
@@ -253,7 +238,7 @@ plugin's commit-block hook activates against the presence of
 For how to actually use worktrees during development, see
 [Git Workflow → Parallel work with worktrees](git-workflow.md#parallel-work-with-worktrees).
 
-## Step 8: Markdownlint configuration
+## Step 7: Markdownlint configuration
 
 Create `.markdownlint.yaml` at your repo root:
 
@@ -284,7 +269,7 @@ CHANGELOG.md
 releases/
 ```
 
-## Step 9: CI workflow
+## Step 8: CI workflow
 
 Use the `standards-compliance` composite action from
 `wphillipmoore/standard-actions`. Minimal workflow
@@ -325,12 +310,12 @@ no further setup is needed in the workflow.
 See the [CI Architecture](ci-architecture.md) guide if you also want
 per-language test/lint/audit tiers.
 
-## Step 10: Verify end-to-end
+## Step 9: Verify end-to-end
 
 Once the above is in place, sanity-check each layer:
 
 ```bash
-# 1. Host bridge — should print st-docker-run help
+# 1. Host tools — should print st-docker-run help
 st-docker-run --help
 
 # 2. Dev container — pulls an image on first run and runs a
@@ -340,12 +325,8 @@ st-docker-run -- echo "container ok"
 # 3. Repo profile — runs st-repo-profile inside the container
 st-docker-run -- uv run st-repo-profile
 
-# 4. Git hook — creating a bad branch name and trying to commit
-#    should be blocked
-git checkout -b bad-name
+# 4. Git hook — raw git commit should be blocked by the gate
 git commit --allow-empty -m "test"     # expected: blocked
-git checkout -
-git branch -D bad-name
 
 # 5. Plugin hook (requires Claude Code session) — in a Claude
 #    Code session in this repo, have Claude try to run a raw
@@ -354,25 +335,21 @@ git branch -D bad-name
 ```
 
 If any step fails, check the corresponding section above, then
-re-run. Common causes: PATH missing an entry, `.venv-host` built
-without the `UV_PROJECT_ENVIRONMENT` override, `.claude/settings.json`
-not committed to the branch your Claude Code session loaded.
+re-run. Common causes: `uv tool install` not run,
+`.claude/settings.json` not committed to the branch your Claude
+Code session loaded.
 
 ## Keeping up to date
 
-Standard-tooling's host side is consumed via the sibling
-`.venv-host/` checkout. To pull updates:
+After each `standard-tooling` release, upgrade the host tools:
 
 ```bash
-cd ../standard-tooling
-git pull
-UV_PROJECT_ENVIRONMENT=.venv-host uv sync --group dev
+uv tool upgrade standard-tooling
 ```
 
-!!! important "Don't drop the `UV_PROJECT_ENVIRONMENT` override"
-    It applies on every sync, not just the initial bootstrap. A
-    plain `uv sync` in the standard-tooling checkout will rebuild
-    `.venv-host/` with the wrong shebangs again.
+`uv tool upgrade` re-resolves the git reference, pulls the current
+tip of the rolling minor tag, and rebuilds the isolated tool venv.
+No need to repeat the full git URL.
 
 The dev container images auto-update on `st-docker-run` pulls — the
 tag is a minor version (`3.12`, `1.26`, etc.) that tracks upstream
@@ -389,12 +366,9 @@ git -C ~/.claude/plugins/marketplaces/standard-tooling-marketplace pull
 
 ## Troubleshooting
 
-- **`st-docker-run: command not found`** — `.venv-host/bin` isn't
-  on PATH, or the `UV_PROJECT_ENVIRONMENT` override was skipped
-  when bootstrapping.
-- **`st-*` commands fail with shebang errors** — `.venv-host/` was
-  built with a plain `uv sync` (no `UV_PROJECT_ENVIRONMENT=.venv-host`).
-  Remove the venv and re-bootstrap.
+- **`st-docker-run: command not found`** — `uv tool install` has
+  not been run, or `~/.local/bin` is not on PATH. Re-run the install
+  command from Step 2 and confirm `which st-docker-run` resolves.
 - **`manifest unknown` when pulling a container image** — the tag
   you're asking for doesn't exist on GHCR. Older docs referenced
   `ghcr.io/wphillipmoore/dev-docs:latest` (renamed to `dev-base` in
@@ -413,6 +387,9 @@ git -C ~/.claude/plugins/marketplaces/standard-tooling-marketplace pull
   expected since 2026-04-22. Auto-merge is disabled org-wide; the
   PR itself was created successfully. Tracked in
   [standard-tooling#268](https://github.com/wphillipmoore/standard-tooling/issues/268).
+- **"raw 'git commit' is blocked"** — the `.githooks/pre-commit`
+  gate is working as intended. Use `st-commit` instead of raw `git
+  commit`.
 
 For a broader troubleshooting index see
 [Git Workflow → Troubleshooting](git-workflow.md#troubleshooting).
