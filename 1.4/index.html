@@ -577,6 +577,8 @@
       
         
       
+        
+      
     
     
     
@@ -620,6 +622,29 @@
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="releases/v1.4.1/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    v1.4.1
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
               
             
               
@@ -954,6 +979,8 @@
       
         
       
+        
+      
     
     
     
@@ -1005,6 +1032,29 @@
   
   
   
+    <li class="md-nav__item">
+      <a href="reference/cli-tools-overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    CLI Tools Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
     
     
       
@@ -1023,10 +1073,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_2" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_3" >
         
           
-          <label class="md-nav__link" for="__nav_4_2" id="__nav_4_2_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_4_3" id="__nav_4_3_label" tabindex="0">
             
   
   
@@ -1039,8 +1089,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_2_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_4_2">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_3">
             <span class="md-nav__icon md-icon"></span>
             Git Hooks
           </label>
@@ -1105,15 +1155,15 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_3" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_4" >
         
           
-          <label class="md-nav__link" for="__nav_4_3" id="__nav_4_3_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_4_4" id="__nav_4_4_label" tabindex="0">
             
   
   
   <span class="md-ellipsis">
-    Bash Validators
+    Validators
     
   </span>
   
@@ -1121,10 +1171,10 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_3_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_4_3">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_4">
             <span class="md-nav__icon md-icon"></span>
-            Bash Validators
+            Validators
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -1237,10 +1287,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_4" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_5" >
         
           
-          <label class="md-nav__link" for="__nav_4_4" id="__nav_4_4_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_4_5" id="__nav_4_5_label" tabindex="0">
             
   
   
@@ -1253,8 +1303,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_4_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_4_4">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_5">
             <span class="md-nav__icon md-icon"></span>
             CLI Tools
           </label>
@@ -1657,26 +1707,30 @@ commits, PRs, releases, and validation alongside bash validators and git hooks
 <p><strong>Lint tools</strong> (installed as <code>st-*</code>):
 <code>st-repo-profile</code>, <code>st-markdown-standards</code>,
 <code>st-pr-issue-linkage</code>, validation drivers</p>
-<p><strong>Git hooks</strong> (<code>scripts/lib/git-hooks/</code>):
-Branch naming enforcement, commit message validation</p>
+<p><strong>Git hooks</strong> (<code>.githooks/</code>):
+Env-var gate that admits <code>st-commit</code> and blocks raw <code>git commit</code></p>
 <h2 id="design-principles">Design Principles<a class="headerlink" href="#design-principles" title="Permanent link">&para;</a></h2>
 <ul>
 <li><strong>Portability</strong> -- scripts run on both macOS and Linux</li>
 <li><strong>shellcheck clean</strong> -- all shell scripts pass shellcheck</li>
 <li><strong>No repo-specific logic</strong> -- every script works in any consuming
   repository</li>
-<li><strong>PATH-based consumption</strong> -- consuming repos add standard-tooling to
-  PATH rather than copying files</li>
+<li><strong>Host-level install</strong> -- <code>uv tool install</code> puts <code>st-*</code> on PATH;
+  no sibling checkout required</li>
 </ul>
 <h2 id="how-it-works">How It Works<a class="headerlink" href="#how-it-works" title="Permanent link">&para;</a></h2>
 <ol>
-<li>Standard-tooling is cloned as a sibling directory (local development)
-   or checked out in CI (GitHub Actions).</li>
-<li>The Python package is installed via <code>uv sync</code>, making <code>st-*</code> CLI
-   tools available in <code>.venv/bin/</code>.</li>
-<li><code>.venv/bin/</code> is added to PATH.</li>
-<li>Git hooks are configured to point at <code>scripts/lib/git-hooks/</code>.</li>
-<li>Consuming repos call tools by bare name -- no file copying or syncing.</li>
+<li><code>standard-tooling</code> is installed on the developer's host via
+   <code>uv tool install</code>, placing <code>st-*</code> scripts in <code>~/.local/bin/</code>.</li>
+<li><code>st-docker-run</code> bridges host commands into dev container images
+   where language runtimes and validators live.</li>
+<li>Python consumers also declare <code>standard-tooling</code> as a dev dep
+   via <code>[tool.uv.sources]</code> so <code>uv run st-*</code> inside the container
+   resolves the pinned version.</li>
+<li>Each repo checks in a <code>.githooks/pre-commit</code> env-var gate,
+   enabled via <code>git config core.hooksPath .githooks</code>.</li>
+<li>Consuming repos call tools by bare name -- no file copying or
+   syncing.</li>
 </ol>
 <h2 id="quick-links">Quick Links<a class="headerlink" href="#quick-links" title="Permanent link">&para;</a></h2>
 <ul>

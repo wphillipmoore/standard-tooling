@@ -501,6 +501,8 @@
       
         
       
+        
+      
     
     
     
@@ -544,6 +546,29 @@
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../releases/v1.4.1/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    v1.4.1
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
               
             
               
@@ -878,6 +903,8 @@
       
         
       
+        
+      
     
     
     
@@ -929,6 +956,29 @@
   
   
   
+    <li class="md-nav__item">
+      <a href="../../reference/cli-tools-overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    CLI Tools Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
     
     
       
@@ -947,10 +997,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_2" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_3" >
         
           
-          <label class="md-nav__link" for="__nav_4_2" id="__nav_4_2_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_4_3" id="__nav_4_3_label" tabindex="0">
             
   
   
@@ -963,8 +1013,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_2_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_4_2">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_3">
             <span class="md-nav__icon md-icon"></span>
             Git Hooks
           </label>
@@ -1029,15 +1079,15 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_3" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_4" >
         
           
-          <label class="md-nav__link" for="__nav_4_3" id="__nav_4_3_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_4_4" id="__nav_4_4_label" tabindex="0">
             
   
   
   <span class="md-ellipsis">
-    Bash Validators
+    Validators
     
   </span>
   
@@ -1045,10 +1095,10 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_3_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_4_3">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_4">
             <span class="md-nav__icon md-icon"></span>
-            Bash Validators
+            Validators
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -1161,10 +1211,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_4" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_5" >
         
           
-          <label class="md-nav__link" for="__nav_4_4" id="__nav_4_4_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_4_5" id="__nav_4_5_label" tabindex="0">
             
   
   
@@ -1177,8 +1227,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_4_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_4_4">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_5">
             <span class="md-nav__icon md-icon"></span>
             CLI Tools
           </label>
@@ -2114,7 +2164,7 @@ mechanisms. Both exist; they complement each other.</p>
 <tbody>
 <tr>
 <td><strong>Pre-commit git hook</strong></td>
-<td><code>scripts/lib/git-hooks/pre-commit</code> in standard-tooling; consumed via <code>git config core.hooksPath</code>. Fires on every <code>git commit</code>, regardless of how it was invoked.</td>
+<td><code>.githooks/pre-commit</code> checked into each repo; enabled via <code>git config core.hooksPath .githooks</code>. The hook is an env-var gate that admits <code>st-commit</code>-driven commits and rejects raw <code>git commit</code>. The five branch/context checks live in <code>st-commit</code> itself.</td>
 <td>Detached HEAD • direct commits to protected branches • wrong branch prefix • missing issue number in branch name</td>
 </tr>
 <tr>
@@ -2307,8 +2357,8 @@ lands. Until then, do it by hand alongside the usual finalization:</p>
 <ol>
 <li><code>docs/repository-standards.md</code> with the six required attributes
    (see the existing setup guide).</li>
-<li><code>git config core.hooksPath ../standard-tooling/scripts/lib/git-hooks</code>
-   (or equivalent path) so the pre-commit hook fires.</li>
+<li>A <code>.githooks/pre-commit</code> env-var gate checked into the repo, plus
+   <code>git config core.hooksPath .githooks</code> (once per clone).</li>
 <li><code>.claude/settings.json</code> enabling the <code>standard-tooling</code> plugin
    so the plugin hooks fire in Claude Code sessions.</li>
 <li><code>.worktrees/</code> in <code>.gitignore</code> and a Parallel-AI-agent-development
@@ -2392,9 +2442,8 @@ for the planned fix.</p>
 PATH. Some are only installed inside the dev container image, not on
 the host. Hook-level PATH discovery is tracked in
 <a href="https://github.com/wphillipmoore/standard-tooling/issues/265">standard-tooling#265</a>.
-Workaround: run the validator explicitly with an absolute path
-(<code>.venv-host/bin/st-markdown-standards …</code>) to confirm the file is
-clean; then proceed.</p>
+Workaround: run the validator explicitly via <code>st-docker-run</code> to
+confirm the file is clean; then proceed.</p>
 <h2 id="related">Related<a class="headerlink" href="#related" title="Permanent link">&para;</a></h2>
 <ul>
 <li><a href="https://github.com/wphillipmoore/standard-tooling/blob/develop/docs/git-hooks-and-validation.md">Git Hooks and Validation</a>

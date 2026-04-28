@@ -11,7 +11,7 @@
       
       
       
-        <link rel="prev" href="../../">
+        <link rel="prev" href="../../cli-tools-overview/">
       
       
         <link rel="next" href="../../lint/repo-profile/">
@@ -501,6 +501,8 @@
       
         
       
+        
+      
     
     
     
@@ -544,6 +546,29 @@
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../releases/v1.4.1/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    v1.4.1
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
               
             
               
@@ -880,6 +905,8 @@
       
         
       
+        
+      
     
     
     
@@ -932,6 +959,29 @@
                 
   
   
+  
+  
+    <li class="md-nav__item">
+      <a href="../../cli-tools-overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    CLI Tools Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
     
   
   
@@ -957,10 +1007,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_2" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_3" checked>
         
           
-          <label class="md-nav__link" for="__nav_4_2" id="__nav_4_2_label" tabindex="">
+          <label class="md-nav__link" for="__nav_4_3" id="__nav_4_3_label" tabindex="">
             
   
   
@@ -973,8 +1023,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_2_label" aria-expanded="true">
-          <label class="md-nav__title" for="__nav_4_2">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4_3">
             <span class="md-nav__icon md-icon"></span>
             Git Hooks
           </label>
@@ -1162,15 +1212,15 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_3" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_4" >
         
           
-          <label class="md-nav__link" for="__nav_4_3" id="__nav_4_3_label" tabindex="">
+          <label class="md-nav__link" for="__nav_4_4" id="__nav_4_4_label" tabindex="">
             
   
   
   <span class="md-ellipsis">
-    Bash Validators
+    Validators
     
   </span>
   
@@ -1178,10 +1228,10 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_3_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_4_3">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_4">
             <span class="md-nav__icon md-icon"></span>
-            Bash Validators
+            Validators
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -1297,10 +1347,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_4" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_5" >
         
           
-          <label class="md-nav__link" for="__nav_4_4" id="__nav_4_4_label" tabindex="">
+          <label class="md-nav__link" for="__nav_4_5" id="__nav_4_5_label" tabindex="">
             
   
   
@@ -1313,8 +1363,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_4_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_4_4">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_5">
             <span class="md-nav__icon md-icon"></span>
             CLI Tools
           </label>
@@ -1748,12 +1798,14 @@
 
 
 <h1 id="pre-commit">pre-commit<a class="headerlink" href="#pre-commit" title="Permanent link">&para;</a></h1>
-<p><strong>Path:</strong> <code>scripts/lib/git-hooks/pre-commit</code></p>
-<p>Enforces branch naming conventions before allowing a commit. Reads the
-<code>branching_model</code> attribute from <code>docs/repository-standards.md</code> to
-determine allowed branch prefixes.</p>
+<p><strong>Path:</strong> <code>.githooks/pre-commit</code></p>
+<p>The pre-commit hook is an env-var gate that admits <code>st-commit</code>-driven
+commits (via <code>ST_COMMIT_CONTEXT=1</code>) and derived workflows (amend,
+cherry-pick, revert, rebase, merge), and rejects raw <code>git commit</code>.</p>
+<p>The five branch/context checks below live in <code>st-commit</code> itself and
+run before <code>git commit</code> is invoked:</p>
 <h2 id="checks">Checks<a class="headerlink" href="#checks" title="Permanent link">&para;</a></h2>
-<p>The hook runs five checks in order:</p>
+<p><code>st-commit</code> runs five checks in order:</p>
 <h3 id="1-detached-head">1. Detached HEAD<a class="headerlink" href="#1-detached-head" title="Permanent link">&para;</a></h3>
 <p>Commits on a detached HEAD are blocked unconditionally.</p>
 <h3 id="2-protected-branch">2. Protected Branch<a class="headerlink" href="#2-protected-branch" title="Permanent link">&para;</a></h3>
