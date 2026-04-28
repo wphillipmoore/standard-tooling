@@ -143,10 +143,10 @@ def assert_docker_available() -> None:
     """Exit with an error if the Docker daemon is not reachable."""
     try:
         result = subprocess.run(
-            ["docker", "info"],  # noqa: S603, S607
+            ["docker", "version"],  # noqa: S603, S607
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
-            timeout=10,
+            timeout=15,
         )
         if result.returncode != 0:
             _docker_unavailable()

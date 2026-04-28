@@ -54,10 +54,10 @@ def _docker_is_available() -> bool:
     """Check whether the Docker daemon is reachable."""
     try:
         result = subprocess.run(
-            ["docker", "info"],  # noqa: S603, S607
+            ["docker", "version"],  # noqa: S603, S607
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
-            timeout=10,
+            timeout=15,
         )
         return result.returncode == 0
     except (FileNotFoundError, subprocess.TimeoutExpired):

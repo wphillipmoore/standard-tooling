@@ -193,6 +193,6 @@ def test_docker_is_available_not_installed() -> None:
 def test_docker_is_available_timeout() -> None:
     with patch(
         "standard_tooling.bin.docker_test.subprocess.run",
-        side_effect=subprocess.TimeoutExpired(cmd="docker info", timeout=10),
+        side_effect=subprocess.TimeoutExpired(cmd="docker version", timeout=15),
     ):
         assert _docker_is_available() is False

@@ -215,7 +215,7 @@ def test_assert_docker_available_timeout() -> None:
     with (
         patch(
             "standard_tooling.lib.docker.subprocess.run",
-            side_effect=subprocess.TimeoutExpired(cmd="docker info", timeout=10),
+            side_effect=subprocess.TimeoutExpired(cmd="docker version", timeout=15),
         ),
         pytest.raises(SystemExit),
     ):
