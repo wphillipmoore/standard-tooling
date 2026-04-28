@@ -26,7 +26,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     )
     parser.add_argument("--summary", required=True, help="One-line PR summary")
     parser.add_argument(
-        "--linkage", default="Fixes", choices=ALLOWED_LINKAGES, help="Issue linkage keyword"
+        "--linkage", default="Ref", choices=ALLOWED_LINKAGES, help="Issue linkage keyword"
     )
     parser.add_argument("--notes", default="", help="Additional notes")
     parser.add_argument("--title", default="", help="PR title (default: latest commit subject)")
