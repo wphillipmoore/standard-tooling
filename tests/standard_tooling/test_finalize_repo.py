@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 from subprocess import CompletedProcess
 from typing import TYPE_CHECKING
 from unittest.mock import patch
@@ -20,7 +21,6 @@ _MOD = "standard_tooling.bin.finalize_repo"
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
-    from pathlib import Path
 
 
 @pytest.fixture(autouse=True)
@@ -46,13 +46,34 @@ def test_parse_args_custom() -> None:
     assert args.dry_run is True
 
 
-def test_main_refuses_from_secondary_worktree(capsys: pytest.CaptureFixture[str]) -> None:
-    with patch(_MOD + ".git.is_main_worktree", return_value=False):
+def test_main_auto_chdir_from_secondary_worktree(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    main_root = tmp_path / "main-wt"
+    main_root.mkdir()
+    _make_profile(main_root, "library-release")
+    secondary = tmp_path / "secondary-wt"
+    secondary.mkdir()
+    monkeypatch.chdir(secondary)
+
+    with (
+        patch(_MOD + ".git.is_main_worktree", return_value=False),
+        patch(_MOD + ".git.main_worktree_root", return_value=main_root),
+        patch(_MOD + ".git.repo_root", return_value=main_root),
+        patch(_MOD + ".git.current_branch", return_value="develop"),
+        patch(_MOD + ".git.run"),
+        patch(_MOD + ".git.read_output", return_value=""),
+        patch(_MOD + ".git.merged_branches", return_value=[]),
+        patch(_MOD + ".shutil.which", return_value=None),
+    ):
         result = main([])
-    assert result == 1
-    stderr = capsys.readouterr().err
-    assert "main worktree" in stderr
-    assert "cd <repo-root>" in stderr
+
+    assert result == 1  # no validator found, but that's after the chdir
+    out = capsys.readouterr().out
+    assert f"switching to main worktree at {main_root}" in out
+    assert Path.cwd() == main_root
 
 
 def _make_profile(tmp_path: Path, model: str) -> None:
