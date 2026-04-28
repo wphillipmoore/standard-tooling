@@ -1,14 +1,17 @@
 # pre-commit
 
-**Path:** `scripts/lib/git-hooks/pre-commit`
+**Path:** `.githooks/pre-commit`
 
-Enforces branch naming conventions before allowing a commit. Reads the
-`branching_model` attribute from `docs/repository-standards.md` to
-determine allowed branch prefixes.
+The pre-commit hook is an env-var gate that admits `st-commit`-driven
+commits (via `ST_COMMIT_CONTEXT=1`) and derived workflows (amend,
+cherry-pick, revert, rebase, merge), and rejects raw `git commit`.
+
+The five branch/context checks below live in `st-commit` itself and
+run before `git commit` is invoked:
 
 ## Checks
 
-The hook runs five checks in order:
+`st-commit` runs five checks in order:
 
 ### 1. Detached HEAD
 

@@ -16,53 +16,36 @@ Install these on your host:
   (`gh auth login`)
 - **macOS or Linux** (Bash)
 
-Everything else — language runtimes, linters, test frameworks, all
-but one of the `st-*` tools — lives inside the dev container. The
-only `st-*` tool that runs on the host is `st-docker-run`, which
-bridges into the container.
+Everything else — language runtimes, linters, test frameworks, and
+most `st-*` tools — lives inside the dev container. The host-side
+`st-*` tools (`st-docker-run`, `st-commit`, `st-submit-pr`, etc.)
+are installed via `uv tool install`.
 
-## 1. Clone standard-tooling as a sibling
-
-```bash
-cd ~/dev/github   # or wherever you keep your repos
-git clone https://github.com/wphillipmoore/standard-tooling.git
-```
-
-## 2. Bootstrap the host venv
+## 1. Install standard-tooling on the host
 
 ```bash
-cd standard-tooling
-UV_PROJECT_ENVIRONMENT=.venv-host uv sync --group dev
+uv tool install 'standard-tooling @ git+https://github.com/wphillipmoore/standard-tooling@v1.4'
 ```
 
-!!! important "The `UV_PROJECT_ENVIRONMENT` override matters"
-    Without it, `uv sync` creates a `.venv` with container-path
-    shebangs (`/workspace/.venv/...`) that don't work on the host.
-    The `.venv-host` name and the `--group dev` dependencies are
-    both required.
-
-This installs `st-docker-run` and the other host-side entry points
-into `.venv-host/bin/`.
-
-## 3. Put host tools on PATH
+This installs all `st-*` console scripts into `~/.local/bin/`,
+which `uv`'s installer already puts on `PATH`.
 
 ```bash
-export PATH="$HOME/dev/github/standard-tooling/.venv-host/bin:$HOME/dev/github/standard-tooling/scripts/bin:$PATH"
+which st-docker-run    # should resolve to ~/.local/bin/st-docker-run
+st-docker-run --help   # should print usage
 ```
 
-Add this to your shell profile so it persists across sessions.
+## 2. Configure git hooks in your consuming repo
 
-## 4. Configure git hooks in your consuming repo
-
-From your repo:
+Every managed repo checks in a `.githooks/pre-commit` env-var gate
+(see [Consuming Repo Setup](guides/consuming-repo-setup.md) for
+the gate content). Enable it once per clone:
 
 ```bash
-git config core.hooksPath ../standard-tooling/scripts/lib/git-hooks
+git config core.hooksPath .githooks
 ```
 
-This must be re-run once per fresh clone; it's not persisted.
-
-## 5. Enable the Claude Code plugin
+## 3. Enable the Claude Code plugin
 
 Create `.claude/settings.json` in your repo:
 
@@ -90,7 +73,7 @@ Commit this file — it's part of the repo's reproducible setup.
     For now, this settings.json entry is enough for Claude Code to
     discover and enable the plugin on the next session restart.
 
-## 6. Create your repository profile
+## 4. Create your repository profile
 
 Create `docs/repository-standards.md` with the six required
 attributes (and AI co-author entries if you'll use them):
@@ -121,7 +104,7 @@ Pick the values that match your repo. See
 [Consuming Repo Setup](guides/consuming-repo-setup.md) for the full
 attribute reference.
 
-## 7. Adopt the worktree convention
+## 5. Adopt the worktree convention
 
 Add `.worktrees/` to your `.gitignore`:
 
@@ -134,7 +117,7 @@ describing the convention. Every managed repo already has one you
 can copy from; the canonical source is
 [the worktree convention spec][worktree-spec].
 
-## 8. Verify
+## 6. Verify
 
 ```bash
 # Host tooling reachable
@@ -143,14 +126,11 @@ st-docker-run --help
 # Repo profile validates (runs inside the container)
 st-docker-run -- uv run st-repo-profile
 
-# Git hook fires on a misnamed branch
-git checkout -b bad-branch-name
-git commit --allow-empty -m "test"    # should be blocked by the hook
-git checkout -
-git branch -D bad-branch-name
+# Git hook blocks raw git commit
+git commit --allow-empty -m "test"    # should be blocked by the gate
 ```
 
-If all three steps behave as expected, you're wired up correctly.
+If all three behave as expected, you're wired up correctly.
 
 ## Next steps
 

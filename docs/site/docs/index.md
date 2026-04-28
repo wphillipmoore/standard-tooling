@@ -15,8 +15,8 @@ commits, PRs, releases, and validation alongside bash validators and git hooks
 `st-repo-profile`, `st-markdown-standards`,
 `st-pr-issue-linkage`, validation drivers
 
-**Git hooks** (`scripts/lib/git-hooks/`):
-Branch naming enforcement, commit message validation
+**Git hooks** (`.githooks/`):
+Env-var gate that admits `st-commit` and blocks raw `git commit`
 
 ## Design Principles
 
@@ -24,18 +24,22 @@ Branch naming enforcement, commit message validation
 - **shellcheck clean** -- all shell scripts pass shellcheck
 - **No repo-specific logic** -- every script works in any consuming
   repository
-- **PATH-based consumption** -- consuming repos add standard-tooling to
-  PATH rather than copying files
+- **Host-level install** -- `uv tool install` puts `st-*` on PATH;
+  no sibling checkout required
 
 ## How It Works
 
-1. Standard-tooling is cloned as a sibling directory (local development)
-   or checked out in CI (GitHub Actions).
-2. The Python package is installed via `uv sync`, making `st-*` CLI
-   tools available in `.venv/bin/`.
-3. `.venv/bin/` is added to PATH.
-4. Git hooks are configured to point at `scripts/lib/git-hooks/`.
-5. Consuming repos call tools by bare name -- no file copying or syncing.
+1. `standard-tooling` is installed on the developer's host via
+   `uv tool install`, placing `st-*` scripts in `~/.local/bin/`.
+2. `st-docker-run` bridges host commands into dev container images
+   where language runtimes and validators live.
+3. Python consumers also declare `standard-tooling` as a dev dep
+   via `[tool.uv.sources]` so `uv run st-*` inside the container
+   resolves the pinned version.
+4. Each repo checks in a `.githooks/pre-commit` env-var gate,
+   enabled via `git config core.hooksPath .githooks`.
+5. Consuming repos call tools by bare name -- no file copying or
+   syncing.
 
 ## Quick Links
 

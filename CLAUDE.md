@@ -3,8 +3,6 @@
 This file provides guidance to Claude Code (claude.ai/code) when working in
 this repository.
 
-<!-- include: docs/repository-standards.md -->
-
 ## Parallel AI agent development
 
 This repository supports running multiple Claude Code agents in parallel via
@@ -86,34 +84,36 @@ CI checkout (GitHub Actions).
 
 **Status**: Stable (v1.x)
 
-**Canonical Standards**: This repository follows standards at
-<https://github.com/wphillipmoore/standards-and-conventions>
-(local path: `../standards-and-conventions` if available)
+**Standards reference**: <https://github.com/wphillipmoore/standards-and-conventions>
+— historical reference; active standards documentation lives in this
+repository under `docs/`.
 
 ## Development Commands
 
 ### Environment Setup
 
-This repository uses a **dual-venv** model:
+Host-side `st-*` tools are installed via `uv tool install` (see
+[Consumption Model](#consumption-model)). For developing
+standard-tooling itself, there is also a **dev-tree override** using
+a local `.venv-host`:
 
 - **`.venv`** — Created inside dev containers. Shebang paths reference
   `/workspace/.venv/...` and do not work on the host.
-- **`.venv-host`** — Created on the host for bootstrap tools like
-  `st-docker-run`. Shebang paths reference the real host Python.
+- **`.venv-host`** — Dev-tree override venv for testing unreleased
+  code on the host. Not the normal install mechanism.
 
 ```bash
-# Host bootstrap (one-time) — provides st-docker-run on the host
+# Dev-tree override (standard-tooling development only)
 UV_PROJECT_ENVIRONMENT=.venv-host uv sync --group dev
+export PATH="$(pwd)/.venv-host/bin:$PATH"
 
 # Enable the pre-commit gate (refuses raw `git commit`; admits st-commit)
 git config core.hooksPath .githooks
-
-# Put host tools on PATH
-export PATH="$(pwd)/.venv-host/bin:$PATH"
 ```
 
-After the host venv is set up, use `st-docker-run` to run all commands
-inside the dev container. See [Validation](#validation) below.
+After host tools are available, use `st-docker-run` to run all
+commands inside the dev container. See [Validation](#validation)
+below.
 
 ### Validation
 
@@ -188,8 +188,6 @@ CLI tools installed as `st-*` console scripts:
 - **`st-finalize-repo`** — Post-merge cleanup (branch deletion, remote pruning)
 - **`st-validate-local`** — Driver for pre-PR local validation
 - **`st-ensure-label`** — Idempotent GitHub label creation
-- **`st-list-project-repos`** — List repos linked to a GitHub Project
-- **`st-set-project-field`** — Set single-select field on GitHub Project item
 - **`st-docker-run`** — Run arbitrary commands inside a dev container
 - **`st-docker-test`** — Run repo test suite inside a dev container
 
@@ -227,36 +225,32 @@ Consumed via `git config core.hooksPath .githooks`:
 
 ### Consumption Model
 
-**Dev containers** (primary): All `st-*` entry points are pre-installed in
-the dev container images (`dev-python`, `dev-java`, `dev-go`, `dev-rust`,
-`dev-ruby`, `dev-base`). No local setup required.
+`standard-tooling` has three coordinated deployment targets (see
+`docs/specs/host-level-tool.md` for the full spec):
 
-**Host bootstrap** (for `st-docker-run`): The host needs `st-docker-run`
-to bridge into containers. Consuming repos locate it by searching:
+| Target | Install mechanism | Who uses it |
+|---|---|---|
+| **Developer host** | `uv tool install` from git URL | Host-side commands: `st-docker-run`, `st-commit`, `st-submit-pr`, `st-prepare-release`, `st-finalize-repo` |
+| **Python project `.venv`** | `[tool.uv.sources]` dev dep + `uv sync` | `uv run st-*` inside the container for validators |
+| **Dev container image** | Pre-baked at image build time | `st-*` inside the container for non-Python consumers |
 
-1. `../standard-tooling/.venv-host/bin/st-docker-run` (sibling checkout)
-2. `st-docker-run` on PATH (installed globally)
-
-One-time setup in the `standard-tooling` checkout:
+**Host install** (canonical):
 
 ```bash
-UV_PROJECT_ENVIRONMENT=.venv-host uv sync --group dev
+uv tool install 'standard-tooling @ git+https://github.com/wphillipmoore/standard-tooling@v1.4'
 ```
 
-**Git hooks** (any consuming repo): each repo vendors its own
-`.githooks/pre-commit` (the env-var gate from this repo's spec) and
-points its `core.hooksPath` at it:
+**Git hooks** (any consuming repo): each repo checks in its own
+`.githooks/pre-commit` (an env-var gate that admits `st-commit` and
+rejects raw `git commit`) and enables it once per clone:
 
 ```bash
 git config core.hooksPath .githooks
 ```
 
-**CI (GitHub Actions)**: under the host-level-tool spec, CI uses
-the same two paths as developers — Python repos via `uv sync --group
-dev` (the dev-dep declaration), non-Python repos via the dev
-container image's pre-baked `standard-tooling`. The
-`standards-compliance` composite action no longer clones
-`standard-tooling` onto runners.
+**CI (GitHub Actions)**: Python repos use `uv sync --group dev`
+(the dev-dep declaration); non-Python repos use the dev container
+image's pre-baked `standard-tooling`.
 
 ### Key Constraints
 
