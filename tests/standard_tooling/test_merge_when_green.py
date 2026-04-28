@@ -32,10 +32,14 @@ def test_parse_args_rejects_unknown_strategy() -> None:
         parse_args(["42", "--strategy", "ff-only"])
 
 
+_MOD = "standard_tooling.bin.merge_when_green"
+
+
 def test_main_happy_path() -> None:
     with (
-        patch("standard_tooling.bin.merge_when_green.github.wait_for_checks") as mock_wait,
-        patch("standard_tooling.bin.merge_when_green.github.merge") as mock_merge,
+        patch(f"{_MOD}.git.is_main_worktree", return_value=True),
+        patch(f"{_MOD}.github.wait_for_checks") as mock_wait,
+        patch(f"{_MOD}.github.merge") as mock_merge,
     ):
         result = main(["https://github.com/pr/1"])
     assert result == 0
@@ -47,22 +51,51 @@ def test_main_happy_path() -> None:
 
 def test_main_custom_strategy_and_no_delete() -> None:
     with (
-        patch("standard_tooling.bin.merge_when_green.github.wait_for_checks"),
-        patch("standard_tooling.bin.merge_when_green.github.merge") as mock_merge,
+        patch(f"{_MOD}.git.is_main_worktree", return_value=True),
+        patch(f"{_MOD}.github.wait_for_checks"),
+        patch(f"{_MOD}.github.merge") as mock_merge,
     ):
         result = main(["42", "--strategy", "squash", "--no-delete-branch"])
     assert result == 0
     mock_merge.assert_called_once_with("42", strategy="squash", delete_branch=False)
 
 
+def test_main_skips_delete_branch_in_worktree(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    with (
+        patch(f"{_MOD}.git.is_main_worktree", return_value=False),
+        patch(f"{_MOD}.github.wait_for_checks"),
+        patch(f"{_MOD}.github.merge") as mock_merge,
+    ):
+        result = main(["https://github.com/pr/1"])
+    assert result == 0
+    mock_merge.assert_called_once_with(
+        "https://github.com/pr/1", strategy="merge", delete_branch=False
+    )
+    assert "skipping --delete-branch" in capsys.readouterr().out
+
+
+def test_main_worktree_respects_explicit_no_delete() -> None:
+    with (
+        patch(f"{_MOD}.git.is_main_worktree", return_value=False),
+        patch(f"{_MOD}.github.wait_for_checks"),
+        patch(f"{_MOD}.github.merge") as mock_merge,
+    ):
+        result = main(["42", "--no-delete-branch"])
+    assert result == 0
+    mock_merge.assert_called_once_with("42", strategy="merge", delete_branch=False)
+
+
 def test_main_surfaces_check_failure() -> None:
     err = subprocess.CalledProcessError(returncode=1, cmd=["gh", "pr", "checks"])
     with (
+        patch(f"{_MOD}.git.is_main_worktree", return_value=True),
         patch(
-            "standard_tooling.bin.merge_when_green.github.wait_for_checks",
+            f"{_MOD}.github.wait_for_checks",
             side_effect=err,
         ),
-        patch("standard_tooling.bin.merge_when_green.github.merge") as mock_merge,
+        patch(f"{_MOD}.github.merge") as mock_merge,
         pytest.raises(subprocess.CalledProcessError),
     ):
         main(["https://github.com/pr/1"])
