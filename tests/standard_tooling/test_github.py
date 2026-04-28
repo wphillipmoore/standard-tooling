@@ -54,3 +54,20 @@ def test_merge_without_delete_branch() -> None:
     with patch("standard_tooling.lib.github.run") as mock_run:
         github.merge("https://github.com/pr/1", strategy="squash", delete_branch=False)
     mock_run.assert_called_once_with("pr", "merge", "--squash", "https://github.com/pr/1")
+
+
+def test_list_project_repos() -> None:
+    with patch(
+        "standard_tooling.lib.github.read_output",
+        return_value="acme/repo-b\nacme/repo-a\nacme/repo-a\n",
+    ):
+        repos = github.list_project_repos("acme", "5")
+    assert repos == ["acme/repo-a", "acme/repo-b"]
+
+
+def test_list_project_repos_empty() -> None:
+    with patch(
+        "standard_tooling.lib.github.read_output",
+        return_value="",
+    ):
+        assert github.list_project_repos("acme", "5") == []
