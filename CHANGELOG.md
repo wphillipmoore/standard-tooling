@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.4.0] - 2026-04-28
+
+### Bug fixes
+
+- replace docker info with docker version for daemon reachability check
+- auto-chdir to main worktree instead of erroring from a secondary worktree
+- skip --delete-branch when running from a secondary worktree
+- bump stale standard-actions pins from @v1.1 to @v1.3
+- support --help and -h as program options
+
+### Features
+
+- add post-publish workflow to verify dev container images carry the released version
+
 ## [1.3.4] - 2026-04-27
 
 ### Bug fixes

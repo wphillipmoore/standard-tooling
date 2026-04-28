@@ -13,8 +13,8 @@ import argparse
 import sys
 
 from standard_tooling.lib import github
+from standard_tooling.lib.github import list_project_repos
 from standard_tooling.lib.labels import load_labels
-from standard_tooling.lib.observatory import list_project_repos
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:

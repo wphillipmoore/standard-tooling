@@ -1,0 +1,123 @@
+name: Verify docker images
+
+on:
+  workflow_run:
+    workflows: ["Publish release"]
+    types: [completed]
+
+permissions:
+  contents: read
+  packages: read
+  issues: write
+
+jobs:
+  verify:
+    name: "verify: docker image version"
+    if: github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v6
+        with:
+          ref: main
+
+      - name: Extract expected version
+        id: version
+        run: |
+          version=$(python3 -c "
+          import tomllib
+          from pathlib import Path
+          print(tomllib.loads(Path('pyproject.toml').read_text())['project']['version'])
+          ")
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "Expected standard-tooling version: $version"
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Wait for image rebuild and verify version
+        id: verify
+        env:
+          EXPECTED: ${{ steps.version.outputs.version }}
+        run: |
+          image="ghcr.io/wphillipmoore/dev-base:latest"
+          max_attempts=13
+          delay=120
+
+          for attempt in $(seq 1 "$max_attempts"); do
+            echo "--- Attempt $attempt/$max_attempts ---"
+            echo "Pulling $image..."
+
+            # Force a fresh pull (no local layer cache)
+            docker rmi "$image" 2>/dev/null || true
+            if ! docker pull "$image" --quiet; then
+              echo "  Pull failed — retrying after ${delay}s..."
+              sleep "$delay"
+              continue
+            fi
+
+            actual=$(docker run --rm "$image" \
+              pip show standard-tooling 2>/dev/null \
+              | grep '^Version:' | awk '{print $2}')
+            actual="${actual:-unknown}"
+
+            echo "  Expected: $EXPECTED"
+            echo "  Actual:   $actual"
+
+            if [ "$actual" = "$EXPECTED" ]; then
+              echo "Version verified."
+              echo "verified=true" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+
+            if [ "$attempt" -lt "$max_attempts" ]; then
+              echo "  Version mismatch — waiting ${delay}s before retry..."
+              sleep "$delay"
+            fi
+          done
+
+          echo "verified=false" >> "$GITHUB_OUTPUT"
+          echo "::error::Image $image carries standard-tooling $actual, expected $EXPECTED"
+          exit 1
+
+      - name: Open issue on failure
+        if: failure() && steps.verify.outputs.verified == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          existing=$(gh issue list \
+            --repo "$GITHUB_REPOSITORY" \
+            --state open \
+            --search "Post-publish verification failed" \
+            --json number --jq '.[0].number // empty')
+
+          if [ -n "$existing" ]; then
+            echo "Open issue #$existing already exists — adding comment."
+            gh issue comment "$existing" \
+              --repo "$GITHUB_REPOSITORY" \
+              --body "Post-publish verification failed again: dev-base:latest does not carry standard-tooling v$VERSION after 25 minutes. Workflow run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          else
+            gh issue create \
+              --repo "$GITHUB_REPOSITORY" \
+              --title "Post-publish verification failed: dev-base image does not carry v$VERSION" \
+              --label bug \
+              --body "The post-publish verification workflow waited ~25 minutes after the v$VERSION release but dev-base:latest still does not carry the expected standard-tooling version.
+
+          This means the standard-tooling-docker image rebuild either failed or was not triggered. Non-Python consumers (Go, Ruby, Java, Rust) are running a stale standard-tooling version until this is resolved.
+
+          **Expected version**: $VERSION
+          **Workflow run**: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID
+
+          ## Next steps
+
+          1. Check the [standard-tooling-docker Actions tab](https://github.com/wphillipmoore/standard-tooling-docker/actions) for a failed or missing \`docker-publish\` run.
+          2. If the dispatch was not received, re-trigger manually: \`gh workflow run docker-publish.yml --repo wphillipmoore/standard-tooling-docker\`.
+          3. If the rebuild failed, fix the failure in standard-tooling-docker and re-run.
+
+          Ref: #333 (safety net feature)"
+          fi

@@ -322,7 +322,7 @@ What the composite action runs inside the `dev-base` container:
 The `dev-base` container already has standard-tooling on PATH, so
 no further setup is needed in the workflow.
 
-See the [Three-Tier CI](three-tier-ci.md) guide if you also want
+See the [CI Architecture](ci-architecture.md) guide if you also want
 per-language test/lint/audit tiers.
 
 ## Step 10: Verify end-to-end
@@ -423,7 +423,7 @@ For a broader troubleshooting index see
   actually unfolds once setup is done
 - [Git Hooks and Validation][hooks-doc] —
   pre-commit hook + validator reference
-- [Three-Tier CI](three-tier-ci.md) — per-language test/lint/audit
+- [CI Architecture](ci-architecture.md) — per-language test/lint/audit
   tier wiring
 - [Releasing](releasing.md) — release workflow
 - [Worktree convention spec][worktree-spec]

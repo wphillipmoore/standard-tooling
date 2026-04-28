@@ -55,6 +55,12 @@ def is_main_worktree() -> bool:
     return git_dir == common_dir
 
 
+def main_worktree_root() -> Path:
+    """Return the root directory of the main worktree."""
+    common_dir = Path(read_output("rev-parse", "--git-common-dir")).resolve()
+    return common_dir.parent
+
+
 def current_branch() -> str:
     """Return the current branch name."""
     return read_output("rev-parse", "--abbrev-ref", "HEAD")

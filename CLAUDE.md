@@ -125,24 +125,23 @@ This is the **only** validation command. Do not run individual linters,
 formatters, or other tools outside of `st-validate-local`. If a tool is not
 invoked by `st-validate-local`, it is not part of the validation pipeline.
 
-### Three-Tier CI Model
+### Two-Tier CI Model
 
-Testing is split across three tiers with increasing scope and cost:
+Testing is split across two tiers with increasing scope and cost:
 
 **Tier 1 — Local pre-commit (seconds):** The single entry point
 `st-docker-run -- uv run st-validate-local` runs everything
 (lint, typecheck, tests, audit, common checks) inside one dev
-container. Run before every commit.
+container. Enforced via the `.githooks` pre-commit gate on every commit.
 
-**Tier 2 — Push CI (~1-2 min):** Triggers automatically on push to
-`feature/**`, `bugfix/**`, `hotfix/**`, `chore/**`. Single Python version
-(3.12), no security scanners or release gates.
-Workflow: `.github/workflows/ci-push.yml` (calls `ci.yml`).
-
-**Tier 3 — PR CI (~5-8 min):** Triggers on `pull_request`. Python 3.12,
+**Tier 2 — PR CI (~5-8 min):** Triggers on `pull_request`. Python 3.12,
 all quality checks, security scanners (CodeQL, Trivy, Semgrep), standards
 compliance, and release gates.
 Workflow: `.github/workflows/ci.yml`.
+
+Push-CI was retired once `st-validate-local` reached parity with PR-CI.
+See `docs/site/docs/guides/ci-architecture.md` for the full rationale and
+wphillipmoore/standard-actions#176 for the parity audit.
 
 ### Docker-First Testing
 

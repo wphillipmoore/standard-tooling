@@ -102,6 +102,22 @@ def test_is_main_worktree_false() -> None:
         assert git.is_main_worktree() is False
 
 
+def test_main_worktree_root_from_main() -> None:
+    with patch(
+        "standard_tooling.lib.git.read_output",
+        return_value="/repo/.git",
+    ):
+        assert git.main_worktree_root() == Path("/repo")
+
+
+def test_main_worktree_root_from_secondary() -> None:
+    with patch(
+        "standard_tooling.lib.git.read_output",
+        return_value="/repo/.git",
+    ):
+        assert git.main_worktree_root() == Path("/repo")
+
+
 def test_has_staged_changes_true() -> None:
     with patch("standard_tooling.lib.git.subprocess.run") as mock_run:
         mock_run.return_value = _completed(returncode=1)
