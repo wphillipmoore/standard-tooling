@@ -13,6 +13,47 @@ if TYPE_CHECKING:
     import pytest
 
 
+# -- help output --------------------------------------------------------------
+
+
+def test_help_flag(capsys: pytest.CaptureFixture[str]) -> None:
+    assert main(["--help"]) == 0
+    out = capsys.readouterr().out
+    assert "usage: st-docker-run" in out
+    assert "GH_TOKEN" in out
+
+
+def test_h_flag(capsys: pytest.CaptureFixture[str]) -> None:
+    assert main(["-h"]) == 0
+    assert "usage: st-docker-run" in capsys.readouterr().out
+
+
+def test_help_after_separator_not_intercepted(tmp_path: Path) -> None:
+    env = {"GH_TOKEN": "tok"}
+    with (
+        patch("standard_tooling.bin.docker_run.git.repo_root", return_value=tmp_path),
+        patch("standard_tooling.bin.docker_run.assert_docker_available"),
+        patch("standard_tooling.bin.docker_run.os.execvp") as mock_exec,
+        patch.dict("os.environ", env, clear=True),
+    ):
+        main(["--", "some-tool", "--help"])
+    args = mock_exec.call_args[0][1]
+    assert args[-2:] == ["some-tool", "--help"]
+
+
+def test_help_alone_after_separator_not_intercepted(tmp_path: Path) -> None:
+    env = {"GH_TOKEN": "tok"}
+    with (
+        patch("standard_tooling.bin.docker_run.git.repo_root", return_value=tmp_path),
+        patch("standard_tooling.bin.docker_run.assert_docker_available"),
+        patch("standard_tooling.bin.docker_run.os.execvp") as mock_exec,
+        patch.dict("os.environ", env, clear=True),
+    ):
+        main(["--", "--help"])
+    args = mock_exec.call_args[0][1]
+    assert args[-1] == "--help"
+
+
 # -- argument parsing ---------------------------------------------------------
 
 
