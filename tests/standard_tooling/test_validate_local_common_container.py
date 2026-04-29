@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 from unittest.mock import patch
 
 from standard_tooling.bin.validate_local_common_container import (
+    _find_markdown_files,
     _find_shell_files,
     _find_yaml_files,
     main,
@@ -67,6 +68,47 @@ def test_find_shell_files_sorted(tmp_path: Path) -> None:
     assert result[0] < result[1]
 
 
+# -- _find_markdown_files ----------------------------------------------------
+
+
+def test_find_markdown_files_none(tmp_path: Path) -> None:
+    assert _find_markdown_files(tmp_path) == []
+
+
+def test_find_markdown_files_site(tmp_path: Path) -> None:
+    site = tmp_path / "docs" / "site"
+    site.mkdir(parents=True)
+    (site / "index.md").write_text("# Hello\n")
+    result = _find_markdown_files(tmp_path)
+    assert len(result) == 1
+    assert result[0].endswith("index.md")
+
+
+def test_find_markdown_files_readme(tmp_path: Path) -> None:
+    (tmp_path / "README.md").write_text("# Hello\n")
+    result = _find_markdown_files(tmp_path)
+    assert len(result) == 1
+    assert result[0].endswith("README.md")
+
+
+def test_find_markdown_files_both(tmp_path: Path) -> None:
+    site = tmp_path / "docs" / "site"
+    site.mkdir(parents=True)
+    (site / "index.md").write_text("# Hello\n")
+    (tmp_path / "README.md").write_text("# Project\n")
+    result = _find_markdown_files(tmp_path)
+    assert len(result) == 2
+
+
+def test_find_markdown_files_sorted(tmp_path: Path) -> None:
+    site = tmp_path / "docs" / "site"
+    site.mkdir(parents=True)
+    (site / "b.md").write_text("# B\n")
+    (site / "a.md").write_text("# A\n")
+    result = _find_markdown_files(tmp_path)
+    assert result == sorted(result)
+
+
 # -- main --------------------------------------------------------------------
 
 
@@ -78,10 +120,6 @@ def test_main_all_pass(tmp_path: Path) -> None:
         ),
         patch(
             "standard_tooling.bin.validate_local_common_container.repo_profile_cli.main",
-            return_value=0,
-        ),
-        patch(
-            "standard_tooling.bin.validate_local_common_container.markdown_standards.main",
             return_value=0,
         ),
     ):
@@ -102,7 +140,11 @@ def test_main_repo_profile_fails(tmp_path: Path) -> None:
         assert main() == 1
 
 
-def test_main_markdown_fails(tmp_path: Path) -> None:
+def test_main_markdownlint_runs(tmp_path: Path) -> None:
+    site = tmp_path / "docs" / "site"
+    site.mkdir(parents=True)
+    (site / "index.md").write_text("# Hello\n")
+
     with (
         patch(
             "standard_tooling.bin.validate_local_common_container.git.repo_root",
@@ -113,8 +155,57 @@ def test_main_markdown_fails(tmp_path: Path) -> None:
             return_value=0,
         ),
         patch(
-            "standard_tooling.bin.validate_local_common_container.markdown_standards.main",
-            return_value=1,
+            "standard_tooling.bin.validate_local_common_container.subprocess.run",
+            return_value=subprocess.CompletedProcess(args=[], returncode=0),
+        ) as mock_run,
+    ):
+        assert main() == 0
+    mock_run.assert_called_once()
+    call_args = mock_run.call_args[0][0]
+    assert call_args[0] == "markdownlint"
+
+
+def test_main_markdownlint_with_config(tmp_path: Path) -> None:
+    site = tmp_path / "docs" / "site"
+    site.mkdir(parents=True)
+    (site / "index.md").write_text("# Hello\n")
+    (tmp_path / ".markdownlint.yaml").write_text("default: true\n")
+
+    with (
+        patch(
+            "standard_tooling.bin.validate_local_common_container.git.repo_root",
+            return_value=tmp_path,
+        ),
+        patch(
+            "standard_tooling.bin.validate_local_common_container.repo_profile_cli.main",
+            return_value=0,
+        ),
+        patch(
+            "standard_tooling.bin.validate_local_common_container.subprocess.run",
+            return_value=subprocess.CompletedProcess(args=[], returncode=0),
+        ) as mock_run,
+    ):
+        assert main() == 0
+    ml_call = mock_run.call_args_list[0][0][0]
+    assert ml_call[0] == "markdownlint"
+    assert "--config" in ml_call
+
+
+def test_main_markdownlint_fails(tmp_path: Path) -> None:
+    (tmp_path / "README.md").write_text("# Hello\n")
+
+    with (
+        patch(
+            "standard_tooling.bin.validate_local_common_container.git.repo_root",
+            return_value=tmp_path,
+        ),
+        patch(
+            "standard_tooling.bin.validate_local_common_container.repo_profile_cli.main",
+            return_value=0,
+        ),
+        patch(
+            "standard_tooling.bin.validate_local_common_container.subprocess.run",
+            return_value=subprocess.CompletedProcess(args=[], returncode=1),
         ),
     ):
         assert main() == 1
@@ -132,10 +223,6 @@ def test_main_shellcheck_runs(tmp_path: Path) -> None:
         ),
         patch(
             "standard_tooling.bin.validate_local_common_container.repo_profile_cli.main",
-            return_value=0,
-        ),
-        patch(
-            "standard_tooling.bin.validate_local_common_container.markdown_standards.main",
             return_value=0,
         ),
         patch(
@@ -161,10 +248,6 @@ def test_main_shellcheck_fails(tmp_path: Path) -> None:
         ),
         patch(
             "standard_tooling.bin.validate_local_common_container.repo_profile_cli.main",
-            return_value=0,
-        ),
-        patch(
-            "standard_tooling.bin.validate_local_common_container.markdown_standards.main",
             return_value=0,
         ),
         patch(
@@ -217,17 +300,10 @@ def test_find_yaml_files_mkdocs(tmp_path: Path) -> None:
 
 
 def test_find_yaml_files_skips_worktrees_and_venv(tmp_path: Path) -> None:
-    # Files inside vendored / worktree subtrees must not appear in the
-    # result. By design this is excluded structurally — discovery walks
-    # only `repo_root/.github`, `repo_root/docs/site/mkdocs.yml`, and
-    # `repo_root` itself; it never recurses into `.venv`, `.worktrees`,
-    # `.venv-host`, or `node_modules`. This test pins that behavior so a
-    # future "expand discovery" change can't regress it silently.
     for skip in (".worktrees", ".venv", ".venv-host", "node_modules"):
         nested = tmp_path / skip / ".github" / "workflows"
         nested.mkdir(parents=True)
         (nested / "ci.yml").write_text("name: CI\n")
-    # And a real workflow at the proper path:
     real = tmp_path / ".github" / "workflows"
     real.mkdir(parents=True)
     (real / "ci.yml").write_text("name: CI\n")
@@ -265,16 +341,11 @@ def test_main_yamllint_runs(tmp_path: Path) -> None:
             return_value=0,
         ),
         patch(
-            "standard_tooling.bin.validate_local_common_container.markdown_standards.main",
-            return_value=0,
-        ),
-        patch(
             "standard_tooling.bin.validate_local_common_container.subprocess.run",
             return_value=subprocess.CompletedProcess(args=[], returncode=0),
         ) as mock_run,
     ):
         assert main() == 0
-    # Only yamllint runs (no shell files in this fixture).
     mock_run.assert_called_once()
     call_args = mock_run.call_args[0][0]
     assert call_args[0] == "yamllint"
@@ -292,10 +363,6 @@ def test_main_yamllint_fails(tmp_path: Path) -> None:
         ),
         patch(
             "standard_tooling.bin.validate_local_common_container.repo_profile_cli.main",
-            return_value=0,
-        ),
-        patch(
-            "standard_tooling.bin.validate_local_common_container.markdown_standards.main",
             return_value=0,
         ),
         patch(

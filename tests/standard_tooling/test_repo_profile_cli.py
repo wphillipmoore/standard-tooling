@@ -5,10 +5,12 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 from unittest.mock import patch
 
-from standard_tooling.bin.repo_profile_cli import main
+from standard_tooling.bin.repo_profile_cli import _structural_check, main
 
 if TYPE_CHECKING:
     from pathlib import Path
+
+    import pytest
 
 _VALID_PROFILE = """\
 ## Repository profile
@@ -28,19 +30,29 @@ def _write_profile(tmp_path: Path, content: str) -> None:
     (docs / "repository-standards.md").write_text(content)
 
 
-def test_valid_profile(tmp_path: Path) -> None:
-    _write_profile(tmp_path, _VALID_PROFILE)
-    with patch("standard_tooling.bin.repo_profile_cli.read_profile") as mock_read:
-        from standard_tooling.lib.repo_profile import RepoProfile
+def _mock_profile_ok() -> patch:
+    from standard_tooling.lib.repo_profile import RepoProfile
 
-        mock_read.return_value = RepoProfile(
+    return patch(
+        "standard_tooling.bin.repo_profile_cli.read_profile",
+        return_value=RepoProfile(
             repository_type="library",
             versioning_scheme="semver",
             branching_model="library-release",
             release_model="tagged-release",
             supported_release_lines="1",
             primary_language="python",
-        )
+        ),
+    )
+
+
+# -- profile validation ------------------------------------------------------
+
+
+def test_valid_profile(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.chdir(tmp_path)
+    _write_profile(tmp_path, _VALID_PROFILE)
+    with _mock_profile_ok():
         assert main() == 0
 
 
@@ -52,7 +64,8 @@ def test_missing_profile() -> None:
         assert main() == 2
 
 
-def test_empty_attribute() -> None:
+def test_empty_attribute(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.chdir(tmp_path)
     from standard_tooling.lib.repo_profile import RepoProfile
 
     with patch("standard_tooling.bin.repo_profile_cli.read_profile") as mock_read:
@@ -67,7 +80,8 @@ def test_empty_attribute() -> None:
         assert main() == 1
 
 
-def test_placeholder_angle_brackets() -> None:
+def test_placeholder_angle_brackets(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.chdir(tmp_path)
     from standard_tooling.lib.repo_profile import RepoProfile
 
     with patch("standard_tooling.bin.repo_profile_cli.read_profile") as mock_read:
@@ -82,7 +96,8 @@ def test_placeholder_angle_brackets() -> None:
         assert main() == 1
 
 
-def test_placeholder_pipe() -> None:
+def test_placeholder_pipe(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.chdir(tmp_path)
     from standard_tooling.lib.repo_profile import RepoProfile
 
     with patch("standard_tooling.bin.repo_profile_cli.read_profile") as mock_read:
@@ -97,7 +112,8 @@ def test_placeholder_pipe() -> None:
         assert main() == 1
 
 
-def test_multiple_errors() -> None:
+def test_multiple_errors(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.chdir(tmp_path)
     from standard_tooling.lib.repo_profile import RepoProfile
 
     with patch("standard_tooling.bin.repo_profile_cli.read_profile") as mock_read:
@@ -110,3 +126,71 @@ def test_multiple_errors() -> None:
             primary_language="python",
         )
         assert main() == 1
+
+
+# -- _structural_check -------------------------------------------------------
+
+
+def test_structural_valid(tmp_path: Path) -> None:
+    doc = tmp_path / "README.md"
+    doc.write_text("# Title\n\n## Table of Contents\n\n## Section\n")
+    assert _structural_check(str(doc)) is True
+
+
+def test_structural_no_h1(tmp_path: Path) -> None:
+    doc = tmp_path / "README.md"
+    doc.write_text("## Section\n\n## Table of Contents\n")
+    assert _structural_check(str(doc)) is False
+
+
+def test_structural_multiple_h1(tmp_path: Path) -> None:
+    doc = tmp_path / "README.md"
+    doc.write_text("# Title\n\n# Another\n\n## Table of Contents\n")
+    assert _structural_check(str(doc)) is False
+
+
+def test_structural_no_toc(tmp_path: Path) -> None:
+    doc = tmp_path / "README.md"
+    doc.write_text("# Title\n\n## Section\n")
+    assert _structural_check(str(doc)) is False
+
+
+def test_structural_heading_skip(tmp_path: Path) -> None:
+    doc = tmp_path / "README.md"
+    doc.write_text("# Title\n\n## Table of Contents\n\n#### Skipped\n")
+    assert _structural_check(str(doc)) is False
+
+
+def test_structural_code_fence_ignored(tmp_path: Path) -> None:
+    doc = tmp_path / "README.md"
+    doc.write_text("# Title\n\n## Table of Contents\n\n```\n# Not a heading\n```\n\n## End\n")
+    assert _structural_check(str(doc)) is True
+
+
+def test_structural_tilde_fence_ignored(tmp_path: Path) -> None:
+    doc = tmp_path / "README.md"
+    doc.write_text("# Title\n\n## Table of Contents\n\n~~~\n# Not a heading\n~~~\n\n## End\n")
+    assert _structural_check(str(doc)) is True
+
+
+# -- main: structural check integration --------------------------------------
+
+
+def test_main_readme_structural_fails(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / "README.md").write_text("## No H1\n")
+    with _mock_profile_ok():
+        assert main() == 1
+
+
+def test_main_readme_structural_passes(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / "README.md").write_text("# Title\n\n## Table of Contents\n\n## Section\n")
+    with _mock_profile_ok():
+        assert main() == 0
+
+
+def test_main_no_readme(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.chdir(tmp_path)
+    with _mock_profile_ok():
+        assert main() == 0
