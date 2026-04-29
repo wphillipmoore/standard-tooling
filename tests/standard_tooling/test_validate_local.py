@@ -94,16 +94,16 @@ def test_run_validator_not_found(tmp_path: Path) -> None:
         assert _run_validator("missing", tmp_path) is True
 
 
-def _make_profile(tmp_path: Path, language: str) -> None:
-    docs = tmp_path / "docs"
-    docs.mkdir(exist_ok=True)
-    (docs / "repository-standards.md").write_text(
-        f"## Repository profile\n\n- primary_language: {language}\n"
+def _write_config(tmp_path: Path, language: str) -> None:
+    (tmp_path / "standard-tooling.toml").write_text(
+        f'[project]\nrepository-type = "library"\nversioning-scheme = "semver"\n'
+        f'branching-model = "library-release"\nrelease-model = "tagged-release"\n'
+        f'primary-language = "{language}"\n\n[dependencies]\nstandard-tooling = "v1.4"\n'
     )
 
 
 def test_main_all_pass(tmp_path: Path) -> None:
-    _make_profile(tmp_path, "python")
+    _write_config(tmp_path, "python")
     scripts_bin = tmp_path / "scripts" / "bin"
     scripts_bin.mkdir(parents=True)
     with (
@@ -115,7 +115,7 @@ def test_main_all_pass(tmp_path: Path) -> None:
 
 
 def test_main_common_fails(tmp_path: Path) -> None:
-    _make_profile(tmp_path, "python")
+    _write_config(tmp_path, "python")
 
     def mock_run_validator(name: str, scripts_bin: Path) -> bool:
         return name != "validate-local-common"
@@ -132,7 +132,7 @@ def test_main_common_fails(tmp_path: Path) -> None:
 
 
 def test_main_language_validator_fails(tmp_path: Path) -> None:
-    _make_profile(tmp_path, "python")
+    _write_config(tmp_path, "python")
 
     def mock_run_validator(name: str, scripts_bin: Path) -> bool:
         return name != "validate-local-python"
@@ -157,8 +157,15 @@ def test_main_no_profile(tmp_path: Path) -> None:
     assert result == 0
 
 
+def test_main_config_error(tmp_path: Path) -> None:
+    (tmp_path / "standard-tooling.toml").write_text("[invalid\n")
+    with patch("standard_tooling.bin.validate_local.git.repo_root", return_value=tmp_path):
+        result = main([])
+    assert result == 1
+
+
 def test_main_language_none(tmp_path: Path) -> None:
-    _make_profile(tmp_path, "none")
+    _write_config(tmp_path, "none")
     with (
         patch("standard_tooling.bin.validate_local.git.repo_root", return_value=tmp_path),
         patch("standard_tooling.bin.validate_local._run_validator", return_value=True),
@@ -169,7 +176,7 @@ def test_main_language_none(tmp_path: Path) -> None:
 
 
 def test_main_custom_validator_exists(tmp_path: Path) -> None:
-    _make_profile(tmp_path, "python")
+    _write_config(tmp_path, "python")
     call_count = 0
 
     def mock_find_validator(name: str, scripts_bin: Path) -> str | None:
@@ -207,7 +214,7 @@ def test_main_custom_validator_fails(tmp_path: Path) -> None:
     def mock_run_validator(name: str, scripts_bin: Path) -> bool:
         return name != "validate-local-custom"
 
-    _make_profile(tmp_path, "python")
+    _write_config(tmp_path, "python")
     with (
         patch("standard_tooling.bin.validate_local.git.repo_root", return_value=tmp_path),
         patch(

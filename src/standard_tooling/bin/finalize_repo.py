@@ -17,7 +17,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from standard_tooling.lib import git, repo_profile
+from standard_tooling.lib import config, git
 from standard_tooling.lib.docker_cache import clean_branch_images
 
 _DOCS_WORKFLOW_NAME = "Documentation"
@@ -155,20 +155,20 @@ def main(argv: list[str] | None = None) -> int:
     root = git.repo_root()
 
     try:
-        profile = repo_profile.read_profile(root)
-        model = profile.branching_model
+        st_config = config.read_config(root)
+        model = st_config.project.branching_model
     except FileNotFoundError:
         model = ""
+    except config.ConfigError as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 1
 
     eternal = {"gh-pages"}
     if model in _ETERNAL_BY_MODEL:
         eternal.update(_ETERNAL_BY_MODEL[model])
-    elif model == "":
+    else:
         print("WARNING: branching_model not found; protecting develop and main.", file=sys.stderr)
         eternal.update(("develop", "main"))
-    else:
-        print(f"ERROR: unrecognized branching_model '{model}'.", file=sys.stderr)
-        return 1
 
     current = git.current_branch()
     if current != args.target_branch:

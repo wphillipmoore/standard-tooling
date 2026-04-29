@@ -1,13 +1,108 @@
-"""Read per-repo ``st-config.toml`` configuration."""
+"""Read per-repo configuration from ``standard-tooling.toml`` and ``st-config.toml``."""
 
 from __future__ import annotations
 
 import os
+import re
 import tomllib
+from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from pathlib import Path
+
+CONFIG_FILE = "standard-tooling.toml"
+
+_COAUTHOR_RE = re.compile(r"^Co-Authored-By:\s+.+\s+<.+>$")
+
+_ENUMS: dict[str, set[str]] = {
+    "repository-type": {"library", "application", "infrastructure", "tooling", "documentation"},
+    "versioning-scheme": {"library", "semver", "application", "none"},
+    "branching-model": {"library-release", "application-promotion", "docs-single-branch"},
+    "release-model": {"artifact-publishing", "tagged-release", "environment-promotion", "none"},
+    "primary-language": {"python", "go", "java", "ruby", "rust", "shell", "none"},
+}
+
+_PROJECT_FIELDS = (
+    "repository-type",
+    "versioning-scheme",
+    "branching-model",
+    "release-model",
+    "primary-language",
+)
+
+
+class ConfigError(Exception):
+    """Raised when standard-tooling.toml has invalid content."""
+
+
+@dataclass
+class ProjectConfig:
+    repository_type: str
+    versioning_scheme: str
+    branching_model: str
+    release_model: str
+    primary_language: str
+    co_authors: dict[str, str]
+
+
+@dataclass
+class StConfig:
+    project: ProjectConfig
+    dependencies: dict[str, str]
+
+
+def read_config(repo_root: Path) -> StConfig:
+    """Parse, validate, and return ``standard-tooling.toml``."""
+    config_path = repo_root / CONFIG_FILE
+    if not config_path.is_file():
+        msg = f"{CONFIG_FILE} not found at {repo_root}"
+        raise FileNotFoundError(msg)
+
+    try:
+        with config_path.open("rb") as f:
+            raw = tomllib.load(f)
+    except tomllib.TOMLDecodeError as exc:
+        msg = f"{CONFIG_FILE} is not valid TOML: {exc}"
+        raise ConfigError(msg) from exc
+
+    project_raw = raw.get("project", {})
+
+    for field in _PROJECT_FIELDS:
+        if field not in project_raw or not project_raw[field]:
+            msg = f"{CONFIG_FILE}: missing or empty required field '{field}'"
+            raise ConfigError(msg)
+
+    for field in _PROJECT_FIELDS:
+        value = project_raw[field]
+        if value not in _ENUMS[field]:
+            allowed = ", ".join(sorted(_ENUMS[field]))
+            msg = f"{CONFIG_FILE}: invalid {field} '{value}' (allowed: {allowed})"
+            raise ConfigError(msg)
+
+    co_authors: dict[str, str] = {}
+    co_authors_raw = project_raw.get("co-authors", {})
+    for name, trailer in co_authors_raw.items():
+        if not _COAUTHOR_RE.match(trailer):
+            msg = f"{CONFIG_FILE}: malformed co-author trailer for '{name}': {trailer!r}"
+            raise ConfigError(msg)
+        co_authors[name] = trailer
+
+    deps = raw.get("dependencies", {})
+    if "standard-tooling" not in deps:
+        msg = f"{CONFIG_FILE}: [dependencies] must contain 'standard-tooling'"
+        raise ConfigError(msg)
+
+    project = ProjectConfig(
+        repository_type=project_raw["repository-type"],
+        versioning_scheme=project_raw["versioning-scheme"],
+        branching_model=project_raw["branching-model"],
+        release_model=project_raw["release-model"],
+        primary_language=project_raw["primary-language"],
+        co_authors=co_authors,
+    )
+    return StConfig(project=project, dependencies=dict(deps))
+
 
 _CONFIG_FILE = "st-config.toml"
 
