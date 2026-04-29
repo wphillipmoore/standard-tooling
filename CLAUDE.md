@@ -232,7 +232,7 @@ Consumed via `git config core.hooksPath .githooks`:
 |---|---|---|
 | **Developer host** | `uv tool install` from git URL | Host-side commands: `st-docker-run`, `st-commit`, `st-submit-pr`, `st-prepare-release`, `st-finalize-repo` |
 | **Python project `.venv`** | `[tool.uv.sources]` dev dep + `uv sync` | `uv run st-*` inside the container for validators |
-| **Dev container image** | Pre-baked at image build time | `st-*` inside the container for non-Python consumers |
+| **Non-Python container runtime** | `st-docker-run` cache-first install per `st-config.toml` | `st-*` inside the container for non-Python consumers |
 
 **Host install** (canonical):
 
@@ -249,8 +249,9 @@ git config core.hooksPath .githooks
 ```
 
 **CI (GitHub Actions)**: Python repos use `uv sync --group dev`
-(the dev-dep declaration); non-Python repos use the dev container
-image's pre-baked `standard-tooling`.
+(the dev-dep declaration); non-Python repos get `standard-tooling`
+at container runtime via `st-docker-run`'s cache-first install
+(reads `st-config.toml` for the version tag).
 
 ### Key Constraints
 

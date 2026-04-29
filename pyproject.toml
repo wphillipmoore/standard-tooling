@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "standard-tooling"
-version = "1.4.2"
+version = "1.4.3"
 description = "Shared development tooling for managed repositories"
 requires-python = ">=3.12,<4.0"
 license = "GPL-3.0-only"
@@ -12,6 +12,7 @@ license-files = ["LICENSE"]
 dependencies = []
 
 [project.scripts]
+st-check-pr-merge = "standard_tooling.bin.check_pr_merge:main"
 st-commit = "standard_tooling.bin.commit:main"
 st-submit-pr = "standard_tooling.bin.submit_pr:main"
 st-merge-when-green = "standard_tooling.bin.merge_when_green:main"

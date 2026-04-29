@@ -1,8 +1,8 @@
 """Validation checks that run inside a dev container.
 
 Called by ``validate-local-common`` via ``docker-test``.  Runs:
-  1. Repository profile validation
-  2. Markdown standards validation
+  1. Repository profile validation (includes README structural checks)
+  2. markdownlint on published markdown (docs/site/, README.md)
   3. shellcheck on all shell scripts under ``scripts/``
   4. yamllint on YAML files under ``.github/`` and ``docs/`` (issue #302)
 """
@@ -13,7 +13,7 @@ import subprocess
 import sys
 from typing import TYPE_CHECKING
 
-from standard_tooling.bin import markdown_standards, repo_profile_cli
+from standard_tooling.bin import repo_profile_cli
 from standard_tooling.lib import git
 
 if TYPE_CHECKING:
@@ -32,6 +32,22 @@ def _find_shell_files(repo_root: Path) -> list[str]:
             continue
         if path.suffix == ".sh" or "git-hooks" in path.parts or "bin" in path.parts:
             files.append(str(path))
+    return sorted(files)
+
+
+def _find_markdown_files(repo_root: Path) -> list[str]:
+    """Discover published markdown files: docs/site/**/*.md and README.md."""
+    files: list[str] = []
+
+    site_dir = repo_root / "docs" / "site"
+    if site_dir.is_dir():
+        for path in site_dir.rglob("*.md"):
+            files.append(str(path))
+
+    readme = repo_root / "README.md"
+    if readme.is_file():
+        files.append(str(readme))
+
     return sorted(files)
 
 
@@ -78,10 +94,17 @@ def main(argv: list[str] | None = None) -> int:  # noqa: ARG001
     if rc != 0:
         return rc
 
-    print("Running: markdown-standards")
-    rc = markdown_standards.main()
-    if rc != 0:
-        return rc
+    md_files = _find_markdown_files(repo_root)
+    if md_files:
+        print(f"Running: markdownlint ({len(md_files)} files)")
+        cmd: list[str] = ["markdownlint"]
+        config = repo_root / ".markdownlint.yaml"
+        if config.is_file():
+            cmd.extend(["--config", str(config)])
+        cmd.extend(md_files)
+        result = subprocess.run(cmd, check=False)  # noqa: S603, S607
+        if result.returncode != 0:
+            return result.returncode
 
     shell_files = _find_shell_files(repo_root)
     if shell_files:

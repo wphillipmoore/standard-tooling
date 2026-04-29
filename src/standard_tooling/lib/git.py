@@ -31,8 +31,11 @@ def run(*args: str) -> None:
 
 def read_output(*args: str) -> str:
     """Run a git command and return stripped stdout."""
-    result = subprocess.run(  # noqa: S603, S607
-        ("git", *args), check=True, text=True, capture_output=True
+    result = subprocess.run(  # noqa: S603
+        ("git", *args),  # noqa: S607
+        check=True,
+        text=True,
+        capture_output=True,
     )
     return result.stdout.strip()
 
@@ -68,16 +71,18 @@ def current_branch() -> str:
 
 def has_staged_changes() -> bool:
     """Return True if there are staged changes."""
-    result = subprocess.run(  # noqa: S603, S607
-        ("git", "diff", "--cached", "--quiet"), check=False
+    result = subprocess.run(  # noqa: S603
+        ("git", "diff", "--cached", "--quiet"),  # noqa: S607
+        check=False,
     )
     return result.returncode != 0
 
 
 def ref_exists(ref: str) -> bool:
     """Return True if a git ref exists."""
-    result = subprocess.run(  # noqa: S603, S607
-        ("git", "rev-parse", "--verify", "--quiet", ref), check=False
+    result = subprocess.run(  # noqa: S603
+        ("git", "rev-parse", "--verify", "--quiet", ref),  # noqa: S607
+        check=False,
     )
     return result.returncode == 0
 
