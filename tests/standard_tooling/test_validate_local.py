@@ -103,7 +103,7 @@ def _write_config(tmp_path: Path, language: str) -> None:
 
 
 def test_main_all_pass(tmp_path: Path) -> None:
-    _write_config(tmp_path,"python")
+    _write_config(tmp_path, "python")
     scripts_bin = tmp_path / "scripts" / "bin"
     scripts_bin.mkdir(parents=True)
     with (
@@ -115,7 +115,7 @@ def test_main_all_pass(tmp_path: Path) -> None:
 
 
 def test_main_common_fails(tmp_path: Path) -> None:
-    _write_config(tmp_path,"python")
+    _write_config(tmp_path, "python")
 
     def mock_run_validator(name: str, scripts_bin: Path) -> bool:
         return name != "validate-local-common"
@@ -132,7 +132,7 @@ def test_main_common_fails(tmp_path: Path) -> None:
 
 
 def test_main_language_validator_fails(tmp_path: Path) -> None:
-    _write_config(tmp_path,"python")
+    _write_config(tmp_path, "python")
 
     def mock_run_validator(name: str, scripts_bin: Path) -> bool:
         return name != "validate-local-python"
@@ -158,7 +158,7 @@ def test_main_no_profile(tmp_path: Path) -> None:
 
 
 def test_main_language_none(tmp_path: Path) -> None:
-    _write_config(tmp_path,"none")
+    _write_config(tmp_path, "none")
     with (
         patch("standard_tooling.bin.validate_local.git.repo_root", return_value=tmp_path),
         patch("standard_tooling.bin.validate_local._run_validator", return_value=True),
@@ -169,7 +169,7 @@ def test_main_language_none(tmp_path: Path) -> None:
 
 
 def test_main_custom_validator_exists(tmp_path: Path) -> None:
-    _write_config(tmp_path,"python")
+    _write_config(tmp_path, "python")
     call_count = 0
 
     def mock_find_validator(name: str, scripts_bin: Path) -> str | None:
@@ -207,7 +207,7 @@ def test_main_custom_validator_fails(tmp_path: Path) -> None:
     def mock_run_validator(name: str, scripts_bin: Path) -> bool:
         return name != "validate-local-custom"
 
-    _write_config(tmp_path,"python")
+    _write_config(tmp_path, "python")
     with (
         patch("standard_tooling.bin.validate_local.git.repo_root", return_value=tmp_path),
         patch(

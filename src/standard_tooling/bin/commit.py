@@ -93,8 +93,7 @@ def _validate_commit_context(root: Path, branching_model: str) -> int:
 
     if branching_model and branching_model not in _BRANCHING_MODELS:
         return _reject(
-            f"ERROR: unrecognized branching_model '{branching_model}' "
-            f"in {config.CONFIG_FILE}.",
+            f"ERROR: unrecognized branching_model '{branching_model}' in {config.CONFIG_FILE}.",
         )
 
     if branching_model:
@@ -166,8 +165,7 @@ def main(argv: list[str] | None = None) -> int:
 
     if st_config is None or args.agent not in st_config.project.co_authors:
         print(
-            f"ERROR: no co-author identity for agent '{args.agent}' "
-            f"in {config.CONFIG_FILE}.",
+            f"ERROR: no co-author identity for agent '{args.agent}' in {config.CONFIG_FILE}.",
             file=sys.stderr,
         )
         return 1

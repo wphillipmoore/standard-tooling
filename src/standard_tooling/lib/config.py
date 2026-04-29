@@ -84,10 +84,7 @@ def read_config(repo_root: Path) -> StConfig:
     co_authors_raw = project_raw.get("co-authors", {})
     for name, trailer in co_authors_raw.items():
         if not _COAUTHOR_RE.match(trailer):
-            msg = (
-                f"{CONFIG_FILE}: malformed co-author trailer for '{name}': "
-                f"{trailer!r}"
-            )
+            msg = f"{CONFIG_FILE}: malformed co-author trailer for '{name}': {trailer!r}"
             raise ConfigError(msg)
         co_authors[name] = trailer
 
