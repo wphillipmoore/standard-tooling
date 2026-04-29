@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import fnmatch
 
-_RELEASE_BRANCH_PATTERNS = ("release/*", "chore/bump-version-*")
+_RELEASE_BRANCH_PATTERNS = ("release/*", "chore/bump-version-*", "chore/*-next-cycle-deps-*")
 
 
 def is_release_branch(branch: str) -> bool:
