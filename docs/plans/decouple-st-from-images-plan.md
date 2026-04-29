@@ -1,8 +1,8 @@
 # Implementation Plan: Decouple standard-tooling from dev container images
 
-**Status:** Phase 1 complete — awaiting release
+**Status:** All phases complete
 **Spec:** [`docs/specs/decouple-st-from-images-plan.md`](../specs/decouple-st-from-images-plan.md)
-**Issue:** [#362](https://github.com/wphillipmoore/standard-tooling/issues/362)
+**Issue:** [#362](https://github.com/wphillipmoore/standard-tooling/issues/362) (closed)
 **Pushback review:**
 [`paad/pushback-reviews/2026-04-29-decouple-st-from-images-pushback.md`](../../paad/pushback-reviews/2026-04-29-decouple-st-from-images-pushback.md)
 **Last updated:** 2026-04-29
@@ -18,10 +18,10 @@ Work spans `standard-tooling` (primary), `standard-tooling-docker`,
 and all consuming repos, sequenced in five phases:
 
 1. Cache-first `st-docker-run` + `st-docker-cache` (standard-tooling) **DONE**
-2b. Bootstrap `st-config.toml` in all consuming repos
-2. Strip standard-tooling from images (standard-tooling-docker)
-3. Remove dispatch/verify pipeline (standard-tooling)
-4. Update spec and docs (standard-tooling)
+2b. Bootstrap `st-config.toml` in all consuming repos **DONE**
+2. Strip standard-tooling from images (standard-tooling-docker) **DONE**
+3. Remove dispatch/verify pipeline (standard-tooling) **DONE**
+4. Update spec and docs (standard-tooling) **DONE**
 
 Each phase has observable completion criteria. The plan assumes the
 fleet-of-one operational model.
@@ -104,7 +104,7 @@ alternatives section documents this decision.
 
 ---
 
-## Release: Phase 1
+## Release: Phase 1  DONE
 
 After Phase 1 has merged to `develop`:
 
@@ -123,7 +123,7 @@ the host.
 
 ---
 
-## Phase 2b: Bootstrap `st-config.toml` in all consuming repos
+## Phase 2b: Bootstrap `st-config.toml` in all consuming repos  DONE
 
 **Depends on:** Phase 1 released and host-upgraded
 **Can run in parallel with Phase 3**
@@ -170,12 +170,13 @@ After all repos have `st-config.toml`:
 
 ---
 
-## Phase 2: Strip standard-tooling from images
+## Phase 2: Strip standard-tooling from images  DONE
 
 **Repo:** standard-tooling-docker
 **Branch type:** feature
 **Depends on:** Phase 1 released + Phase 2b complete
-**Issue:** create sub-issue in standard-tooling-docker
+**Issue:** standard-tooling-docker#94
+**PR:** [standard-tooling-docker#95](https://github.com/wphillipmoore/standard-tooling-docker/pull/95)
 
 ### Step 2.1: Delete dockerfile fragments
 
@@ -240,12 +241,13 @@ Standard PR workflow. Images rebuild automatically on push to main.
 
 ---
 
-## Phase 3: Remove dispatch and verification pipeline
+## Phase 3: Remove dispatch and verification pipeline  DONE
 
 **Repo:** standard-tooling
 **Branch type:** chore
 **Can run in parallel with Phase 2b**
-**Issue:** #362 or sub-issue
+**Issue:** #362
+**PR:** [#372](https://github.com/wphillipmoore/standard-tooling/pull/372)
 
 ### Step 3.1: Remove docker dispatch from `publish.yml`
 
@@ -279,11 +281,12 @@ Standard PR workflow.
 
 ---
 
-## Phase 4: Update spec and docs
+## Phase 4: Update spec and docs  DONE
 
 **Repo:** standard-tooling
 **Branch type:** docs
 **Depends on:** Phases 2, 2b, and 3 complete
+**PR:** [#377](https://github.com/wphillipmoore/standard-tooling/pull/377)
 
 ### Step 4.1: Update `host-level-tool.md`
 
@@ -358,16 +361,19 @@ File separate issues for:
 1. **Migrate `docs/repository-standards.md` into `st-config.toml`.**
    Move all fields parsed by `repo_profile.py` into structured TOML.
    Retire the markdown parser.
+   Tracked: [#363](https://github.com/wphillipmoore/standard-tooling/issues/363).
 
-2. **Container guardrails (standard-tooling-docker#91).** Make
-   host-only tools (`gh`, `git`) fail inside containers with clear
-   error messages.
+2. **Container guardrails.** Make host-only tools (`gh`, `git`) fail
+   inside containers with clear error messages.
+   Tracked: [standard-tooling-docker#91](https://github.com/wphillipmoore/standard-tooling-docker/issues/91).
 
 3. **Update branch-workflow and pr-workflow skills** in
    standard-tooling-plugin to invoke `st-docker-cache build` after
    branch creation and recognize `st-config.toml` as a config source.
+   Tracked: [standard-tooling-plugin#172](https://github.com/wphillipmoore/standard-tooling-plugin/issues/172).
 
 4. **`docker.warmup` and `docker.cache-files` config overrides.**
    Allow `st-config.toml` to override the default warmup command and
    cache-sensitive file list per repo. Only needed if the hardcoded
    defaults prove insufficient.
+   Tracked: [#384](https://github.com/wphillipmoore/standard-tooling/issues/384).
