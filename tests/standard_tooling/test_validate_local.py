@@ -157,6 +157,13 @@ def test_main_no_profile(tmp_path: Path) -> None:
     assert result == 0
 
 
+def test_main_config_error(tmp_path: Path) -> None:
+    (tmp_path / "standard-tooling.toml").write_text("[invalid\n")
+    with patch("standard_tooling.bin.validate_local.git.repo_root", return_value=tmp_path):
+        result = main([])
+    assert result == 1
+
+
 def test_main_language_none(tmp_path: Path) -> None:
     _write_config(tmp_path, "none")
     with (

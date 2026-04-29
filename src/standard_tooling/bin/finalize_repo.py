@@ -169,9 +169,6 @@ def main(argv: list[str] | None = None) -> int:
     elif model == "":
         print("WARNING: branching_model not found; protecting develop and main.", file=sys.stderr)
         eternal.update(("develop", "main"))
-    else:
-        print(f"ERROR: unrecognized branching_model '{model}'.", file=sys.stderr)
-        return 1
 
     current = git.current_branch()
     if current != args.target_branch:

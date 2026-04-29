@@ -163,6 +163,38 @@ def test_main_with_scope_and_body(tmp_path: Path) -> None:
 
 
 # --------------------------------------------------------------------------
+# Config error handling
+# --------------------------------------------------------------------------
+
+
+def test_main_config_error(tmp_path: Path) -> None:
+    (tmp_path / "standard-tooling.toml").write_text("[invalid\n")
+    with (
+        patch("standard_tooling.bin.commit.git.current_branch", return_value="feature/42-test"),
+        patch("standard_tooling.bin.commit.git.repo_root", return_value=tmp_path),
+    ):
+        result = main(_DEFAULT_ARGS)
+    assert result == 1
+
+
+def test_main_missing_config(tmp_path: Path) -> None:
+    with (
+        patch("standard_tooling.bin.commit.git.current_branch", return_value="feature/42-test"),
+        patch("standard_tooling.bin.commit.git.repo_root", return_value=tmp_path),
+        patch("standard_tooling.bin.commit.git.is_main_worktree", return_value=False),
+        patch("standard_tooling.bin.commit.git.has_staged_changes", return_value=True),
+    ):
+        result = main(_DEFAULT_ARGS)
+    assert result == 1
+
+
+def test_main_unknown_agent(tmp_path: Path) -> None:
+    with _commit_environment(tmp_path):
+        result = main(["--type", "feat", "--message", "test", "--agent", "nonexistent"])
+    assert result == 1
+
+
+# --------------------------------------------------------------------------
 # Task 1.1 — branch / context validation
 # --------------------------------------------------------------------------
 #
