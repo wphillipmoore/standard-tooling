@@ -65,6 +65,26 @@ class TestExtractPrRef:
         ref, repo = extract_pr_ref("echo 42 | gh pr merge 42")
         assert ref == "42"
 
+    def test_empty_segment(self) -> None:
+        ref, repo = extract_pr_ref("&& gh pr merge 42")
+        assert ref == "42"
+
+    def test_malformed_quoting(self) -> None:
+        with pytest.raises(ValueError):
+            extract_pr_ref("gh pr merge 'unclosed 42")
+
+    def test_review_without_approve(self) -> None:
+        with pytest.raises(ValueError):
+            extract_pr_ref("gh pr review --comment 42")
+
+    def test_unknown_subcommand(self) -> None:
+        with pytest.raises(ValueError):
+            extract_pr_ref("gh pr close 42")
+
+    def test_no_pr_ref(self) -> None:
+        with pytest.raises(ValueError):
+            extract_pr_ref("gh pr merge --squash")
+
 
 class TestMain:
     """End-to-end tests for main() (Task 3)."""
