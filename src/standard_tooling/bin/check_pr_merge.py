@@ -28,9 +28,9 @@ _DENY_MESSAGE = (
     "policy requires human review and merge for feature/bugfix PRs.\n"
     "Hand off the PR URL to the user and stop the work cycle.\n"
     "\n"
-    "Only release-workflow PRs (release/* and chore/bump-version-*)\n"
-    "may be agent-merged, and only via st-merge-when-green from the\n"
-    "publish skill. See issue #162."
+    "Only release-workflow PRs (release/*) may be agent-merged,\n"
+    "and only via st-merge-when-green from the publish skill.\n"
+    "See issue #162."
 )
 
 _GH_MERGE_FLAGS = frozenset(

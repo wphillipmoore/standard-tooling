@@ -13,6 +13,10 @@ from standard_tooling.lib.release import is_release_branch
         "release/1.4.9",
         "release/2.0.0",
         "release/0.1.0",
+        "release/bump-version-1.4.10",
+        "release/bump-version-0.1.1",
+        "release/42-next-cycle-deps-1.4.10",
+        "release/99-next-cycle-deps-2.0.1",
     ],
 )
 def test_release_branch_allowed(branch: str) -> None:
@@ -22,38 +26,15 @@ def test_release_branch_allowed(branch: str) -> None:
 @pytest.mark.parametrize(
     "branch",
     [
-        "chore/bump-version-1.4.10",
-        "chore/bump-version-0.1.1",
-        "chore/bump-version-2.0.1",
-    ],
-)
-def test_bump_branch_allowed(branch: str) -> None:
-    assert is_release_branch(branch) is True
-
-
-@pytest.mark.parametrize(
-    "branch",
-    [
-        "chore/42-next-cycle-deps-1.4.10",
-        "chore/99-next-cycle-deps-2.0.1",
-    ],
-)
-def test_next_cycle_deps_branch_allowed(branch: str) -> None:
-    assert is_release_branch(branch) is True
-
-
-@pytest.mark.parametrize(
-    "branch",
-    [
         "feature/42-foo",
         "bugfix/99-bar",
         "chore/update-deps",
+        "chore/bump-version-1.4.10",
+        "chore/42-next-cycle-deps-1.4.10",
         "hotfix/critical",
         "main",
         "develop",
         "release",
-        "chore/bump-version",
-        "chore/next-cycle-deps",
         "",
     ],
 )
