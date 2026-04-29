@@ -46,34 +46,23 @@ def test_parse_args_custom() -> None:
     assert args.dry_run is True
 
 
-def test_main_auto_chdir_from_secondary_worktree(
+def test_main_rejects_secondary_worktree(
     tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     main_root = tmp_path / "main-wt"
     main_root.mkdir()
-    _make_profile(main_root, "library-release")
-    secondary = tmp_path / "secondary-wt"
-    secondary.mkdir()
-    monkeypatch.chdir(secondary)
 
     with (
         patch(_MOD + ".git.is_main_worktree", return_value=False),
         patch(_MOD + ".git.main_worktree_root", return_value=main_root),
-        patch(_MOD + ".git.repo_root", return_value=main_root),
-        patch(_MOD + ".git.current_branch", return_value="develop"),
-        patch(_MOD + ".git.run"),
-        patch(_MOD + ".git.read_output", return_value=""),
-        patch(_MOD + ".git.merged_branches", return_value=[]),
-        patch(_MOD + ".shutil.which", return_value=None),
     ):
         result = main([])
 
-    assert result == 1  # no validator found, but that's after the chdir
-    out = capsys.readouterr().out
-    assert f"switching to main worktree at {main_root}" in out
-    assert Path.cwd() == main_root
+    assert result == 1
+    err = capsys.readouterr().err
+    assert "must be run from the main worktree" in err
+    assert str(main_root) in err
 
 
 def _make_profile(tmp_path: Path, model: str) -> None:
