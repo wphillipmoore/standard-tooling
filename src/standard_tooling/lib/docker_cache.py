@@ -92,9 +92,7 @@ def _build_cached_image(
 ) -> str:
     """Build a cached image with standard-tooling installed."""
     tag = st_install_tag(repo_root)
-    pip_install = (
-        f"pip install --quiet 'standard-tooling @ git+{_ST_GIT_URL}@{tag}'"
-    )
+    pip_install = f"pip install --quiet 'standard-tooling @ git+{_ST_GIT_URL}@{tag}'"
     warmup = _WARMUP_COMMANDS.get(lang)
     setup = f"{pip_install} && {warmup}" if warmup else pip_install
 

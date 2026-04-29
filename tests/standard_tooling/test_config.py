@@ -17,9 +17,7 @@ if TYPE_CHECKING:
 
 
 def test_read_valid_config(tmp_path: Path) -> None:
-    (tmp_path / "st-config.toml").write_text(
-        '[standard-tooling]\ntag = "v1.4"\n'
-    )
+    (tmp_path / "st-config.toml").write_text('[standard-tooling]\ntag = "v1.4"\n')
     config = read_st_config(tmp_path)
     assert config["standard-tooling"]["tag"] == "v1.4"
 
@@ -44,9 +42,7 @@ def test_read_malformed_toml(tmp_path: Path) -> None:
 
 
 def test_tag_from_config(tmp_path: Path) -> None:
-    (tmp_path / "st-config.toml").write_text(
-        '[standard-tooling]\ntag = "v1.4"\n'
-    )
+    (tmp_path / "st-config.toml").write_text('[standard-tooling]\ntag = "v1.4"\n')
     with patch.dict("os.environ", {}, clear=True):
         assert st_install_tag(tmp_path) == "v1.4"
 
@@ -61,9 +57,7 @@ def test_tag_missing_section(tmp_path: Path) -> None:
 
 
 def test_tag_missing_field(tmp_path: Path) -> None:
-    (tmp_path / "st-config.toml").write_text(
-        "[standard-tooling]\nother = 1\n"
-    )
+    (tmp_path / "st-config.toml").write_text("[standard-tooling]\nother = 1\n")
     with (
         patch.dict("os.environ", {}, clear=True),
         pytest.raises(SystemExit, match="missing 'standard-tooling.tag'"),
@@ -72,9 +66,7 @@ def test_tag_missing_field(tmp_path: Path) -> None:
 
 
 def test_env_override(tmp_path: Path) -> None:
-    (tmp_path / "st-config.toml").write_text(
-        '[standard-tooling]\ntag = "v1.4"\n'
-    )
+    (tmp_path / "st-config.toml").write_text('[standard-tooling]\ntag = "v1.4"\n')
     with patch.dict("os.environ", {"ST_DOCKER_INSTALL_TAG": "v2.0"}, clear=True):
         assert st_install_tag(tmp_path) == "v2.0"
 

@@ -112,9 +112,7 @@ def test_find_cached_image_hit() -> None:
     )
     mock_result = MagicMock(returncode=0, stdout=docker_output)
     with patch("standard_tooling.lib.docker_cache.subprocess.run", return_value=mock_result):
-        result = find_cached_image(
-            "ghcr.io/wphillipmoore/dev-go:1.26", "feature/42-thing"
-        )
+        result = find_cached_image("ghcr.io/wphillipmoore/dev-go:1.26", "feature/42-thing")
     assert result is not None
     assert result[0] == "ghcr.io/wphillipmoore/dev-go:1.26--feature-42-thing--abcd1234"
     assert result[1] == "abcd1234"
@@ -124,9 +122,7 @@ def test_find_cached_image_miss() -> None:
     docker_output = "ghcr.io/wphillipmoore/dev-python:3.14\n"
     mock_result = MagicMock(returncode=0, stdout=docker_output)
     with patch("standard_tooling.lib.docker_cache.subprocess.run", return_value=mock_result):
-        result = find_cached_image(
-            "ghcr.io/wphillipmoore/dev-go:1.26", "feature/42-thing"
-        )
+        result = find_cached_image("ghcr.io/wphillipmoore/dev-go:1.26", "feature/42-thing")
     assert result is None
 
 
@@ -163,9 +159,7 @@ def test_ensure_returns_existing_cache_on_hash_match(tmp_path: Path) -> None:
         ),
     ):
         mock_branch.return_value = "feature/42"
-        result = ensure_cached_image(
-            tmp_path, "go", "ghcr.io/r/dev-go:1.26"
-        )
+        result = ensure_cached_image(tmp_path, "go", "ghcr.io/r/dev-go:1.26")
     assert result == full_tag
 
 
@@ -191,9 +185,7 @@ def test_ensure_rebuilds_on_hash_mismatch(tmp_path: Path) -> None:
         expected_tag = new_tag + expected_hash
         mock_build.return_value = expected_tag
 
-        result = ensure_cached_image(
-            tmp_path, "go", "ghcr.io/r/dev-go:1.26"
-        )
+        result = ensure_cached_image(tmp_path, "go", "ghcr.io/r/dev-go:1.26")
     assert result == expected_tag
     # Stale image should have been removed.
     mock_run.assert_called_once()
@@ -215,9 +207,7 @@ def test_ensure_builds_on_cache_miss(tmp_path: Path) -> None:
         ) as mock_build,
     ):
         mock_branch.return_value = "feature/42"
-        result = ensure_cached_image(
-            tmp_path, "go", "ghcr.io/r/dev-go:1.26"
-        )
+        result = ensure_cached_image(tmp_path, "go", "ghcr.io/r/dev-go:1.26")
     assert result == "new:tag"
     mock_build.assert_called_once()
 

@@ -263,9 +263,7 @@ def test_python_skips_cache(tmp_path: Path) -> None:
     assert args[-3:] == ["uv", "run", "pytest"]
 
 
-def test_cached_image_diagnostic(
-    tmp_path: Path, capsys: pytest.CaptureFixture[str]
-) -> None:
+def test_cached_image_diagnostic(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     (tmp_path / "go.mod").write_text("module example\n")
     cached = "ghcr.io/wphillipmoore/dev-go:1.26--feature-42--abcd1234"
     env = {"GH_TOKEN": "tok"}

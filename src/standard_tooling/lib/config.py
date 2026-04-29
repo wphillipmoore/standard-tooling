@@ -24,9 +24,7 @@ def read_st_config(repo_root: Path) -> dict[str, Any]:
         with config_path.open("rb") as f:
             return tomllib.load(f)
     except tomllib.TOMLDecodeError as exc:
-        raise SystemExit(
-            f"ERROR: {_CONFIG_FILE} at {repo_root} is not valid TOML: {exc}"
-        ) from exc
+        raise SystemExit(f"ERROR: {_CONFIG_FILE} at {repo_root} is not valid TOML: {exc}") from exc
 
 
 def st_install_tag(repo_root: Path) -> str:
@@ -41,7 +39,5 @@ def st_install_tag(repo_root: Path) -> str:
     st = config.get("standard-tooling", {})
     tag = st.get("tag")
     if not tag:
-        raise SystemExit(
-            f"ERROR: {_CONFIG_FILE} missing 'standard-tooling.tag' field."
-        )
+        raise SystemExit(f"ERROR: {_CONFIG_FILE} missing 'standard-tooling.tag' field.")
     return str(tag)
