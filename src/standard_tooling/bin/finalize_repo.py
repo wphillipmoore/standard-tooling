@@ -19,6 +19,7 @@ import sys
 from pathlib import Path
 
 from standard_tooling.lib import git, repo_profile
+from standard_tooling.lib.docker_cache import clean_branch_images
 
 _DOCS_WORKFLOW_NAME = "Documentation"
 
@@ -201,11 +202,10 @@ def main(argv: list[str] | None = None) -> int:
         print(f"  Deleting merged branch: {branch}")
         _run(["branch", "-D", branch], dry_run=args.dry_run)
         deleted.append(branch)
-        from standard_tooling.lib.docker_cache import clean_branch_images
-
-        removed = clean_branch_images(branch)
-        if removed:
-            print(f"  Cleaned {removed} cached Docker image(s) for {branch}")
+        if not args.dry_run:
+            removed = clean_branch_images(branch)
+            if removed:
+                print(f"  Cleaned {removed} cached Docker image(s) for {branch}")
 
     print("Pruning stale remote-tracking references...")
     if args.dry_run:

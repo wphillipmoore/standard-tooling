@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 from unittest.mock import MagicMock, patch
 
 from standard_tooling.lib.docker_cache import (
+    _build_cached_image,
     _sanitize_branch,
     cache_image_tag,
     cache_sensitive_files,
@@ -17,6 +18,8 @@ from standard_tooling.lib.docker_cache import (
 
 if TYPE_CHECKING:
     from pathlib import Path
+
+    import pytest
 
 
 # -- cache_sensitive_files ----------------------------------------------------
@@ -237,3 +240,104 @@ def test_clean_branch_images_none_found() -> None:
     mock_result = MagicMock(returncode=0, stdout="ghcr.io/r/dev-python:3.14\n")
     with patch("standard_tooling.lib.docker_cache.subprocess.run", return_value=mock_result):
         assert clean_branch_images("feature/99-other") == 0
+
+
+def test_clean_branch_images_docker_error() -> None:
+    mock_result = MagicMock(returncode=1, stdout="")
+    with patch("standard_tooling.lib.docker_cache.subprocess.run", return_value=mock_result):
+        assert clean_branch_images("feature/42") == 0
+
+
+# -- _build_cached_image ------------------------------------------------------
+
+
+def test_build_cached_image_success(tmp_path: Path) -> None:
+    (tmp_path / "st-config.toml").write_text('[standard-tooling]\ntag = "v1.4"\n')
+    create_result = MagicMock(returncode=0, stdout="abc123\n")
+    start_result = MagicMock(returncode=0)
+    commit_result = MagicMock(returncode=0)
+    rm_result = MagicMock(returncode=0)
+
+    calls: list[list[str]] = []
+
+    def mock_run(cmd, **_kwargs):  # noqa: ANN001, ANN003
+        calls.append(cmd)
+        if cmd[1] == "create":
+            return create_result
+        if cmd[1] == "start":
+            return start_result
+        if cmd[1] == "commit":
+            return commit_result
+        if cmd[1] == "rm":
+            return rm_result
+        return MagicMock(returncode=0)
+
+    with patch("standard_tooling.lib.docker_cache.subprocess.run", side_effect=mock_run):
+        result = _build_cached_image(tmp_path, "go", "img:1", "img:1--branch--hash")
+    assert result == "img:1--branch--hash"
+
+
+def test_build_cached_image_create_fails(tmp_path: Path) -> None:
+    (tmp_path / "st-config.toml").write_text('[standard-tooling]\ntag = "v1.4"\n')
+    create_result = MagicMock(returncode=1, stderr="no space")
+    with patch("standard_tooling.lib.docker_cache.subprocess.run", return_value=create_result):
+        result = _build_cached_image(tmp_path, "go", "img:1", "img:1--branch--hash")
+    assert result == "img:1"
+
+
+def test_build_cached_image_start_fails(tmp_path: Path) -> None:
+    (tmp_path / "st-config.toml").write_text('[standard-tooling]\ntag = "v1.4"\n')
+    create_result = MagicMock(returncode=0, stdout="abc123\n")
+    start_result = MagicMock(returncode=1)
+    rm_result = MagicMock(returncode=0)
+
+    call_count = 0
+
+    def mock_run(cmd, **_kwargs):  # noqa: ANN001, ANN003
+        nonlocal call_count
+        call_count += 1
+        if cmd[1] == "create":
+            return create_result
+        if cmd[1] == "start":
+            return start_result
+        return rm_result
+
+    with patch("standard_tooling.lib.docker_cache.subprocess.run", side_effect=mock_run):
+        result = _build_cached_image(tmp_path, "go", "img:1", "img:1--branch--hash")
+    assert result == "img:1"
+
+
+def test_build_cached_image_warmup_printed(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    (tmp_path / "st-config.toml").write_text('[standard-tooling]\ntag = "v1.4"\n')
+    create_result = MagicMock(returncode=0, stdout="abc123\n")
+    ok = MagicMock(returncode=0)
+
+    def mock_run(cmd, **_kwargs):  # noqa: ANN001, ANN003
+        if cmd[1] == "create":
+            return create_result
+        return ok
+
+    with patch("standard_tooling.lib.docker_cache.subprocess.run", side_effect=mock_run):
+        _build_cached_image(tmp_path, "go", "img:1", "img:1--branch--hash")
+    out = capsys.readouterr().out
+    assert "Warmup:" in out
+
+
+def test_build_cached_image_no_warmup_for_unknown_lang(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    (tmp_path / "st-config.toml").write_text('[standard-tooling]\ntag = "v1.4"\n')
+    create_result = MagicMock(returncode=0, stdout="abc123\n")
+    ok = MagicMock(returncode=0)
+
+    def mock_run(cmd, **_kwargs):  # noqa: ANN001, ANN003
+        if cmd[1] == "create":
+            return create_result
+        return ok
+
+    with patch("standard_tooling.lib.docker_cache.subprocess.run", side_effect=mock_run):
+        _build_cached_image(tmp_path, "unknown", "img:1", "img:1--branch--hash")
+    out = capsys.readouterr().out
+    assert "Warmup:" not in out
