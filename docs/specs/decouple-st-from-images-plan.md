@@ -384,7 +384,7 @@ implemented.
 
 **Repo:** standard-tooling-docker
 **Branch type:** feature
-**Depends on:** Phase 1 released and host-upgraded
+**Depends on:** Phase 1 released and host-upgraded + Phase 2b complete
 
 #### 2.1 Delete dockerfile fragments
 
@@ -509,20 +509,20 @@ Key sections to rewrite:
 
 - **Principle 6** (line 84-89): change from "The dev container image
   tracks the rolling minor tag and rebuilds on every standard-tooling
-  release" to "`st-docker-run` transparently installs standard-tooling
-  at container runtime for non-Python repos. The version matches the
-  host-installed minor."
+  release" to "`st-docker-run` transparently builds per-branch cached
+  images with standard-tooling installed for non-Python repos."
 - **Deployment targets table** (line 93-97): replace the "Dev container
-  image" row with the runtime install mechanism.
+  image" row with the cache-first mechanism.
 - **Dev container image policy** (lines 326-359): rewrite. Images no
   longer contain standard-tooling. Non-Python images require
   `python3` and `pip` via `python-support.dockerfile`.
 - **Image rebuild cadence tradeoff** (lines 725-738): remove or
   rewrite. There is no longer a rebuild-freshness window.
 - **Non-Python consumers** (lines 316-322): update to describe the
-  runtime install mechanism instead of image pre-bake.
+  cache-first mechanism instead of image pre-bake.
 - **Acceptance criteria** (lines 743-784): remove items related to
-  image pre-bake and automated rebuild. Add items for runtime install.
+  image pre-bake and automated rebuild. Add items for cache-first
+  per-branch images.
 
 #### 4.2 Update `CLAUDE.md`
 
@@ -600,6 +600,6 @@ runs commands directly.
 Mount a persistent Docker volume (`st-pip-cache:/root/.cache/pip`) to
 cache the pip download across container runs. Rejected: caches only
 the download, not the installed state. The per-branch image caching
-via `st-docker-cache` (Phase 1b) captures all installed state —
+via `st-docker-cache` (Phase 1) captures all installed state —
 standard-tooling, project deps, compiled artifacts — in a single
 derived image, eliminating runtime install overhead entirely.
