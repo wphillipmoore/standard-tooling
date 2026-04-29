@@ -49,7 +49,7 @@ def main(argv: list[str] | None = None) -> int:
     if not is_release_branch(branch):
         print(
             f"Error: st-merge-when-green is only for release-workflow PRs. "
-            f"Branch '{branch}' does not match release/* or chore/bump-version-*.",
+            f"Branch '{branch}' does not start with release/*.",
             file=sys.stderr,
         )
         return 1

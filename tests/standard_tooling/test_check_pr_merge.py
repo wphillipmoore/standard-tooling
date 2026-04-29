@@ -103,7 +103,7 @@ class TestMain:
         assert rc == 0
 
     def test_allowed_bump_branch(self, capsys: pytest.CaptureFixture[str]) -> None:
-        with self._mock_branch("chore/bump-version-1.4.10"):
+        with self._mock_branch("release/bump-version-1.4.10"):
             rc = main(["gh pr merge 99"])
         assert rc == 0
 

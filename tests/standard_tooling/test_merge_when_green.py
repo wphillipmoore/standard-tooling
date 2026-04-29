@@ -85,7 +85,7 @@ def test_release_branch_allowed() -> None:
 
 def test_bump_branch_allowed() -> None:
     with (
-        _mock_branch("chore/bump-version-1.4.10"),
+        _mock_branch("release/bump-version-1.4.10"),
         patch(f"{_MOD}.github.wait_for_checks"),
         patch(f"{_MOD}.github.merge") as mock_merge,
     ):
