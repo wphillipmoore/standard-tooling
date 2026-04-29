@@ -388,6 +388,16 @@ exists; install from the rolling tag yields the new behavior.
 
 ## Phase 3: `standard-tooling-docker` — image policy
 
+> **Superseded.** This phase was superseded by the cache-first
+> architecture implemented in
+> [#362](https://github.com/wphillipmoore/standard-tooling/issues/362).
+> Dev container images no longer carry pre-baked `standard-tooling`;
+> non-Python consumers get it at container runtime via
+> `st-docker-run`'s cache-first install (reads `st-config.toml`).
+> The `repository_dispatch` trigger, release-triggered rebuilds, and
+> image pre-bake pin described below have all been removed. The tasks
+> below are preserved for historical context.
+
 **Goal:** Dev container images stop drifting against
 `standard-tooling`. Each `standard-tooling` release triggers a
 rebuild that produces images carrying the released version.
