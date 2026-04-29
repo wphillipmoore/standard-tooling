@@ -11,10 +11,10 @@
       
       
       
-        <link rel="prev" href="../v1.4.3/">
+        <link rel="prev" href="../">
       
       
-        <link rel="next" href="../v1.4.1/">
+        <link rel="next" href="../v1.4.5/">
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
@@ -22,7 +22,7 @@
     
     
       
-        <title>v1.4.2 - Standard Tooling</title>
+        <title>v1.4.6 - Standard Tooling</title>
       
     
     
@@ -74,7 +74,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#release-142-2026-04-29" class="md-skip">
+        <a href="#release-146-2026-04-29" class="md-skip">
           Skip to content
         </a>
       
@@ -112,7 +112,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              v1.4.2
+              v1.4.6
             
           </span>
         </div>
@@ -572,10 +572,19 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../v1.4.6/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -586,6 +595,7 @@
   
 
       </a>
+      
     </li>
   
 
@@ -664,32 +674,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    v1.4.2
-    
-  </span>
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../v1.4.2/" class="md-nav__link">
         
   
   
@@ -700,44 +688,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#documentation" class="md-nav__link">
-    <span class="md-ellipsis">
-      Documentation
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#features" class="md-nav__link">
-    <span class="md-ellipsis">
-      Features
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -1756,32 +1706,6 @@
     
   
   
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#documentation" class="md-nav__link">
-    <span class="md-ellipsis">
-      Documentation
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#features" class="md-nav__link">
-    <span class="md-ellipsis">
-      Features
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
 </nav>
                   </div>
                 </div>
@@ -1796,28 +1720,7 @@
 
 
 
-<h1 id="release-142-2026-04-29">Release 1.4.2 (2026-04-29)<a class="headerlink" href="#release-142-2026-04-29" title="Permanent link">&para;</a></h1>
-<h2 id="documentation">Documentation<a class="headerlink" href="#documentation" title="Permanent link">&para;</a></h2>
-<ul>
-<li><strong>fix spec-plan alignment issues from pushback review (#366)</strong></li>
-<li>docs: update spec and plan to reflect cache-first implementation</li>
-</ul>
-<p>Phase 1 shipped as cache-first (not per-command wrapping). Updates:
-- Spec: remove ST_DOCKER_SKIP_INSTALL, unimplemented docker.* config
-  overrides, and wrapping references; fix fallback description; add
-  per-command wrapping to rejected alternatives
-- Plan: rewrite Phase 1+1b as completed single phase with what
-  actually shipped; remaining phases updated for cache-first language</p>
-<h2 id="features">Features<a class="headerlink" href="#features" title="Permanent link">&para;</a></h2>
-<ul>
-<li><strong>decouple standard-tooling from dev container images (#362) (#364)</strong></li>
-<li>feat(docker): decouple standard-tooling from dev container images (#362)</li>
-</ul>
-<p>Add per-branch Docker image caching so non-Python repos get
-standard-tooling installed once at image build time rather than
-pre-baked into dev container images. st-docker-run auto-builds cached
-images on first use; hash-based invalidation rebuilds when
-st-config.toml or lockfiles change.</p>
+<h1 id="release-146-2026-04-29">Release 1.4.6 (2026-04-29)<a class="headerlink" href="#release-146-2026-04-29" title="Permanent link">&para;</a></h1>
 
 
 
