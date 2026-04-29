@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-
 import re
 
 _LEGACY_CHORE_RE = re.compile(r"^chore/(bump-version-|\d+-next-cycle-deps-)")
