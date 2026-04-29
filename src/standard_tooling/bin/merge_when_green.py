@@ -14,6 +14,7 @@ import argparse
 import sys
 
 from standard_tooling.lib import git, github
+from standard_tooling.lib.release import is_release_branch
 
 _STRATEGIES = ("merge", "squash", "rebase")
 
@@ -41,6 +42,24 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
+
+    branch = github.read_output(
+        "pr",
+        "view",
+        args.pr,
+        "--json",
+        "headRefName",
+        "--jq",
+        ".headRefName",
+    )
+    if not is_release_branch(branch):
+        print(
+            f"Error: st-merge-when-green is only for release-workflow PRs. "
+            f"Branch '{branch}' does not match release/* or chore/bump-version-*.",
+            file=sys.stderr,
+        )
+        return 1
+
     delete_branch = args.delete_branch
     if delete_branch and not git.is_main_worktree():
         print("Note: skipping --delete-branch (worktree; st-finalize-repo handles cleanup)")
