@@ -1,6 +1,6 @@
 # Implementation Plan: Decouple standard-tooling from dev container images
 
-**Status:** Draft
+**Status:** Phase 1 complete — awaiting release
 **Spec:** [`docs/specs/host-level-tool.md`](../specs/host-level-tool.md)
 (this plan rewrites Principle 6 and the "Dev container image policy"
 section of the spec)
@@ -146,7 +146,7 @@ declared in `st-config.toml`):
 | Rust | `Cargo.lock`, `st-config.toml` |
 | Go | `go.sum`, `st-config.toml` |
 | Java | `pom.xml`, `st-config.toml` |
-| Unknown | `st-config.toml` only (use `docker.cache-files` override for custom projects) |
+| Unknown | `st-config.toml` only |
 
 `st-config.toml` is always included because a change to
 `standard-tooling.tag` requires reinstalling standard-tooling in
@@ -182,19 +182,8 @@ For non-Python repos, standard-tooling is installed via pip before the
 warmup. For Python repos, standard-tooling comes in via `uv sync` as
 part of the warmup.
 
-The default can be overridden in `st-config.toml`:
-
-```toml
-[standard-tooling]
-tag = "v1.4"
-
-[docker]
-warmup = "cargo fetch && cargo build --release --lib"
-cache-files = ["Cargo.lock", "st-config.toml"]
-```
-
-Auto-detection is the default; `st-config.toml` is the override. Most
-repos need zero additional config.
+Language detection is automatic via `detect_language()`. Most repos
+need zero additional config beyond `st-config.toml`.
 
 #### Lifecycle integration
 
@@ -220,25 +209,28 @@ st-docker-cache clean-all # Remove all st-docker-cache images (nuclear option)
 
 #### Fallback behavior
 
-When no cached image exists, `st-docker-run` falls back to the base
-image with the runtime `pip install` wrapping described earlier in
-this plan. This means:
+When no cached image exists for the current branch,
+`ensure_cached_image()` auto-builds one on first use — there is no
+separate "uncached" code path. The build happens once per branch (or
+when the hash changes), then all subsequent `st-docker-run`
+invocations reuse the cached image.
 
-- Repos that never run `st-docker-cache build` still work — they just
-  pay the runtime install cost on every invocation.
-- A missing or stale cache is a performance issue, not a correctness
-  issue.
+If the build itself fails (e.g., network error during `pip install`),
+`st-docker-run` falls back to the base image without
+standard-tooling installed. This means the `st-*` tools won't be on
+PATH, and validation commands will fail — surfacing the problem
+immediately rather than silently degrading.
 
 Cached images are local to the developer's Docker daemon. CI always
-uses the base image with runtime install — ephemeral runners cannot
-meaningfully benefit from local image caching.
+uses the base image — ephemeral runners cannot meaningfully benefit
+from local image caching.
 
 ### Env var overrides
 
 | Variable | Effect |
 |---|---|
 | `ST_DOCKER_INSTALL_TAG` | Override the tag from `st-config.toml` (e.g., for testing a pre-release) |
-| `ST_DOCKER_SKIP_INSTALL` | Set to `1` to skip the runtime install entirely (escape hatch for custom images) |
+| `DOCKER_DEV_IMAGE` | Override the base image entirely (existing; skips cache lookup) |
 
 ### Known limitations
 
@@ -256,7 +248,7 @@ must embed credentials (e.g.,
 
 | Repo | Change |
 |---|---|
-| **standard-tooling** | Add `st-config.toml` reader, `st-docker-cache` command, runtime install wrapping in `docker.py` and `docker_run.py`; update `st-finalize-repo` to clean cached images; remove docker dispatch from `publish.yml`; delete `verify-docker-images.yml`; update spec and docs |
+| **standard-tooling** | Add `st-config.toml` reader, `st-docker-cache` command, cache-aware image selection in `docker_run.py`; update `st-finalize-repo` to clean cached images; remove docker dispatch from `publish.yml`; delete `verify-docker-images.yml`; update spec and docs |
 | **standard-tooling-docker** | Delete both `standard-tooling-*.dockerfile` fragments; remove `@include` lines from all 6 Dockerfiles; remove `repository_dispatch` trigger from `docker-publish.yml`; add `st-config.toml` |
 | **standard-tooling-plugin** | Add `st-config.toml` |
 | **standard-actions** | Add `st-config.toml` |
@@ -265,7 +257,7 @@ must embed credentials (e.g.,
 ### What does NOT change
 
 - **`docker_test.py`** — test commands (`go test`, `bundle exec rake`,
-  etc.) do not invoke `st-*` tools. No wrapping needed.
+  etc.) do not invoke `st-*` tools. No caching needed.
 - **`docker_docs.py`** — runs `mkdocs`, not `st-*` tools.
 - **`python-support.dockerfile`** — still needed in non-Python images
   for `pip` (used by the runtime install) and `yamllint` (used directly
@@ -289,8 +281,7 @@ must embed credentials (e.g.,
 ### Sequencing
 
 ```text
-Phase 1  (st-config.toml + runtime install wrapping — standard-tooling)
-Phase 1b (st-docker-cache command — standard-tooling)
+Phase 1  (st-config.toml + cache-first st-docker-run + st-docker-cache — standard-tooling)  ✓ DONE
     │
     ▼
   release + host upgrade
@@ -307,264 +298,87 @@ Phase 1b (st-docker-cache command — standard-tooling)
 Phase 4 (update spec and docs — standard-tooling)
 ```
 
-Phase 1 and 1b can be developed in parallel (separate branches);
-Phase 1 must merge first (1b depends on `config.py` and the runtime
-install fallback). Together they provide both correctness (any repo
-works without a cache) and speed (cached repos skip all install
-overhead).
+Phase 1 shipped as a single PR (#364) combining the config reader,
+cache library, `st-docker-cache` CLI, cache-aware `st-docker-run`,
+and `st-finalize-repo` integration.
 
 Phase 1 must release before Phases 2/2b/3 start. The new
 `st-docker-run` must be on the host before images lose their
 pre-baked copy and before repos are required to have `st-config.toml`.
 
-Phase 1 is backward-compatible: the `pip install` wrapping runs
-against current images and no-ops (the pre-baked version satisfies
-the requirement). `st-config.toml` is added to this repo in Phase 1
-but is only required by the new wrapping code path — Python repos
-(like this one) skip the install, so missing config in other repos
-does not break until Phase 2b lands.
+Phase 1 is backward-compatible: `ensure_cached_image()` builds a
+cached image that includes standard-tooling via `pip install` on top
+of the base image. Against current images (with the pre-bake), the
+install is a no-op or harmless upgrade. `st-config.toml` is added to
+this repo in Phase 1 but is only required by the cache build path —
+Python repos (like this one) skip caching entirely, so missing config
+in other repos does not break until Phase 2b lands.
 
 Phase 2b must complete for all actively-used non-Python repos before
-Phase 2 merges. Without `st-config.toml`, the runtime install path
+Phase 2 merges. Without `st-config.toml`, the cache build path
 errors — so stripping the pre-bake before config files exist breaks
 non-Python repos. Phase 3 is independent and can run in parallel
 with 2b.
 
 Phase 4 is a docs-only follow-up after the functional work lands.
 
-### Phase 1: Add runtime install to `st-docker-run`
+### Phase 1: Cache-first `st-docker-run` + `st-docker-cache`  ✓ DONE
 
 **Repo:** standard-tooling
-**Branch type:** feature
+**Branch:** `feature/362-decouple-st-from-images`
+**PR:** [#364](https://github.com/wphillipmoore/standard-tooling/pull/364)
 
-#### 1.1 Implement `st-config.toml` reader
+Shipped as a single PR combining the config reader, cache library,
+`st-docker-cache` CLI, cache-aware `st-docker-run`, and
+`st-finalize-repo` cache cleanup. 473 tests, 100% coverage.
 
-File: `src/standard_tooling/lib/config.py` (new)
+#### What shipped
 
-Minimal config reader for `st-config.toml`. Reads the file from the
-repo root, parses TOML, returns a typed config object. For this phase,
-the only field is `standard-tooling.tag`.
+**`src/standard_tooling/lib/config.py`** (new) — `st-config.toml`
+reader. Two public functions: `read_st_config()` parses the file,
+`st_install_tag()` returns the `standard-tooling.tag` value (with
+`ST_DOCKER_INSTALL_TAG` env var override).
 
-```python
-import tomllib
-from pathlib import Path
+**`src/standard_tooling/lib/docker_cache.py`** (new) — cache
+lifecycle engine. Key functions:
 
-_CONFIG_FILE = "st-config.toml"
+- `cache_sensitive_files()` — returns lockfile + `st-config.toml`
+  paths based on language
+- `compute_cache_hash()` — SHA-256 over sorted file contents (first
+  8 hex chars)
+- `find_cached_image()` — queries `docker images` for matching tag
+- `ensure_cached_image()` — the main entry point: returns cached
+  image if hash matches, auto-builds if miss or stale, returns base
+  image unchanged for Python repos
+- `_build_cached_image()` — `docker create` + `docker start` +
+  `docker commit` workflow (pip install + language warmup)
+- `clean_branch_images()` — removes all cached images for a branch
 
-def read_st_config(repo_root: Path) -> dict:
-    config_path = repo_root / _CONFIG_FILE
-    if not config_path.is_file():
-        raise SystemExit(
-            f"ERROR: {_CONFIG_FILE} not found at {repo_root}.\n"
-            f"Every repo must have an {_CONFIG_FILE}."
-        )
-    with config_path.open("rb") as f:
-        return tomllib.load(f)
+**`src/standard_tooling/bin/docker_cache.py`** (new) — `st-docker-cache`
+CLI with four subcommands: `build`, `clean`, `status`, `clean-all`.
 
-def st_install_tag(repo_root: Path) -> str:
-    tag = os.environ.get("ST_DOCKER_INSTALL_TAG")
-    if tag:
-        return tag
-    config = read_st_config(repo_root)
-    st = config.get("standard-tooling", {})
-    tag = st.get("tag")
-    if not tag:
-        raise SystemExit(
-            f"ERROR: {_CONFIG_FILE} missing 'standard-tooling.tag' field."
-        )
-    return tag
-```
+**`src/standard_tooling/bin/docker_run.py`** (modified) — three-way
+image selection: `DOCKER_DEV_IMAGE` env override → Python uses base
+image directly → non-Python calls `ensure_cached_image()`. Tracks
+`image_source` for diagnostic output.
 
-#### 1.2 Add wrapping functions to `docker.py`
+**`src/standard_tooling/bin/finalize_repo.py`** (modified) — calls
+`clean_branch_images()` after each branch deletion (skipped in
+dry-run mode).
 
-File: `src/standard_tooling/lib/docker.py`
+**`st-config.toml`** (new) — repo-root config for this repo.
 
-Add at module level:
+**`pyproject.toml`** (modified) — registered `st-docker-cache`
+console script.
 
-```python
-import shlex
-from standard_tooling.lib.config import st_install_tag
+#### Design note: no per-command wrapping
 
-_ST_GIT_URL = "https://github.com/wphillipmoore/standard-tooling"
-
-def needs_runtime_st_install(lang: str) -> bool:
-    if os.environ.get("ST_DOCKER_SKIP_INSTALL") == "1":
-        return False
-    return lang != "python"
-
-def wrap_command_for_st_install(
-    command: list[str], lang: str, repo_root: Path,
-) -> list[str]:
-    if not needs_runtime_st_install(lang):
-        return command
-    tag = st_install_tag(repo_root)
-    install = (
-        f"pip install --quiet"
-        f" 'standard-tooling @ git+{_ST_GIT_URL}@{tag}'"
-    )
-    return ["bash", "-c", f"{install} && {shlex.join(command)}"]
-```
-
-#### 1.3 Call the wrapper in `docker_run.py`
-
-File: `src/standard_tooling/bin/docker_run.py`
-
-After `detect_language` and before `build_docker_args`:
-
-```python
-from standard_tooling.lib.docker import wrap_command_for_st_install
-
-container_command = wrap_command_for_st_install(command, lang, repo_root)
-```
-
-Pass `container_command` (not `command`) to `build_docker_args`.
-
-Add diagnostic output:
-
-```text
-Language: go
-Image:    ghcr.io/wphillipmoore/dev-go:1.26
-Install:  runtime (pip install standard-tooling@v1.4)
-Command:  st-validate-local
----
-```
-
-For Python repos: `Install:  skipped (Python repos use dev deps)`.
-
-#### 1.4 Update `_USAGE` in `docker_run.py`
-
-Add `ST_DOCKER_INSTALL_TAG` and `ST_DOCKER_SKIP_INSTALL` to the
-environment variables section.
-
-#### 1.5 Write tests
-
-File: `tests/standard_tooling/test_config.py` (new)
-
-- Missing `st-config.toml` → `SystemExit`
-- Missing `standard-tooling.tag` field → `SystemExit`
-- Valid file returns tag string
-- `ST_DOCKER_INSTALL_TAG` env var overrides file
-
-File: `tests/standard_tooling/test_docker.py`
-
-- `needs_runtime_st_install("go")` → `True`
-- `needs_runtime_st_install("ruby")` → `True`
-- `needs_runtime_st_install("rust")` → `True`
-- `needs_runtime_st_install("java")` → `True`
-- `needs_runtime_st_install("")` → `True`
-- `needs_runtime_st_install("python")` → `False`
-- `ST_DOCKER_SKIP_INSTALL=1` → `False` for all languages
-- `wrap_command_for_st_install(["st-validate-local"], "go", repo_root)`
-  → wraps with `bash -c "pip install ... && st-validate-local"`
-- `wrap_command_for_st_install(["uv", "run", "st-validate-local"], "python", repo_root)`
-  → returns input unchanged
-- Multi-token command joins correctly via `shlex.join`
-
-File: `tests/standard_tooling/test_docker_run.py`
-
-- Non-Python repo with `st-config.toml`: `main(["--", "st-validate-local"])`
-  produces docker args containing `bash -c "pip install ... && st-validate-local"`
-- Python repo: `main(["--", "uv", "run", "st-validate-local"])` produces
-  docker args ending with `uv run st-validate-local` (no wrapping)
-
-#### 1.6 Add `st-config.toml` to this repo
-
-File: `st-config.toml` (new, at repo root)
-
-```toml
-[standard-tooling]
-tag = "v1.4"
-```
-
-This repo is a Python project, so the runtime install is skipped
-during normal validation. But the config file should be present for
-consistency and to exercise the reader in tests.
-
-#### 1.7 Validate and release
-
-Run `st-docker-run -- uv run st-validate-local` (100% coverage
-required). Cut a patch release. Upgrade the host install.
-
-### Phase 1b: Add `st-docker-cache` command
-
-**Repo:** standard-tooling
-**Branch type:** feature
-**Can develop in parallel with Phase 1; must merge after Phase 1**
-
-#### 1b.1 Implement `st-docker-cache` CLI
-
-File: `src/standard_tooling/bin/docker_cache.py` (new)
-
-Entry point: `st-docker-cache`. Subcommands:
-
-- **`build`** — Compute the lockfile hash for the current branch.
-  If no cached image exists with that hash, build one: `docker run`
-  from the base image with the repo mounted, `pip install
-  standard-tooling@<tag>`, run the language-specific warmup command,
-  then `docker commit` the container as a new image tagged with the
-  naming convention. Remove the old cached image for this branch if
-  the hash changed.
-- **`clean`** — Remove the cached image for the current branch.
-- **`status`** — Print whether a cached image exists, the hash, and
-  the image age.
-- **`clean-all`** — Remove all `st-docker-cache`-managed images.
-
-#### 1b.2 Add cache-aware image selection to `docker.py`
-
-File: `src/standard_tooling/lib/docker.py`
-
-Add a function that checks whether a cached image exists for the
-current branch and returns it. `st-docker-run` calls this before
-falling back to the base image:
-
-```python
-def cached_image(repo_root: Path, branch: str, lang: str) -> str | None:
-    """Return the cached image tag if one exists, else None."""
-    ...
-```
-
-#### 1b.3 Wire cache lookup into `docker_run.py`
-
-File: `src/standard_tooling/bin/docker_run.py`
-
-Before the existing `default_image()` call, check for a cached image.
-If found, use it directly (skip runtime install wrapping). Diagnostic
-output:
-
-```text
-Language: go
-Image:    dev-go:1.26--feature-362-decouple--a1b2c3d4 (cached)
-Command:  st-validate-local
----
-```
-
-#### 1b.4 Add cache cleanup to `st-finalize-repo`
-
-File: `src/standard_tooling/bin/finalize_repo.py`
-
-After branch deletion, call `st-docker-cache clean` for the deleted
-branch (or invoke the cleanup function directly).
-
-#### 1b.5 Write tests
-
-File: `tests/standard_tooling/test_docker_cache.py` (new)
-
-- Hash computation deterministic for same inputs
-- Hash changes when lockfile content changes
-- Hash changes when `st-config.toml` changes
-- Correct lockfile selected per language
-- `build` creates a Docker image with expected tag
-- `clean` removes the image for the current branch
-- `clean-all` removes all managed images
-- `status` reports correct state
-- Cache hit in `docker_run.py` skips runtime install wrapping
-- Cache miss in `docker_run.py` falls back to runtime install
-
-#### 1b.6 Register console script
-
-File: `pyproject.toml`
-
-Add `st-docker-cache` to `[project.scripts]`.
+The original plan described wrapping each command with
+`bash -c "pip install ... && <command>"`. This was rejected during
+implementation in favor of the cache-first approach — install
+standard-tooling once when building the cached image, then run
+commands directly against it. Per-command wrapping was never
+implemented.
 
 ### Phase 2: Strip standard-tooling from images
 
@@ -727,13 +541,13 @@ superseded by this plan.
 
 ## Backward compatibility
 
-Phase 1 is fully backward-compatible. The runtime install wrapping
-runs `pip install` inside containers that already have standard-tooling
-pre-baked. The install either no-ops (same version) or upgrades
-(newer version on the tag). No consumer-visible behavior change.
+Phase 1 is fully backward-compatible. `ensure_cached_image()` builds
+a cached image by running `pip install` on top of the base image.
+Against current images (with the pre-bake), the install is a no-op
+or harmless upgrade. No consumer-visible behavior change.
 
 The one risk window: a developer with the OLD `st-docker-run`
-(pre-wrapping) pulling NEW images (without pre-bake). Non-Python repos
+(pre-cache) pulling NEW images (without pre-bake). Non-Python repos
 would fail because `st-*` is not on PATH and nothing installs it.
 
 Mitigation: the fleet-of-one model means a single developer upgrading
@@ -770,6 +584,16 @@ version at runtime. Rejected: the consuming repo must own the version
 pin, not the host. A host upgrade would silently change what every
 repo installs in the container. `st-config.toml` gives each repo
 durable, version-controlled control.
+
+### Per-command `pip install` wrapping
+
+Wrap each `st-docker-run` command with
+`bash -c "pip install standard-tooling@<tag> && <command>"` so every
+invocation installs standard-tooling before running. Rejected during
+implementation: pays the install cost on every invocation (~5-10s),
+breaks interactive commands, and is unnecessary once per-branch image
+caching exists. The cache-first approach installs once per branch and
+runs commands directly.
 
 ### Named Docker volume for pip cache
 
