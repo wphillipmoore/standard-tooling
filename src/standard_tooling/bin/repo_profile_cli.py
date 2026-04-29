@@ -1,19 +1,18 @@
-"""Validate the repository profile and README structure.
+"""Validate the repository configuration and README structure.
 
-Checks that all required profile attributes are present and none
-contain placeholder values, then validates README.md structural
-conventions (exactly one H1, a Table of Contents heading, no
-heading-level skips).
+Checks that ``standard-tooling.toml`` is valid (required fields,
+enum values, co-author format, dependencies), then validates
+README.md structural conventions (exactly one H1, a Table of
+Contents heading, no heading-level skips).
 """
 
 from __future__ import annotations
 
 import re
 import sys
-from dataclasses import fields
 from pathlib import Path
 
-from standard_tooling.lib.repo_profile import PROFILE_FILENAME, read_profile
+from standard_tooling.lib.config import CONFIG_FILE, ConfigError, read_config
 
 _CODE_FENCE_RE = re.compile(r"^(```|~~~)")
 _TOC_RE = re.compile(r"^## Table of Contents\s*$")
@@ -65,39 +64,22 @@ def _structural_check(file_path: str) -> bool:
 
 def main(argv: list[str] | None = None) -> int:  # noqa: ARG001
     try:
-        profile = read_profile()
+        read_config(Path.cwd())
     except FileNotFoundError:
         print(
-            f"ERROR: repository profile file not found at {PROFILE_FILENAME}",
+            f"ERROR: {CONFIG_FILE} not found",
             file=sys.stderr,
         )
         return 2
-
-    failed = 0
-    for field in fields(profile):
-        value = getattr(profile, field.name)
-        if not value:
-            print(
-                f"ERROR: repository profile missing required attribute "
-                f"'{field.name}' in {PROFILE_FILENAME}",
-                file=sys.stderr,
-            )
-            failed = 1
-            continue
-
-        if "<" in value or ">" in value or "|" in value:
-            print(
-                f"ERROR: repository profile attribute '{field.name}' "
-                f"appears to be a placeholder: {value}",
-                file=sys.stderr,
-            )
-            failed = 1
+    except ConfigError as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 1
 
     readme = Path("README.md")
     if readme.is_file() and not _structural_check(str(readme)):
-        failed = 1
+        return 1
 
-    return failed
+    return 0
 
 
 if __name__ == "__main__":
