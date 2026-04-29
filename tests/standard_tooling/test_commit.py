@@ -120,9 +120,11 @@ def test_main_with_staged_changes_no_scope(tmp_path: Path) -> None:
         if args[0] == "commit" and args[1] == "--file":
             commit_file_content = Path(args[2]).read_text(encoding="utf-8")
 
-    with _commit_environment(tmp_path):
-        with patch("standard_tooling.bin.commit.git.run", side_effect=capture_run):
-            result = main(["--type", "feat", "--message", "add feature", "--agent", "claude"])
+    with (
+        _commit_environment(tmp_path),
+        patch("standard_tooling.bin.commit.git.run", side_effect=capture_run),
+    ):
+        result = main(["--type", "feat", "--message", "add feature", "--agent", "claude"])
     assert result == 0
     assert commit_file_content.startswith("feat: add feature\n")
     assert "Co-Authored-By: test <test@test.com>" in commit_file_content
@@ -136,22 +138,24 @@ def test_main_with_scope_and_body(tmp_path: Path) -> None:
         if args[0] == "commit" and args[1] == "--file":
             commit_file_content = Path(args[2]).read_text(encoding="utf-8")
 
-    with _commit_environment(tmp_path):
-        with patch("standard_tooling.bin.commit.git.run", side_effect=capture_run):
-            result = main(
-                [
-                    "--type",
-                    "fix",
-                    "--scope",
-                    "lint",
-                    "--message",
-                    "correct regex",
-                    "--body",
-                    "Fixed edge case",
-                    "--agent",
-                    "claude",
-                ]
-            )
+    with (
+        _commit_environment(tmp_path),
+        patch("standard_tooling.bin.commit.git.run", side_effect=capture_run),
+    ):
+        result = main(
+            [
+                "--type",
+                "fix",
+                "--scope",
+                "lint",
+                "--message",
+                "correct regex",
+                "--body",
+                "Fixed edge case",
+                "--agent",
+                "claude",
+            ]
+        )
     assert result == 0
     assert "fix(lint): correct regex" in commit_file_content
     assert "Fixed edge case" in commit_file_content

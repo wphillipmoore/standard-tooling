@@ -6,8 +6,10 @@ import os
 import re
 import tomllib
 from dataclasses import dataclass
-from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 CONFIG_FILE = "standard-tooling.toml"
 
