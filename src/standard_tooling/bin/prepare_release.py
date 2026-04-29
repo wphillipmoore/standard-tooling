@@ -228,8 +228,8 @@ def _generate_release_notes(version: str, tag: str) -> None:
     # the wrong section into the file. `--unreleased` correctly scopes
     # to commits that are not yet under any tag, which under
     # `--tag <name>` get grouped under that label. Issue #298.
-    subprocess.run(  # noqa: S603, S607
-        (
+    subprocess.run(  # noqa: S603
+        (  # noqa: S607
             "git-cliff",
             "--config",
             str(config),
