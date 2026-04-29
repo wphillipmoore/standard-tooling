@@ -13,7 +13,7 @@ from pathlib import Path
 
 from standard_tooling.lib import git, github
 
-ALLOWED_LINKAGES = ("Fixes", "Closes", "Resolves", "Ref")
+ALLOWED_LINKAGES = ("Ref",)
 _ISSUE_PLAIN_RE = re.compile(r"^[1-9]\d*$")
 _ISSUE_CROSS_RE = re.compile(r"^[A-Za-z0-9._-]+/[A-Za-z0-9._-]+#[1-9]\d*$")
 
