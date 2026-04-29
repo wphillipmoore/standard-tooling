@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
 from subprocess import CompletedProcess
 from typing import TYPE_CHECKING
 from unittest.mock import patch
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 import pytest
 
