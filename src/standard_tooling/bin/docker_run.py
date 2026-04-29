@@ -18,6 +18,7 @@ from standard_tooling.lib.docker import (
     default_image,
     detect_language,
 )
+from standard_tooling.lib.docker_cache import ensure_cached_image
 
 _USAGE = """\
 usage: st-docker-run [--] <command> [args...]
@@ -31,9 +32,10 @@ options:
   -h, --help          show this help message and exit
 
 environment variables:
-  GH_TOKEN            (required) GitHub token passed into the container
-  DOCKER_DEV_IMAGE    override the auto-detected container image
-  DOCKER_NETWORK      join a Docker network (e.g. for integration tests)
+  GH_TOKEN                (required) GitHub token passed into the container
+  DOCKER_DEV_IMAGE        override the auto-detected container image
+  DOCKER_NETWORK          join a Docker network (e.g. for integration tests)
+  ST_DOCKER_INSTALL_TAG   override the standard-tooling version tag from st-config.toml
 
 examples:
   st-docker-run -- uv run st-validate-local
@@ -72,10 +74,24 @@ def main(argv: list[str] | None = None) -> int:
 
     repo_root = git.repo_root()
     lang = detect_language(repo_root)
-    image = os.environ.get("DOCKER_DEV_IMAGE") or default_image(lang, fallback=True)
+
+    env_image = os.environ.get("DOCKER_DEV_IMAGE")
+    if env_image:
+        image = env_image
+        image_source = "env"
+    elif lang == "python":
+        image = default_image(lang, fallback=True)
+        image_source = "default"
+    else:
+        base = default_image(lang, fallback=True)
+        image = ensure_cached_image(repo_root, lang, base)
+        image_source = "cached" if image != base else "default"
 
     print(f"Language: {lang or '<none>'}")
-    print(f"Image:    {image}")
+    if image_source == "cached":
+        print(f"Image:    {image} (cached)")
+    else:
+        print(f"Image:    {image}")
     print(f"Command:  {' '.join(command)}")
     network = os.environ.get("DOCKER_NETWORK", "")
     if network:

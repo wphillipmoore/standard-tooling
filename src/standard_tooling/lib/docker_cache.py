@@ -1,0 +1,214 @@
+"""Per-branch Docker image caching with standard-tooling pre-installed."""
+
+from __future__ import annotations
+
+import hashlib
+import re
+import subprocess
+import sys
+from typing import TYPE_CHECKING
+
+from standard_tooling.lib.config import st_install_tag
+
+if TYPE_CHECKING:
+    from pathlib import Path
+
+_ST_GIT_URL = "https://github.com/wphillipmoore/standard-tooling"
+
+_CACHE_FILES: dict[str, list[str]] = {
+    "python": ["uv.lock", "st-config.toml"],
+    "ruby": ["Gemfile.lock", "st-config.toml"],
+    "rust": ["Cargo.lock", "st-config.toml"],
+    "go": ["go.sum", "st-config.toml"],
+    "java": ["pom.xml", "st-config.toml"],
+}
+_DEFAULT_CACHE_FILES = ["st-config.toml"]
+
+_WARMUP_COMMANDS: dict[str, str] = {
+    "python": "uv sync --group dev",
+    "ruby": "bundle install --jobs 4",
+    "rust": "cargo fetch && cargo build --lib",
+    "go": "go mod download && go build ./...",
+    "java": "./mvnw dependency:resolve",
+}
+
+
+def cache_sensitive_files(repo_root: Path, lang: str) -> list[Path]:
+    """Return paths of cache-sensitive files that exist in *repo_root*."""
+    names = _CACHE_FILES.get(lang, _DEFAULT_CACHE_FILES)
+    return [repo_root / n for n in names if (repo_root / n).is_file()]
+
+
+def compute_cache_hash(files: list[Path]) -> str:
+    """SHA-256 over sorted file contents, first 8 hex chars."""
+    h = hashlib.sha256()
+    for f in sorted(files):
+        h.update(f.read_bytes())
+    return h.hexdigest()[:8]
+
+
+def _sanitize_branch(branch: str) -> str:
+    return re.sub(r"[^a-zA-Z0-9._-]", "-", branch)
+
+
+def cache_image_tag(base_image: str, branch: str, cache_hash: str) -> str:
+    """Construct the cached image tag."""
+    base_tag = base_image.split(":")[-1] if ":" in base_image else "latest"
+    base_repo = base_image.split(":")[0]
+    sanitized = _sanitize_branch(branch)
+    return f"{base_repo}:{base_tag}--{sanitized}--{cache_hash}"
+
+
+def find_cached_image(base_image: str, branch: str) -> tuple[str, str] | None:
+    """Find an existing cached image for *base_image* and *branch*.
+
+    Returns ``(full_tag, hash_suffix)`` or ``None``.
+    """
+    sanitized = _sanitize_branch(branch)
+    base_tag = base_image.split(":")[-1] if ":" in base_image else "latest"
+    base_repo = base_image.split(":")[0]
+    pattern = f"{base_repo}:{base_tag}--{sanitized}--"
+
+    result = subprocess.run(  # noqa: S603
+        ["docker", "images", "--format", "{{.Repository}}:{{.Tag}}"],  # noqa: S607
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode != 0 or not result.stdout:
+        return None
+
+    for line in result.stdout.splitlines():
+        if line.startswith(pattern):
+            tag_hash = line[len(pattern) :]
+            return (line, tag_hash)
+    return None
+
+
+def _build_cached_image(
+    repo_root: Path,
+    lang: str,
+    base_image: str,
+    target_tag: str,
+) -> str:
+    """Build a cached image with standard-tooling installed."""
+    tag = st_install_tag(repo_root)
+    pip_install = f"pip install --quiet 'standard-tooling @ git+{_ST_GIT_URL}@{tag}'"
+    warmup = _WARMUP_COMMANDS.get(lang)
+    setup = f"{pip_install} && {warmup}" if warmup else pip_install
+
+    print(f"Building cached image: {target_tag}")
+    print(f"  Base:    {base_image}")
+    print(f"  Install: standard-tooling@{tag}")
+    if warmup:
+        print(f"  Warmup:  {warmup}")
+
+    cid_result = subprocess.run(  # noqa: S603
+        [  # noqa: S607
+            "docker",
+            "create",
+            "-v",
+            f"{repo_root}:/workspace",
+            "-w",
+            "/workspace",
+            base_image,
+            "bash",
+            "-c",
+            setup,
+        ],
+        capture_output=True,
+        text=True,
+    )
+    if cid_result.returncode != 0:
+        print(
+            f"ERROR: Failed to create container: {cid_result.stderr.strip()}",
+            file=sys.stderr,
+        )
+        return base_image
+
+    container_id = cid_result.stdout.strip()
+
+    try:
+        run_result = subprocess.run(  # noqa: S603
+            ["docker", "start", "-a", container_id],  # noqa: S607
+        )
+        if run_result.returncode != 0:
+            print(
+                "ERROR: Cache build failed. Falling back to base image.",
+                file=sys.stderr,
+            )
+            return base_image
+
+        subprocess.run(  # noqa: S603
+            ["docker", "commit", container_id, target_tag],  # noqa: S607
+            capture_output=True,
+            check=True,
+        )
+    finally:
+        subprocess.run(  # noqa: S603
+            ["docker", "rm", container_id],  # noqa: S607
+            capture_output=True,
+        )
+
+    print(f"Cached image ready: {target_tag}")
+    return target_tag
+
+
+def ensure_cached_image(
+    repo_root: Path,
+    lang: str,
+    base_image: str,
+) -> str:
+    """Return a cached image tag, building one if needed.
+
+    Returns *base_image* unchanged for Python repos (they use dev deps)
+    or if the cache build fails.
+    """
+    if lang == "python":
+        return base_image
+
+    from standard_tooling.lib import git as _git
+
+    branch = _git.current_branch()
+    files = cache_sensitive_files(repo_root, lang)
+    if not files:
+        return base_image
+
+    current_hash = compute_cache_hash(files)
+    existing = find_cached_image(base_image, branch)
+
+    if existing is not None:
+        existing_tag, existing_hash = existing
+        if existing_hash == current_hash:
+            return existing_tag
+        # Stale cache — remove it.
+        subprocess.run(  # noqa: S603
+            ["docker", "rmi", existing_tag],  # noqa: S607
+            capture_output=True,
+        )
+
+    target_tag = cache_image_tag(base_image, branch, current_hash)
+    return _build_cached_image(repo_root, lang, base_image, target_tag)
+
+
+def clean_branch_images(branch: str) -> int:
+    """Remove all cached images for *branch*. Returns count removed."""
+    sanitized = _sanitize_branch(branch)
+    pattern = f"--{sanitized}--"
+
+    result = subprocess.run(  # noqa: S603
+        ["docker", "images", "--format", "{{.Repository}}:{{.Tag}}"],  # noqa: S607
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode != 0 or not result.stdout:
+        return 0
+
+    removed = 0
+    for line in result.stdout.splitlines():
+        if pattern in line:
+            subprocess.run(  # noqa: S603
+                ["docker", "rmi", line],  # noqa: S607
+                capture_output=True,
+            )
+            removed += 1
+    return removed
