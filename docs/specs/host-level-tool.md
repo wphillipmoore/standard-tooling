@@ -42,14 +42,13 @@ Two prior distribution approaches both failed:
 
 A further wrinkle — surfaced during #286 spec work and tracked in
 [standard-tooling-docker#51](https://github.com/wphillipmoore/standard-tooling-docker/issues/51) —
-is that `standard-tooling` is **also** pre-baked into the dev
-container images. Today the images `git clone -b develop && uv pip
-install --system` at build time, so every image carries a
-point-in-time copy of `standard-tooling` that drifts from the host
-version between image rebuilds. Post-merge validation has been
-silently failing against stale image copies. Any new distribution
-model has to treat the container image as a deployment target, not an
-implementation detail.
+was that `standard-tooling` was pre-baked into the dev container
+images at build time, drifting from the host version between image
+rebuilds. This was resolved in
+[#362](https://github.com/wphillipmoore/standard-tooling/issues/362):
+dev container images no longer carry `standard-tooling`; non-Python
+consumers get it at container runtime via `st-docker-run`'s
+cache-first architecture.
 
 ## Decision
 
@@ -81,12 +80,12 @@ fleet to behave consistently.
    source of `st-*` inside the container, eliminating drift between
    the repo and the image. Non-Python consumers cannot declare, so
    they rely on the image's pre-bake; see principle 6.
-6. **The dev container image tracks the rolling minor tag and
-   rebuilds on every `standard-tooling` release.** The image's
-   pre-baked `standard-tooling` is the sole `st-*` source for
-   non-Python consumers, so the image cannot be allowed to drift.
-   The image build pins to `v{major.minor}` (not `develop`) and
-   rebuilds are triggered by `standard-tooling`'s release pipeline.
+6. **Non-Python consumers get `standard-tooling` at container
+   runtime via `st-docker-run`'s cache-first architecture.**
+   `st-docker-run` reads the repo's `st-config.toml` for the
+   version tag, builds a per-branch cached Docker image with
+   standard-tooling pre-installed, and runs commands against it.
+   Dev container images no longer carry pre-baked standard-tooling.
 
 ## Deployment targets
 
@@ -94,7 +93,7 @@ fleet to behave consistently.
 |---|---|---|---|
 | **Developer host** | `uv tool install` from git URL (canonical); `pip install` from git URL (alternative) | Host-side commands: `st-docker-run`, `st-commit`, `st-submit-pr`, `st-prepare-release`, `st-finalize-repo` | Manual one-liner after each release |
 | **Python project `.venv`** (MUST for Python consumers) | `[tool.uv.sources]` git URL + `uv sync` | `uv run st-*` inside the container for validators: `st-validate-local`, `st-validate-local-python`, `st-markdown-standards`, etc. | `uv lock --upgrade-package standard-tooling` per repo; rolling tag means the upgrade is a no-arg re-lock |
-| **Dev container image** (pre-bake) | `pip install` from git URL pinned to rolling minor tag, baked into image at build time | `st-*` inside the container for non-Python consumers (plugin, docker, docs) | Automated image rebuild on every `standard-tooling` release, pulling the current rolling tag |
+| **Non-Python container runtime** (cache-first) | `st-docker-run` reads `st-config.toml`, builds per-branch cached image with `pip install` from git URL | `st-*` inside the container for non-Python consumers (plugin, docker, docs) | Automatic cache rebuild when `st-config.toml` tag changes or lockfile changes |
 
 These targets are coordinated, not redundant. Each covers a failure
 mode the others cannot:
@@ -104,8 +103,9 @@ mode the others cannot:
 - Without the **project `.venv` declaration**, Python consumers run
   whatever version was in the image at build time — which is exactly
   the drift problem in #51.
-- Without the **image pre-bake**, non-Python consumers (plugin,
-  docker, docs) have no `st-*` on PATH inside the container at all.
+- Without the **cache-first runtime install**, non-Python consumers
+  (plugin, docker, docs) have no `st-*` on PATH inside the container
+  at all.
 
 Consistency across the fleet means all Python consumers take the same
 path (project `.venv`) and all non-Python consumers take the other
@@ -317,47 +317,48 @@ Non-Python consumers (`standard-tooling-plugin`, `standard-tooling-docker`,
 `the-infrastructure-mindset`, `standards-and-conventions`, and the
 Ruby / Go / Rust / Java variants of `mq-rest-admin-*`) cannot
 declare `standard-tooling` as a dev dep because they have no
-`pyproject.toml` to declare in. They rely on the dev container
-image's pre-bake; freshness is the image's responsibility (see
-[Dev container image policy](#dev-container-image-policy)).
+`pyproject.toml` to declare in. They get `standard-tooling` at
+container runtime via `st-docker-run`'s cache-first architecture:
+each repo's `st-config.toml` declares the version tag, and
+`st-docker-run` builds a per-branch cached image with
+standard-tooling pre-installed (see
+[Cache-first runtime install](#cache-first-runtime-install)).
 
-## Dev container image policy
+## Cache-first runtime install
 
-The dev container images maintained in
-[`standard-tooling-docker`](https://github.com/wphillipmoore/standard-tooling-docker)
-are the distribution channel for non-Python consumers. Under this
-spec, those images MUST:
+Dev container images no longer carry pre-baked `standard-tooling`.
+Instead, `st-docker-run` installs it at container runtime using a
+per-branch cached image strategy, implemented in
+[#362](https://github.com/wphillipmoore/standard-tooling/issues/362).
 
-1. **Pin `standard-tooling` to the rolling minor tag** at image
-   build time. The current pre-bake script (`git clone -b develop &&
-   uv pip install --system`) tracks develop branch tip, which drifts
-   from releases. The replacement pins to the tag:
+Each consuming repo declares its standard-tooling version in
+`st-config.toml` at the repo root:
 
-   ```dockerfile
-   RUN pip install --no-cache-dir \
-       'standard-tooling @ git+https://github.com/wphillipmoore/standard-tooling@v1.2'
-   ```
+```toml
+[standard-tooling]
+tag = "v1.4"
+```
 
-2. **Rebuild automatically on every `standard-tooling` release.** A
-   release of `standard-tooling` triggers a rebuild of the dev
-   images, so the next `docker pull` of `dev-base` / `dev-python` /
-   etc. contains the newly-released `standard-tooling`.
+`st-docker-run` reads this file, builds (or reuses) a per-branch
+Docker image with standard-tooling pre-installed via `pip install`
+from the git URL at that tag, and runs the user's command against
+the cached image. Cache invalidation is automatic: when
+`st-config.toml` or the project's lockfile changes, the cached
+image is rebuilt on next invocation.
 
-   Mechanism (owned by `standard-tooling-docker`): likely a
-   `repository_dispatch` fired by `standard-tooling`'s release
-   workflow, or a GitHub Actions workflow in
-   `standard-tooling-docker` that watches the rolling tag. The
-   exact mechanism is `standard-tooling-docker`'s call; this spec
-   only requires the behavior.
+This decouples `standard-tooling` releases from dev container image
+rebuilds. Images rebuild on their own schedule (push to main,
+manual trigger) and no longer carry `standard-tooling` at all.
+Non-Python repos get standard-tooling transparently via the cache
+layer; Python repos continue to use `uv sync --group dev`.
 
-This closes the loop for non-Python consumers: a new
-`standard-tooling` release produces new images within the rebuild
-cycle, and non-Python repos pull fresh `st-*` on next container
-launch.
+The `repository_dispatch` trigger that previously fired image
+rebuilds on each `standard-tooling` release has been removed from
+both `standard-tooling`'s `publish.yml` and
+`standard-tooling-docker`'s `docker-publish.yml`.
 
-Implementation tracked in
-[standard-tooling-docker#51](https://github.com/wphillipmoore/standard-tooling-docker/issues/51),
-which this spec unblocks.
+This supersedes the image pre-bake policy originally tracked in
+[standard-tooling-docker#51](https://github.com/wphillipmoore/standard-tooling-docker/issues/51).
 
 ## CI install path
 
@@ -368,11 +369,12 @@ into one of the two existing paths:
   step that runs `uv sync --group dev` installs `standard-tooling`
   from the dev-dep declaration, exactly as on a developer's host.
   No separate install step.
-- **Non-Python consumer CI** — uses the dev container image path.
-  Workflows run inside the `dev-base` / `dev-python` / etc. image
-  (either via `jobs.<name>.container:` or by invoking
-  `st-docker-run` from the runner), and the image's pre-baked
-  `standard-tooling` is on `PATH`. No separate install step.
+- **Non-Python consumer CI** — uses the cache-first runtime path.
+  Workflows invoke `st-docker-run` from the runner, which builds
+  (or reuses) a cached image with standard-tooling installed per
+  `st-config.toml`. CI runners are ephemeral and cannot reuse
+  cached images across runs, so each CI run pays the one-time
+  install cost (~5-10s).
 
 Consequently: the `standards-compliance` composite action in
 [`standard-actions`](https://github.com/wphillipmoore/standard-actions)
@@ -723,20 +725,15 @@ remains a real cost but is mitigated here because:
 - Automation (dependabot etc.) is the obvious follow-up if the
   manual cadence becomes a friction point.
 
-### Image rebuild cadence
+### Version propagation to non-Python repos
 
-The spec requires release-triggered image rebuilds, but there is
-always *some* window between `standard-tooling` tagging a release
-and the image being rebuilt and pushed. During that window,
-non-Python consumers pulling a fresh container get the
-previous-release image. Mitigations:
-
-- The window is minutes-to-hours for CI-driven rebuilds, not days.
-- Non-Python consumers are docs / plugin / Dockerfiles repos where
-  the consequence of running a one-release-behind validator is
-  usually trivial.
-- Python consumers (the majority of active code) are insulated from
-  this window entirely via the project `.venv` path.
+Under the cache-first model, a new `standard-tooling` release does
+not automatically propagate to non-Python consumers. Each repo's
+`st-config.toml` must be updated to reference the new tag. This is
+deliberate — explicit version control per repo rather than implicit
+propagation through image rebuilds. The tradeoff is a manual step
+per repo per release versus the previous model's silent staleness
+window during image rebuilds.
 
 ## Acceptance criteria
 
@@ -769,12 +766,12 @@ previous-release image. Mitigations:
       references removed. (Tracked in #288.)
 - [ ] Plugin `validate-on-edit.sh` error message updated to point
       at this spec. (Tracked in #288.)
-- [ ] `standard-tooling-docker` image build pins to the rolling
-      minor tag. (Tracked in
-      [standard-tooling-docker#51](https://github.com/wphillipmoore/standard-tooling-docker/issues/51).)
-- [ ] `standard-tooling-docker` rebuilds automatically on every
-      `standard-tooling` release. (Tracked in
-      [standard-tooling-docker#51](https://github.com/wphillipmoore/standard-tooling-docker/issues/51).)
+- [x] Dev container images no longer carry pre-baked
+      `standard-tooling`. Non-Python consumers get it at container
+      runtime via `st-docker-run`'s cache-first architecture.
+      (Completed in [#362](https://github.com/wphillipmoore/standard-tooling/issues/362).)
+- [x] All consuming repos have `st-config.toml` declaring the
+      standard-tooling version tag. (Completed in #362 Phase 2b.)
 - [ ] `standards-compliance` (and any other `standard-actions`
       composite that clones `standard-tooling` or puts
       `scripts/bin/` on `PATH`) is updated to rely on the Python
