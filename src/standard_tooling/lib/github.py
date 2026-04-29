@@ -12,8 +12,11 @@ def run(*args: str) -> None:
 
 def read_output(*args: str) -> str:
     """Run a gh command and return stripped stdout."""
-    result = subprocess.run(  # noqa: S603, S607
-        ("gh", *args), check=True, text=True, capture_output=True
+    result = subprocess.run(  # noqa: S603
+        ("gh", *args),  # noqa: S607
+        check=True,
+        text=True,
+        capture_output=True,
     )
     return result.stdout.strip()
 
