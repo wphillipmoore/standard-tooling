@@ -44,8 +44,13 @@ def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
 
     branch = github.read_output(
-        "pr", "view", args.pr,
-        "--json", "headRefName", "--jq", ".headRefName",
+        "pr",
+        "view",
+        args.pr,
+        "--json",
+        "headRefName",
+        "--jq",
+        ".headRefName",
     )
     if not is_release_branch(branch):
         print(

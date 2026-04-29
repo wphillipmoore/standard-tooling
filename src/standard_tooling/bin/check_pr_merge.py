@@ -33,25 +33,42 @@ _DENY_MESSAGE = (
     "publish skill. See issue #162."
 )
 
-_GH_MERGE_FLAGS = frozenset({
-    "--squash", "--merge", "--rebase",
-    "--delete-branch", "--auto", "--disable-auto",
-    "--admin",
-})
+_GH_MERGE_FLAGS = frozenset(
+    {
+        "--squash",
+        "--merge",
+        "--rebase",
+        "--delete-branch",
+        "--auto",
+        "--disable-auto",
+        "--admin",
+    }
+)
 
-_GH_REVIEW_FLAGS = frozenset({
-    "--approve", "-a",
-    "--request-changes", "-r",
-    "--comment", "-c",
-})
+_GH_REVIEW_FLAGS = frozenset(
+    {
+        "--approve",
+        "-a",
+        "--request-changes",
+        "-r",
+        "--comment",
+        "-c",
+    }
+)
 
-_GH_FLAGS_WITH_VALUE = frozenset({
-    "--repo", "-R",
-    "--body", "-b",
-    "--body-file", "-F",
-    "--subject", "-t",
-    "--match-head-commit",
-})
+_GH_FLAGS_WITH_VALUE = frozenset(
+    {
+        "--repo",
+        "-R",
+        "--body",
+        "-b",
+        "--body-file",
+        "-F",
+        "--subject",
+        "-t",
+        "--match-head-commit",
+    }
+)
 
 
 def extract_pr_ref(command: str) -> tuple[str, str | None]:
@@ -102,9 +119,7 @@ def _extract_from_tokens(tokens: list[str]) -> tuple[str, str | None] | None:
     return None
 
 
-def _parse_args(
-    args: list[str], known_flags: frozenset[str]
-) -> tuple[str, str | None] | None:
+def _parse_args(args: list[str], known_flags: frozenset[str]) -> tuple[str, str | None] | None:
     """Walk args to find the PR ref and optional --repo value."""
     repo: str | None = None
     pr_ref: str | None = None

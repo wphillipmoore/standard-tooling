@@ -108,8 +108,15 @@ class TestMain:
             rc = main(["gh pr merge --repo o/r 42"])
         assert rc == 1
         mock.assert_called_once_with(
-            "pr", "view", "42", "--repo", "o/r",
-            "--json", "headRefName", "--jq", ".headRefName",
+            "pr",
+            "view",
+            "42",
+            "--repo",
+            "o/r",
+            "--json",
+            "headRefName",
+            "--jq",
+            ".headRefName",
         )
 
     def test_api_failure(self, capsys: pytest.CaptureFixture[str]) -> None:
