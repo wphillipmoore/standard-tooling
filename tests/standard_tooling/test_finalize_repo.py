@@ -111,6 +111,7 @@ def test_main_library_release(tmp_path: Path) -> None:
         patch(_MOD + ".git.read_output", return_value=""),
         patch(_MOD + ".shutil.which", side_effect=_which_validator_only),
         patch(_MOD + ".subprocess.run", return_value=_validation_ok()),
+        patch(_MOD + ".clean_branch_images", return_value=0),
     ):
         result = main([])
     assert result == 0
@@ -183,6 +184,7 @@ def test_main_application_promotion(tmp_path: Path) -> None:
         patch(_MOD + ".git.read_output", return_value=""),
         patch(_MOD + ".shutil.which", side_effect=_which_validator_only),
         patch(_MOD + ".subprocess.run", return_value=_validation_ok()),
+        patch(_MOD + ".clean_branch_images", return_value=0),
     ):
         result = main([])
     assert result == 0
@@ -522,11 +524,11 @@ def test_main_removes_worktree_before_deleting_branch(tmp_path: Path) -> None:
         patch(_MOD + ".git.read_output", return_value=porcelain),
         patch(_MOD + ".shutil.which", side_effect=_which_validator_only),
         patch(_MOD + ".subprocess.run", return_value=_validation_ok()),
+        patch(_MOD + ".clean_branch_images", return_value=0),
     ):
         result = main([])
 
     assert result == 0
-    # `worktree remove` must come before `branch -D`.
     remove_call = ("worktree", "remove", str(wt_dir.resolve()))
     delete_call = ("branch", "-D", "feature/99-x")
     assert remove_call in git_run_calls
@@ -555,10 +557,30 @@ def test_main_skips_worktree_remove_when_branch_not_in_worktree(tmp_path: Path) 
         patch(_MOD + ".git.read_output", return_value=porcelain),
         patch(_MOD + ".shutil.which", side_effect=_which_validator_only),
         patch(_MOD + ".subprocess.run", return_value=_validation_ok()),
+        patch(_MOD + ".clean_branch_images", return_value=0),
     ):
         result = main([])
 
     assert result == 0
     assert ("branch", "-D", "feature/99-x") in git_run_calls
-    # No `worktree remove` call.
     assert not any(c[:1] == ("worktree",) for c in git_run_calls)
+
+
+def test_main_cleans_docker_cache_on_branch_delete(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    _make_profile(tmp_path, "library-release")
+    with (
+        patch(_MOD + ".git.repo_root", return_value=tmp_path),
+        patch(_MOD + ".git.current_branch", return_value="develop"),
+        patch(_MOD + ".git.run"),
+        patch(_MOD + ".git.merged_branches", return_value=["feature/x"]),
+        patch(_MOD + ".git.read_output", return_value=""),
+        patch(_MOD + ".shutil.which", side_effect=_which_validator_only),
+        patch(_MOD + ".subprocess.run", return_value=_validation_ok()),
+        patch(_MOD + ".clean_branch_images", return_value=2) as mock_clean,
+    ):
+        result = main([])
+    assert result == 0
+    mock_clean.assert_called_once_with("feature/x")
+    assert "Cleaned 2 cached Docker image(s)" in capsys.readouterr().out
