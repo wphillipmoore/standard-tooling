@@ -5,6 +5,42 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.4.3] - 2026-04-29
+
+### Bug fixes
+
+- drop --delete-branch from st-merge-when-green; st-finalize-repo handles cleanup
+- use CWD-relative README.md lookup in repo-profile instead of git.repo_root
+- retain st-markdown-standards as markdownlint-only entry point for CI compatibility
+
+### CI
+
+- retrigger checks after adding issue linkage
+
+### Documentation
+
+- update spec and docs for cache-first architecture (#362)
+- mark all decouple plan phases complete with PR refs and follow-up issue links (#385)
+
+### Features
+
+- add st-check-pr-merge and branch check in st-merge-when-green
+- add next-cycle-deps pattern to release branch allow-list
+
+### Refactoring
+
+- unify release-cycle branches under release/ prefix
+- decompose st-markdown-standards: direct markdownlint in validate-local, structural checks in repo-profile
+
+### Styling
+
+- apply ruff format to new and modified files
+- apply ruff format to test files
+
+### Testing
+
+- add coverage tests for check_pr_merge edge cases
+
 ## [1.4.2] - 2026-04-29
 
 ### Documentation
