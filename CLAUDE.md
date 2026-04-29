@@ -195,7 +195,7 @@ Shared libraries under `src/standard_tooling/lib/`:
 
 - **`git.py`** — Git subprocess wrappers
 - **`github.py`** — gh CLI subprocess wrappers
-- **`repo_profile.py`** — Parse `docs/repository-standards.md`
+- **`config.py`** — Parse `standard-tooling.toml` and `st-config.toml`
 
 ### Docker Dev Images
 
