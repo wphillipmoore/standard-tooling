@@ -13,7 +13,6 @@ import sys
 from dataclasses import fields
 from pathlib import Path
 
-from standard_tooling.lib import git
 from standard_tooling.lib.repo_profile import PROFILE_FILENAME, read_profile
 
 _CODE_FENCE_RE = re.compile(r"^(```|~~~)")
@@ -94,7 +93,7 @@ def main(argv: list[str] | None = None) -> int:  # noqa: ARG001
             )
             failed = 1
 
-    readme = Path(git.repo_root()) / "README.md"
+    readme = Path("README.md")
     if readme.is_file() and not _structural_check(str(readme)):
         failed = 1
 
