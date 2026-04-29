@@ -43,9 +43,7 @@ def test_main_happy_path() -> None:
         result = main(["https://github.com/pr/1"])
     assert result == 0
     mock_wait.assert_called_once_with("https://github.com/pr/1")
-    mock_merge.assert_called_once_with(
-        "https://github.com/pr/1", strategy="merge"
-    )
+    mock_merge.assert_called_once_with("https://github.com/pr/1", strategy="merge")
 
 
 def test_main_custom_strategy() -> None:
