@@ -166,7 +166,7 @@ def main(argv: list[str] | None = None) -> int:
     eternal = {"gh-pages"}
     if model in _ETERNAL_BY_MODEL:
         eternal.update(_ETERNAL_BY_MODEL[model])
-    elif model == "":
+    else:
         print("WARNING: branching_model not found; protecting develop and main.", file=sys.stderr)
         eternal.update(("develop", "main"))
 
