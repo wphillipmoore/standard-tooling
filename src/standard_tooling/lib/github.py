@@ -36,16 +36,16 @@ def wait_for_checks(pr: str) -> None:
     run("pr", "checks", pr, "--watch", "--fail-fast")
 
 
-def merge(pr: str, *, strategy: str, delete_branch: bool = True) -> None:
+def merge(pr: str, *, strategy: str) -> None:
     """Merge a PR synchronously (without ``--auto``).
 
     ``strategy`` is one of ``"merge"``, ``"squash"``, ``"rebase"`` — passed
     through as ``--merge``, ``--squash``, ``--rebase``.
+
+    Does not pass ``--delete-branch`` — branch cleanup is handled by
+    ``st-finalize-repo`` after the merge completes.
     """
-    cmd = ["pr", "merge", f"--{strategy}", pr]
-    if delete_branch:
-        cmd.append("--delete-branch")
-    run(*cmd)
+    run("pr", "merge", f"--{strategy}", pr)
 
 
 def list_project_repos(owner: str, project: str) -> list[str]:

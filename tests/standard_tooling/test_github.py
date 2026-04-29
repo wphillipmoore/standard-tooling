@@ -42,18 +42,20 @@ def test_wait_for_checks_passes_pr_ref() -> None:
     )
 
 
-def test_merge_with_delete_branch() -> None:
+def test_merge_delegates_to_gh() -> None:
     with patch("standard_tooling.lib.github.run") as mock_run:
         github.merge("https://github.com/pr/1", strategy="merge")
     mock_run.assert_called_once_with(
-        "pr", "merge", "--merge", "https://github.com/pr/1", "--delete-branch"
+        "pr", "merge", "--merge", "https://github.com/pr/1"
     )
 
 
-def test_merge_without_delete_branch() -> None:
+def test_merge_squash_strategy() -> None:
     with patch("standard_tooling.lib.github.run") as mock_run:
-        github.merge("https://github.com/pr/1", strategy="squash", delete_branch=False)
-    mock_run.assert_called_once_with("pr", "merge", "--squash", "https://github.com/pr/1")
+        github.merge("https://github.com/pr/1", strategy="squash")
+    mock_run.assert_called_once_with(
+        "pr", "merge", "--squash", "https://github.com/pr/1"
+    )
 
 
 def test_list_project_repos() -> None:

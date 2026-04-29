@@ -13,7 +13,7 @@ from __future__ import annotations
 import argparse
 import sys
 
-from standard_tooling.lib import git, github
+from standard_tooling.lib import github
 from standard_tooling.lib.release import is_release_branch
 
 _STRATEGIES = ("merge", "squash", "rebase")
@@ -30,12 +30,6 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         choices=_STRATEGIES,
         default="merge",
         help="Merge strategy (default: merge)",
-    )
-    parser.add_argument(
-        "--no-delete-branch",
-        action="store_false",
-        dest="delete_branch",
-        help="Do not delete the branch on merge (default: delete)",
     )
     return parser.parse_args(argv)
 
@@ -60,14 +54,10 @@ def main(argv: list[str] | None = None) -> int:
         )
         return 1
 
-    delete_branch = args.delete_branch
-    if delete_branch and not git.is_main_worktree():
-        print("Note: skipping --delete-branch (worktree; st-finalize-repo handles cleanup)")
-        delete_branch = False
     print(f"Waiting for checks to pass on {args.pr}...")
     github.wait_for_checks(args.pr)
     print(f"Checks passed. Merging with --{args.strategy}...")
-    github.merge(args.pr, strategy=args.strategy, delete_branch=delete_branch)
+    github.merge(args.pr, strategy=args.strategy)
     print("Merged.")
     return 0
 
