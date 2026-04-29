@@ -94,6 +94,17 @@ def test_bump_branch_allowed() -> None:
     mock_merge.assert_called_once()
 
 
+def test_legacy_chore_bump_branch_allowed() -> None:
+    with (
+        _mock_branch("chore/bump-version-1.4.10"),
+        patch(f"{_MOD}.github.wait_for_checks"),
+        patch(f"{_MOD}.github.merge") as mock_merge,
+    ):
+        result = main(["https://github.com/pr/1"])
+    assert result == 0
+    mock_merge.assert_called_once()
+
+
 def test_feature_branch_blocked(capsys: pytest.CaptureFixture[str]) -> None:
     with (
         _mock_branch("feature/42-foo"),

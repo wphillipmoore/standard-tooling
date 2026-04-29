@@ -12,7 +12,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
 import shutil
 import subprocess
 import sys
@@ -145,8 +144,13 @@ def main(argv: list[str] | None = None) -> int:
 
     if not git.is_main_worktree():
         main_root = git.main_worktree_root()
-        print(f"Note: switching to main worktree at {main_root}")
-        os.chdir(main_root)
+        print(
+            f"ERROR: st-finalize-repo must be run from the main worktree at {main_root},\n"
+            "  not from a secondary worktree. The script removes worktrees during cleanup\n"
+            "  and cannot safely do so when the calling shell's CWD is inside one.",
+            file=sys.stderr,
+        )
+        return 1
 
     root = git.repo_root()
 
