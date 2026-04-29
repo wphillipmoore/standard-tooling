@@ -2,31 +2,9 @@
 
 ## Table of Contents
 
-- [AI co-authors](#ai-co-authors)
-- [Repository profile](#repository-profile)
-- [Validation policy](#validation-policy)
 - [External tooling dependencies](#external-tooling-dependencies)
 - [CI gates](#ci-gates)
 - [Local deviations](#local-deviations)
-
-## AI co-authors
-
-- Co-Authored-By: wphillipmoore-codex <255923655+wphillipmoore-codex@users.noreply.github.com>
-- Co-Authored-By: wphillipmoore-claude <255925739+wphillipmoore-claude@users.noreply.github.com>
-
-## Repository profile
-
-- repository_type: tooling
-- versioning_scheme: semver
-- branching_model: library-release
-- release_model: tagged-release
-- supported_release_lines: 1
-- primary_language: python
-
-## Validation policy
-
-- canonical_local_validation_command: st-validate-local
-- validation_required: yes (markdownlint, ruff, mypy, pytest required)
 
 ## External tooling dependencies
 
@@ -70,8 +48,8 @@ st-commit \
 - `--scope` (optional): conventional commit scope
 - `--body` (optional): detailed commit body
 
-The script resolves the correct `Co-Authored-By` identity from the
-[AI co-authors](#ai-co-authors) section and the git hooks validate the result.
+The script resolves the correct `Co-Authored-By` identity from
+`standard-tooling.toml` and the git hooks validate the result.
 
 ### Submitting PRs
 

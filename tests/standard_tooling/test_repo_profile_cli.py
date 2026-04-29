@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
-from unittest.mock import patch
 
 from standard_tooling.bin.repo_profile_cli import _structural_check, main
 
@@ -12,120 +11,70 @@ if TYPE_CHECKING:
 
     import pytest
 
-_VALID_PROFILE = """\
-## Repository profile
 
-- repository_type: library
-- versioning_scheme: semver
-- branching_model: library-release
-- release_model: tagged-release
-- supported_release_lines: 1
-- primary_language: python
+_VALID_TOML = """\
+[project]
+repository-type = "library"
+versioning-scheme = "semver"
+branching-model = "library-release"
+release-model = "tagged-release"
+primary-language = "python"
+
+[project.co-authors]
+claude = "Co-Authored-By: user-claude <111+user-claude@users.noreply.github.com>"
+
+[dependencies]
+standard-tooling = "v1.4"
 """
 
 
-def _write_profile(tmp_path: Path, content: str) -> None:
-    docs = tmp_path / "docs"
-    docs.mkdir(exist_ok=True)
-    (docs / "repository-standards.md").write_text(content)
+def _write_toml(tmp_path: Path, content: str) -> None:
+    (tmp_path / "standard-tooling.toml").write_text(content)
 
 
-def _mock_profile_ok() -> patch:
-    from standard_tooling.lib.repo_profile import RepoProfile
+# -- TOML validation ----------------------------------------------------------
 
-    return patch(
-        "standard_tooling.bin.repo_profile_cli.read_profile",
-        return_value=RepoProfile(
-            repository_type="library",
-            versioning_scheme="semver",
-            branching_model="library-release",
-            release_model="tagged-release",
-            supported_release_lines="1",
-            primary_language="python",
-        ),
+
+def test_valid_config(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.chdir(tmp_path)
+    _write_toml(tmp_path, _VALID_TOML)
+    assert main() == 0
+
+
+def test_missing_config(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.chdir(tmp_path)
+    assert main() == 2
+
+
+def test_missing_field(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.chdir(tmp_path)
+    toml = _VALID_TOML.replace('primary-language = "python"\n', "")
+    _write_toml(tmp_path, toml)
+    assert main() == 1
+
+
+def test_invalid_enum(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.chdir(tmp_path)
+    toml = _VALID_TOML.replace('"library"', '"banana"')
+    _write_toml(tmp_path, toml)
+    assert main() == 1
+
+
+def test_malformed_co_author(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.chdir(tmp_path)
+    toml = _VALID_TOML.replace(
+        'claude = "Co-Authored-By: user-claude <111+user-claude@users.noreply.github.com>"',
+        'claude = "not a trailer"',
     )
+    _write_toml(tmp_path, toml)
+    assert main() == 1
 
 
-# -- profile validation ------------------------------------------------------
-
-
-def test_valid_profile(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_missing_dependencies_key(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.chdir(tmp_path)
-    _write_profile(tmp_path, _VALID_PROFILE)
-    with _mock_profile_ok():
-        assert main() == 0
-
-
-def test_missing_profile() -> None:
-    with patch(
-        "standard_tooling.bin.repo_profile_cli.read_profile",
-        side_effect=FileNotFoundError("not found"),
-    ):
-        assert main() == 2
-
-
-def test_empty_attribute(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.chdir(tmp_path)
-    from standard_tooling.lib.repo_profile import RepoProfile
-
-    with patch("standard_tooling.bin.repo_profile_cli.read_profile") as mock_read:
-        mock_read.return_value = RepoProfile(
-            repository_type="library",
-            versioning_scheme="semver",
-            branching_model="",
-            release_model="tagged-release",
-            supported_release_lines="1",
-            primary_language="python",
-        )
-        assert main() == 1
-
-
-def test_placeholder_angle_brackets(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.chdir(tmp_path)
-    from standard_tooling.lib.repo_profile import RepoProfile
-
-    with patch("standard_tooling.bin.repo_profile_cli.read_profile") as mock_read:
-        mock_read.return_value = RepoProfile(
-            repository_type="<choose one>",
-            versioning_scheme="semver",
-            branching_model="library-release",
-            release_model="tagged-release",
-            supported_release_lines="1",
-            primary_language="python",
-        )
-        assert main() == 1
-
-
-def test_placeholder_pipe(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.chdir(tmp_path)
-    from standard_tooling.lib.repo_profile import RepoProfile
-
-    with patch("standard_tooling.bin.repo_profile_cli.read_profile") as mock_read:
-        mock_read.return_value = RepoProfile(
-            repository_type="library",
-            versioning_scheme="semver|calver",
-            branching_model="library-release",
-            release_model="tagged-release",
-            supported_release_lines="1",
-            primary_language="python",
-        )
-        assert main() == 1
-
-
-def test_multiple_errors(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.chdir(tmp_path)
-    from standard_tooling.lib.repo_profile import RepoProfile
-
-    with patch("standard_tooling.bin.repo_profile_cli.read_profile") as mock_read:
-        mock_read.return_value = RepoProfile(
-            repository_type="",
-            versioning_scheme="",
-            branching_model="library-release",
-            release_model="tagged-release",
-            supported_release_lines="1",
-            primary_language="python",
-        )
-        assert main() == 1
+    toml = _VALID_TOML.replace('standard-tooling = "v1.4"', 'other = "v1.0"')
+    _write_toml(tmp_path, toml)
+    assert main() == 1
 
 
 # -- _structural_check -------------------------------------------------------
@@ -178,19 +127,19 @@ def test_structural_tilde_fence_ignored(tmp_path: Path) -> None:
 
 def test_main_readme_structural_fails(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.chdir(tmp_path)
+    _write_toml(tmp_path, _VALID_TOML)
     (tmp_path / "README.md").write_text("## No H1\n")
-    with _mock_profile_ok():
-        assert main() == 1
+    assert main() == 1
 
 
 def test_main_readme_structural_passes(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.chdir(tmp_path)
+    _write_toml(tmp_path, _VALID_TOML)
     (tmp_path / "README.md").write_text("# Title\n\n## Table of Contents\n\n## Section\n")
-    with _mock_profile_ok():
-        assert main() == 0
+    assert main() == 0
 
 
 def test_main_no_readme(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.chdir(tmp_path)
-    with _mock_profile_ok():
-        assert main() == 0
+    _write_toml(tmp_path, _VALID_TOML)
+    assert main() == 0

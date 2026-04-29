@@ -1,6 +1,6 @@
 """Commit wrapper that constructs standards-compliant commit messages.
 
-Resolves Co-Authored-By identities from docs/repository-standards.md.
+Resolves Co-Authored-By identities from standard-tooling.toml.
 Performs branch / context validation (formerly in
 `standard_tooling.bin.pre_commit_hook`, removed under the host-level-tool
 spec — see docs/specs/host-level-tool.md). Sets ST_COMMIT_CONTEXT=1
@@ -16,7 +16,7 @@ import sys
 import tempfile
 from pathlib import Path
 
-from standard_tooling.lib import git, repo_profile
+from standard_tooling.lib import config, git
 
 ALLOWED_TYPES = ("feat", "fix", "docs", "style", "refactor", "test", "chore", "ci", "build")
 
@@ -70,10 +70,9 @@ def _reject(reason: str, *hints: str) -> int:
     return 1
 
 
-def _validate_commit_context() -> int:
+def _validate_commit_context(root: Path, branching_model: str) -> int:
     """Run the five branch / context checks before any commit.
 
-    Mirrors the pre-host-level-tool `pre_commit_hook.py` logic exactly.
     Returns 0 on success, 1 on rejection (with diagnostic on stderr).
     """
     current_branch = git.current_branch()
@@ -92,26 +91,16 @@ def _validate_commit_context() -> int:
             "Create a short-lived branch and open a PR.",
         )
 
-    root = git.repo_root()
-    branching_model = ""
-    try:
-        profile = repo_profile.read_profile(root)
-        branching_model = profile.branching_model
-    except FileNotFoundError:
-        pass
-
     if branching_model and branching_model not in _BRANCHING_MODELS:
-        profile_file = root / repo_profile.PROFILE_FILENAME
         return _reject(
-            f"ERROR: unrecognized branching_model '{branching_model}' in {profile_file}.",
+            f"ERROR: unrecognized branching_model '{branching_model}' in {config.CONFIG_FILE}.",
         )
 
     if branching_model:
         allowed_regex, allowed_display = _BRANCHING_MODELS[branching_model]
     else:
-        profile_file = root / repo_profile.PROFILE_FILENAME
         print(
-            f"WARNING: branching_model not found in {profile_file}; "
+            f"WARNING: branching_model not found in {config.CONFIG_FILE}; "
             "falling back to feature/*/bugfix/*.",
             file=sys.stderr,
         )
@@ -158,13 +147,29 @@ def _validate_commit_context() -> int:
 
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
+    root = git.repo_root()
 
-    rc = _validate_commit_context()
+    try:
+        st_config = config.read_config(root)
+        branching_model = st_config.project.branching_model
+    except FileNotFoundError:
+        st_config = None
+        branching_model = ""
+    except config.ConfigError as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 1
+
+    rc = _validate_commit_context(root, branching_model)
     if rc != 0:
         return rc
 
-    root = git.repo_root()
-    identity = repo_profile.resolve_co_author(args.agent, root)
+    if st_config is None or args.agent not in st_config.project.co_authors:
+        print(
+            f"ERROR: no co-author identity for agent '{args.agent}' in {config.CONFIG_FILE}.",
+            file=sys.stderr,
+        )
+        return 1
+    identity = st_config.project.co_authors[args.agent]
 
     if not git.has_staged_changes():
         print(
@@ -186,10 +191,6 @@ def main(argv: list[str] | None = None) -> int:
         tmp_path = f.name
 
     try:
-        # `git.run` sets ST_COMMIT_CONTEXT=1 in the subprocess env when
-        # the first arg is "commit", so the `.githooks/pre-commit` gate
-        # admits the resulting commit. See lib/git.py and
-        # docs/specs/host-level-tool.md "Git hooks".
         git.run("commit", "--file", tmp_path)
     finally:
         Path(tmp_path).unlink(missing_ok=True)

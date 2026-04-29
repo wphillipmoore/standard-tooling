@@ -68,10 +68,10 @@ def test_main_rejects_secondary_worktree(
 
 
 def _make_profile(tmp_path: Path, model: str) -> None:
-    docs = tmp_path / "docs"
-    docs.mkdir(exist_ok=True)
-    (docs / "repository-standards.md").write_text(
-        f"## Repository profile\n\n- branching_model: {model}\n"
+    (tmp_path / "standard-tooling.toml").write_text(
+        f'[project]\nrepository-type = "library"\nversioning-scheme = "semver"\n'
+        f'branching-model = "{model}"\nrelease-model = "tagged-release"\n'
+        f'primary-language = "python"\n\n[dependencies]\nstandard-tooling = "v1.4"\n'
     )
 
 

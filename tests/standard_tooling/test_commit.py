@@ -9,10 +9,27 @@ from unittest.mock import patch
 
 import pytest
 
-from standard_tooling.bin.commit import main, parse_args
+from standard_tooling.bin.commit import _validate_commit_context, main, parse_args
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
+
+
+_TEST_TOML_TEMPLATE = """\
+[project]
+repository-type = "library"
+versioning-scheme = "semver"
+branching-model = "{branching_model}"
+release-model = "tagged-release"
+primary-language = "python"
+
+[project.co-authors]
+claude = "Co-Authored-By: test <test@test.com>"
+codex = "Co-Authored-By: test-codex <codex@test.com>"
+
+[dependencies]
+standard-tooling = "v1.4"
+"""
 
 
 @contextlib.contextmanager
@@ -21,27 +38,24 @@ def _commit_environment(
     *,
     branch: str = "feature/42-test",
     is_main_worktree: bool = False,
-    branching_model: str | None = None,
+    branching_model: str = "library-release",
     has_staged: bool = True,
+    write_config: bool = True,
 ) -> Iterator[None]:
     """Set up mocks for `commit.main()`.
 
-    Defaults represent a happy path: secondary worktree, `library-release`
-    profile (branching_model resolves from disk if profile is written),
-    valid `feature/42-test` branch, staged changes present.
+    Defaults represent a happy path: secondary worktree, library-release
+    config, valid feature/42-test branch, staged changes present.
 
-    The ST_COMMIT_CONTEXT=1 contract is pinned in test_git.py — it's
-    `git.run`'s responsibility under issue #295.
+    When *write_config* is True (default), a ``standard-tooling.toml``
+    is written with the given *branching_model*.  Set *write_config*
+    to False to test the no-config fallback path.
     """
-
-    if branching_model is not None:
-        docs = tmp_path / "docs"
-        docs.mkdir(exist_ok=True)
-        (docs / "repository-standards.md").write_text(
-            f"## Repository profile\n\n- branching_model: {branching_model}\n"
+    if write_config:
+        (tmp_path / "standard-tooling.toml").write_text(
+            _TEST_TOML_TEMPLATE.format(branching_model=branching_model)
         )
 
-    co_author = "Co-Authored-By: test <test@test.com>"
     with (
         patch("standard_tooling.bin.commit.git.current_branch", return_value=branch),
         patch("standard_tooling.bin.commit.git.repo_root", return_value=tmp_path),
@@ -54,10 +68,6 @@ def _commit_environment(
             return_value=has_staged,
         ),
         patch("standard_tooling.bin.commit.git.run"),
-        patch(
-            "standard_tooling.bin.commit.repo_profile.resolve_co_author",
-            return_value=co_author,
-        ),
     ):
         yield
 
@@ -97,29 +107,12 @@ def test_parse_args_invalid_type() -> None:
 
 
 def test_main_no_staged_changes(tmp_path: Path) -> None:
-    co_author = "Co-Authored-By: test <test@test.com>"
-    with (
-        patch("standard_tooling.bin.commit.git.current_branch", return_value="feature/42-x"),
-        patch("standard_tooling.bin.commit.git.repo_root", return_value=tmp_path),
-        patch(
-            "standard_tooling.bin.commit.git.is_main_worktree",
-            return_value=False,
-        ),
-        patch(
-            "standard_tooling.bin.commit.repo_profile.resolve_co_author",
-            return_value=co_author,
-        ),
-        patch(
-            "standard_tooling.bin.commit.git.has_staged_changes",
-            return_value=False,
-        ),
-    ):
+    with _commit_environment(tmp_path, has_staged=False):
         result = main(["--type", "feat", "--message", "test", "--agent", "claude"])
     assert result == 1
 
 
 def test_main_with_staged_changes_no_scope(tmp_path: Path) -> None:
-    co_author = "Co-Authored-By: test <test@test.com>"
     commit_file_content = ""
 
     def capture_run(*args: str) -> None:
@@ -128,27 +121,16 @@ def test_main_with_staged_changes_no_scope(tmp_path: Path) -> None:
             commit_file_content = Path(args[2]).read_text(encoding="utf-8")
 
     with (
-        patch("standard_tooling.bin.commit.git.current_branch", return_value="feature/42-x"),
-        patch("standard_tooling.bin.commit.git.repo_root", return_value=tmp_path),
-        patch(
-            "standard_tooling.bin.commit.git.is_main_worktree",
-            return_value=False,
-        ),
-        patch(
-            "standard_tooling.bin.commit.repo_profile.resolve_co_author",
-            return_value=co_author,
-        ),
-        patch("standard_tooling.bin.commit.git.has_staged_changes", return_value=True),
+        _commit_environment(tmp_path),
         patch("standard_tooling.bin.commit.git.run", side_effect=capture_run),
     ):
         result = main(["--type", "feat", "--message", "add feature", "--agent", "claude"])
     assert result == 0
     assert commit_file_content.startswith("feat: add feature\n")
-    assert co_author in commit_file_content
+    assert "Co-Authored-By: test <test@test.com>" in commit_file_content
 
 
 def test_main_with_scope_and_body(tmp_path: Path) -> None:
-    co_author = "Co-Authored-By: test <test@test.com>"
     commit_file_content = ""
 
     def capture_run(*args: str) -> None:
@@ -157,17 +139,7 @@ def test_main_with_scope_and_body(tmp_path: Path) -> None:
             commit_file_content = Path(args[2]).read_text(encoding="utf-8")
 
     with (
-        patch("standard_tooling.bin.commit.git.current_branch", return_value="feature/42-x"),
-        patch("standard_tooling.bin.commit.git.repo_root", return_value=tmp_path),
-        patch(
-            "standard_tooling.bin.commit.git.is_main_worktree",
-            return_value=False,
-        ),
-        patch(
-            "standard_tooling.bin.commit.repo_profile.resolve_co_author",
-            return_value=co_author,
-        ),
-        patch("standard_tooling.bin.commit.git.has_staged_changes", return_value=True),
+        _commit_environment(tmp_path),
         patch("standard_tooling.bin.commit.git.run", side_effect=capture_run),
     ):
         result = main(
@@ -187,7 +159,39 @@ def test_main_with_scope_and_body(tmp_path: Path) -> None:
     assert result == 0
     assert "fix(lint): correct regex" in commit_file_content
     assert "Fixed edge case" in commit_file_content
-    assert co_author in commit_file_content
+    assert "Co-Authored-By: test <test@test.com>" in commit_file_content
+
+
+# --------------------------------------------------------------------------
+# Config error handling
+# --------------------------------------------------------------------------
+
+
+def test_main_config_error(tmp_path: Path) -> None:
+    (tmp_path / "standard-tooling.toml").write_text("[invalid\n")
+    with (
+        patch("standard_tooling.bin.commit.git.current_branch", return_value="feature/42-test"),
+        patch("standard_tooling.bin.commit.git.repo_root", return_value=tmp_path),
+    ):
+        result = main(_DEFAULT_ARGS)
+    assert result == 1
+
+
+def test_main_missing_config(tmp_path: Path) -> None:
+    with (
+        patch("standard_tooling.bin.commit.git.current_branch", return_value="feature/42-test"),
+        patch("standard_tooling.bin.commit.git.repo_root", return_value=tmp_path),
+        patch("standard_tooling.bin.commit.git.is_main_worktree", return_value=False),
+        patch("standard_tooling.bin.commit.git.has_staged_changes", return_value=True),
+    ):
+        result = main(_DEFAULT_ARGS)
+    assert result == 1
+
+
+def test_main_unknown_agent(tmp_path: Path) -> None:
+    with _commit_environment(tmp_path):
+        result = main(["--type", "feat", "--message", "test", "--agent", "nonexistent"])
+    assert result == 1
 
 
 # --------------------------------------------------------------------------
@@ -211,7 +215,7 @@ def test_validate_rejects_detached_head(tmp_path: Path) -> None:
 
 
 def test_validate_admits_normal_branch(tmp_path: Path) -> None:
-    with _commit_environment(tmp_path, branch="feature/42-test"):
+    with _commit_environment(tmp_path, branch="feature/42-test", branching_model="library-release"):
         assert main(_DEFAULT_ARGS) == 0
 
 
@@ -255,19 +259,18 @@ def test_validate_admits_promotion_for_application_promotion(tmp_path: Path) -> 
 
 
 def test_validate_rejects_unknown_branching_model(tmp_path: Path) -> None:
-    with _commit_environment(tmp_path, branch="feature/42-thing", branching_model="bogus-model"):
-        assert main(_DEFAULT_ARGS) == 1
+    with patch("standard_tooling.bin.commit.git.current_branch", return_value="feature/42-thing"):
+        assert _validate_commit_context(tmp_path, "bogus-model") == 1
 
 
-def test_validate_falls_back_when_no_profile(tmp_path: Path) -> None:
-    # No profile written; falls back to feature|bugfix|chore.
-    with _commit_environment(tmp_path, branch="feature/42-test"):
-        assert main(_DEFAULT_ARGS) == 0
+def test_validate_falls_back_when_no_config(tmp_path: Path) -> None:
+    with patch("standard_tooling.bin.commit.git.current_branch", return_value="feature/42-test"):
+        assert _validate_commit_context(tmp_path, "") == 0
 
 
 def test_validate_fallback_rejects_hotfix(tmp_path: Path) -> None:
-    with _commit_environment(tmp_path, branch="hotfix/42-urgent"):
-        assert main(_DEFAULT_ARGS) == 1
+    with patch("standard_tooling.bin.commit.git.current_branch", return_value="hotfix/42-urgent"):
+        assert _validate_commit_context(tmp_path, "") == 1
 
 
 # Check 4: issue number in branch name

@@ -1,6 +1,6 @@
 """Shared driver for pre-PR local validation.
 
-Reads primary_language from docs/repository-standards.md, then runs:
+Reads primary_language from standard-tooling.toml, then runs:
   1. validate-local-common   (always)
   2. validate-local-<lang>   (if primary_language is set and script exists)
   3. validate-local-custom   (if exists -- repo-specific escape hatch)
@@ -14,7 +14,7 @@ import subprocess
 import sys
 from typing import TYPE_CHECKING
 
-from standard_tooling.lib import git, repo_profile
+from standard_tooling.lib import config, git
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -56,10 +56,13 @@ def main(argv: list[str] | None = None) -> int:  # noqa: ARG001
     scripts_bin = root / "scripts" / "bin"
 
     try:
-        profile = repo_profile.read_profile(root)
-        primary_language = profile.primary_language
+        st_config = config.read_config(root)
+        primary_language = st_config.project.primary_language
     except FileNotFoundError:
         primary_language = ""
+    except config.ConfigError as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 1
 
     print("=" * 40)
     print("st-validate-local")

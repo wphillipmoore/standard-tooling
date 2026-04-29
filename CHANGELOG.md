@@ -5,6 +5,39 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.4.5] - 2026-04-29
+
+### Bug fixes
+
+- eliminate unreachable elif branch for full coverage
+
+### Documentation
+
+- add spec, plan, and reviews for standard-tooling.toml migration (#363)
+- strip config sections from repository-standards.md, update references
+
+### Features
+
+- add typed TOML reader for standard-tooling.toml
+
+### Refactoring
+
+- migrate st-commit from repo_profile to config.read_config
+- migrate st-validate-local from repo_profile to config.read_config
+- migrate st-finalize-repo from repo_profile to config.read_config
+- rewrite repo-profile-cli to validate standard-tooling.toml
+
+### Styling
+
+- fix ruff TC003 and SIM117 lint errors
+- apply ruff format to modified files
+
+### Testing
+
+- add failing tests for standard-tooling.toml reader
+- rewrite repo-profile-cli tests for TOML validation
+- add missing coverage for ConfigError handlers and dead code removal
+
 ## [1.4.4] - 2026-04-29
 
 ### Bug fixes
