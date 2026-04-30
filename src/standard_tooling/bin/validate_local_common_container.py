@@ -1,6 +1,6 @@
-"""Validation checks that run inside a dev container.
+"""Common validation checks (container-local).
 
-Called by ``validate-local-common`` via ``docker-test``.  Runs:
+Runs inside the dev container via ``st-docker-run``:
   1. Repository profile validation (includes README structural checks)
   2. markdownlint on published markdown (docs/site/, README.md)
   3. shellcheck on all shell scripts under ``scripts/``
