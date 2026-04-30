@@ -1270,15 +1270,6 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#st-validate-local-common-container" class="md-nav__link">
-    <span class="md-ellipsis">
-      st-validate-local-common-container
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#st-validate-local-python-rust-go-java" class="md-nav__link">
     <span class="md-ellipsis">
       st-validate-local-python / -rust / -go / -java
@@ -1405,9 +1396,9 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#st-validate-local-common-passthrough" class="md-nav__link">
+  <a href="#st-validate-local-common_1" class="md-nav__link">
     <span class="md-ellipsis">
-      st-validate-local-common passthrough
+      st-validate-local-common
     </span>
   </a>
   
@@ -2164,15 +2155,6 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#st-validate-local-common-container" class="md-nav__link">
-    <span class="md-ellipsis">
-      st-validate-local-common-container
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#st-validate-local-python-rust-go-java" class="md-nav__link">
     <span class="md-ellipsis">
       st-validate-local-python / -rust / -go / -java
@@ -2299,9 +2281,9 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#st-validate-local-common-passthrough" class="md-nav__link">
+  <a href="#st-validate-local-common_1" class="md-nav__link">
     <span class="md-ellipsis">
-      st-validate-local-common passthrough
+      st-validate-local-common
     </span>
   </a>
   
@@ -2760,42 +2742,6 @@ from the repository profile, then dispatches to
 </tbody>
 </table>
 <h3 id="st-validate-local-common">st-validate-local-common<a class="headerlink" href="#st-validate-local-common" title="Permanent link">&para;</a></h3>
-<p>Thin wrapper that delegates to <code>st-validate-local-common-container</code>.</p>
-<table>
-<thead>
-<tr>
-<th>Attribute</th>
-<th>Value</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Source</td>
-<td><code>standard_tooling.bin.validate_local_common</code></td>
-</tr>
-<tr>
-<td>Args</td>
-<td>None</td>
-</tr>
-<tr>
-<td>Preconditions</td>
-<td>Same as <code>st-validate-local-common-container</code></td>
-</tr>
-<tr>
-<td>Failure mode</td>
-<td>Same as <code>st-validate-local-common-container</code></td>
-</tr>
-<tr>
-<td>Exit codes</td>
-<td>Same as <code>st-validate-local-common-container</code></td>
-</tr>
-<tr>
-<td>Status</td>
-<td>Active (passthrough)</td>
-</tr>
-</tbody>
-</table>
-<h3 id="st-validate-local-common-container">st-validate-local-common-container<a class="headerlink" href="#st-validate-local-common-container" title="Permanent link">&para;</a></h3>
 <p>Shared validation checks for all repos: repository profile
 validation, markdown standards, shellcheck on <code>scripts/</code>, and
 yamllint on <code>.github/</code> and <code>docs/</code> YAML files.</p>
@@ -3026,13 +2972,10 @@ interface than argparse would provide. No alignment needed.</p>
 </ul>
 <p>The 1-vs-2 distinction is not universal. Tools added before the
 convention was established use 1 for all errors.</p>
-<h3 id="st-validate-local-common-passthrough">st-validate-local-common passthrough<a class="headerlink" href="#st-validate-local-common-passthrough" title="Permanent link">&para;</a></h3>
-<p><code>st-validate-local-common</code> is a thin wrapper that calls
-<code>st-validate-local-common-container.main()</code> directly. Both entry
-points exist for historical reasons (the split predates the
-container-local convention). Both are active because
-<code>st-validate-local</code> dispatches to <code>st-validate-local-common</code> by
-name.</p>
+<h3 id="st-validate-local-common_1">st-validate-local-common<a class="headerlink" href="#st-validate-local-common_1" title="Permanent link">&para;</a></h3>
+<p><code>st-validate-local-common</code> points directly at the
+<code>validate_local_common_container</code> module. The former passthrough
+wrapper (<code>validate_local_common.py</code>) was removed in issue #403.</p>
 
 
 
