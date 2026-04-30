@@ -21,40 +21,52 @@ if TYPE_CHECKING:
 
     import pytest
 
+_VALID_TOML = """\
+[project]
+repository-type = "library"
+versioning-scheme = "semver"
+branching-model = "library-release"
+release-model = "tagged-release"
+primary-language = "go"
+
+[dependencies]
+standard-tooling = "v1.4"
+"""
+
 
 # -- cache_sensitive_files ----------------------------------------------------
 
 
 def test_cache_files_python(tmp_path: Path) -> None:
     (tmp_path / "uv.lock").write_text("lock\n")
-    (tmp_path / "st-config.toml").write_text("[standard-tooling]\n")
+    (tmp_path / "standard-tooling.toml").write_text("[standard-tooling]\n")
     files = cache_sensitive_files(tmp_path, "python")
     names = [f.name for f in files]
     assert "uv.lock" in names
-    assert "st-config.toml" in names
+    assert "standard-tooling.toml" in names
 
 
 def test_cache_files_go(tmp_path: Path) -> None:
     (tmp_path / "go.sum").write_text("sum\n")
-    (tmp_path / "st-config.toml").write_text("[standard-tooling]\n")
+    (tmp_path / "standard-tooling.toml").write_text("[standard-tooling]\n")
     files = cache_sensitive_files(tmp_path, "go")
     names = [f.name for f in files]
     assert "go.sum" in names
-    assert "st-config.toml" in names
+    assert "standard-tooling.toml" in names
 
 
 def test_cache_files_unknown_language(tmp_path: Path) -> None:
-    (tmp_path / "st-config.toml").write_text("[standard-tooling]\n")
+    (tmp_path / "standard-tooling.toml").write_text("[standard-tooling]\n")
     files = cache_sensitive_files(tmp_path, "")
     assert len(files) == 1
-    assert files[0].name == "st-config.toml"
+    assert files[0].name == "standard-tooling.toml"
 
 
 def test_cache_files_missing_lockfile(tmp_path: Path) -> None:
-    (tmp_path / "st-config.toml").write_text("[standard-tooling]\n")
+    (tmp_path / "standard-tooling.toml").write_text("[standard-tooling]\n")
     files = cache_sensitive_files(tmp_path, "go")
     assert len(files) == 1
-    assert files[0].name == "st-config.toml"
+    assert files[0].name == "standard-tooling.toml"
 
 
 # -- compute_cache_hash -------------------------------------------------------
@@ -148,7 +160,7 @@ def test_ensure_returns_base_when_no_files(tmp_path: Path) -> None:
 
 
 def test_ensure_returns_existing_cache_on_hash_match(tmp_path: Path) -> None:
-    (tmp_path / "st-config.toml").write_text('[standard-tooling]\ntag = "v1.4"\n')
+    (tmp_path / "standard-tooling.toml").write_text(_VALID_TOML)
     cached_tag = "ghcr.io/r/dev-go:1.26--feature-42--"
     files = cache_sensitive_files(tmp_path, "go")
     expected_hash = compute_cache_hash(files)
@@ -167,7 +179,7 @@ def test_ensure_returns_existing_cache_on_hash_match(tmp_path: Path) -> None:
 
 
 def test_ensure_rebuilds_on_hash_mismatch(tmp_path: Path) -> None:
-    (tmp_path / "st-config.toml").write_text('[standard-tooling]\ntag = "v1.4"\n')
+    (tmp_path / "standard-tooling.toml").write_text(_VALID_TOML)
     stale_tag = "ghcr.io/r/dev-go:1.26--feature-42--oldold00"
     new_tag = "ghcr.io/r/dev-go:1.26--feature-42--"
 
@@ -196,7 +208,7 @@ def test_ensure_rebuilds_on_hash_mismatch(tmp_path: Path) -> None:
 
 
 def test_ensure_builds_on_cache_miss(tmp_path: Path) -> None:
-    (tmp_path / "st-config.toml").write_text('[standard-tooling]\ntag = "v1.4"\n')
+    (tmp_path / "standard-tooling.toml").write_text(_VALID_TOML)
 
     with (
         patch("standard_tooling.lib.git.current_branch") as mock_branch,
@@ -252,7 +264,7 @@ def test_clean_branch_images_docker_error() -> None:
 
 
 def test_build_cached_image_success(tmp_path: Path) -> None:
-    (tmp_path / "st-config.toml").write_text('[standard-tooling]\ntag = "v1.4"\n')
+    (tmp_path / "standard-tooling.toml").write_text(_VALID_TOML)
     create_result = MagicMock(returncode=0, stdout="abc123\n")
     start_result = MagicMock(returncode=0)
     commit_result = MagicMock(returncode=0)
@@ -278,7 +290,7 @@ def test_build_cached_image_success(tmp_path: Path) -> None:
 
 
 def test_build_cached_image_create_fails(tmp_path: Path) -> None:
-    (tmp_path / "st-config.toml").write_text('[standard-tooling]\ntag = "v1.4"\n')
+    (tmp_path / "standard-tooling.toml").write_text(_VALID_TOML)
     create_result = MagicMock(returncode=1, stderr="no space")
     with patch("standard_tooling.lib.docker_cache.subprocess.run", return_value=create_result):
         result = _build_cached_image(tmp_path, "go", "img:1", "img:1--branch--hash")
@@ -286,7 +298,7 @@ def test_build_cached_image_create_fails(tmp_path: Path) -> None:
 
 
 def test_build_cached_image_start_fails(tmp_path: Path) -> None:
-    (tmp_path / "st-config.toml").write_text('[standard-tooling]\ntag = "v1.4"\n')
+    (tmp_path / "standard-tooling.toml").write_text(_VALID_TOML)
     create_result = MagicMock(returncode=0, stdout="abc123\n")
     start_result = MagicMock(returncode=1)
     rm_result = MagicMock(returncode=0)
@@ -310,7 +322,7 @@ def test_build_cached_image_start_fails(tmp_path: Path) -> None:
 def test_build_cached_image_warmup_printed(
     tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
-    (tmp_path / "st-config.toml").write_text('[standard-tooling]\ntag = "v1.4"\n')
+    (tmp_path / "standard-tooling.toml").write_text(_VALID_TOML)
     create_result = MagicMock(returncode=0, stdout="abc123\n")
     ok = MagicMock(returncode=0)
 
@@ -328,7 +340,7 @@ def test_build_cached_image_warmup_printed(
 def test_build_cached_image_no_warmup_for_unknown_lang(
     tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
-    (tmp_path / "st-config.toml").write_text('[standard-tooling]\ntag = "v1.4"\n')
+    (tmp_path / "standard-tooling.toml").write_text(_VALID_TOML)
     create_result = MagicMock(returncode=0, stdout="abc123\n")
     ok = MagicMock(returncode=0)
 

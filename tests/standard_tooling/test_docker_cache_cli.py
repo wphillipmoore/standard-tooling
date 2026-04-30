@@ -12,6 +12,18 @@ if TYPE_CHECKING:
 
     import pytest
 
+_VALID_TOML = """\
+[project]
+repository-type = "library"
+versioning-scheme = "semver"
+branching-model = "library-release"
+release-model = "tagged-release"
+primary-language = "go"
+
+[dependencies]
+standard-tooling = "v1.4"
+"""
+
 
 # -- no subcommand ------------------------------------------------------------
 
@@ -108,7 +120,7 @@ def test_build_no_caching(tmp_path: Path, capsys: pytest.CaptureFixture[str]) ->
 def test_status_no_cache_with_expected_tag(
     tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
-    (tmp_path / "st-config.toml").write_text('[standard-tooling]\ntag = "v1.4"\n')
+    (tmp_path / "standard-tooling.toml").write_text(_VALID_TOML)
     with (
         patch("standard_tooling.bin.docker_cache.git.repo_root", return_value=tmp_path),
         patch("standard_tooling.bin.docker_cache.git.current_branch", return_value="feature/42"),
@@ -125,7 +137,7 @@ def test_status_no_cache_with_expected_tag(
 
 
 def test_status_current(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
-    (tmp_path / "st-config.toml").write_text('[standard-tooling]\ntag = "v1.4"\n')
+    (tmp_path / "standard-tooling.toml").write_text(_VALID_TOML)
     from standard_tooling.lib.docker_cache import cache_sensitive_files, compute_cache_hash
 
     files = cache_sensitive_files(tmp_path, "go")
@@ -146,7 +158,7 @@ def test_status_current(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> N
 
 
 def test_status_stale(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
-    (tmp_path / "st-config.toml").write_text('[standard-tooling]\ntag = "v1.4"\n')
+    (tmp_path / "standard-tooling.toml").write_text(_VALID_TOML)
     cached = ("ghcr.io/r/dev-go:1.26--feature-42--oldold00", "oldold00")
     with (
         patch("standard_tooling.bin.docker_cache.git.repo_root", return_value=tmp_path),
