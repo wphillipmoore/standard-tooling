@@ -82,7 +82,7 @@ fleet to behave consistently.
    they rely on the image's pre-bake; see principle 6.
 6. **Non-Python consumers get `standard-tooling` at container
    runtime via `st-docker-run`'s cache-first architecture.**
-   `st-docker-run` reads the repo's `st-config.toml` for the
+   `st-docker-run` reads the repo's `standard-tooling.toml` for the
    version tag, builds a per-branch cached Docker image with
    standard-tooling pre-installed, and runs commands against it.
    Dev container images no longer carry pre-baked standard-tooling.
@@ -93,7 +93,7 @@ fleet to behave consistently.
 |---|---|---|---|
 | **Developer host** | `uv tool install` from git URL (canonical); `pip install` from git URL (alternative) | Host-side commands: `st-docker-run`, `st-commit`, `st-submit-pr`, `st-prepare-release`, `st-finalize-repo` | Manual one-liner after each release |
 | **Python project `.venv`** (MUST for Python consumers) | `[tool.uv.sources]` git URL + `uv sync` | `uv run st-*` inside the container for validators: `st-validate-local`, `st-validate-local-python`, `st-markdown-standards`, etc. | `uv lock --upgrade-package standard-tooling` per repo; rolling tag means the upgrade is a no-arg re-lock |
-| **Non-Python container runtime** (cache-first) | `st-docker-run` reads `st-config.toml`, builds per-branch cached image with `pip install` from git URL | `st-*` inside the container for non-Python consumers (plugin, docker, docs) | Automatic cache rebuild when `st-config.toml` tag changes or lockfile changes |
+| **Non-Python container runtime** (cache-first) | `st-docker-run` reads `standard-tooling.toml`, builds per-branch cached image with `pip install` from git URL | `st-*` inside the container for non-Python consumers (plugin, docker, docs) | Automatic cache rebuild when `standard-tooling.toml` tag changes or lockfile changes |
 
 These targets are coordinated, not redundant. Each covers a failure
 mode the others cannot:
@@ -319,7 +319,7 @@ Ruby / Go / Rust / Java variants of `mq-rest-admin-*`) cannot
 declare `standard-tooling` as a dev dep because they have no
 `pyproject.toml` to declare in. They get `standard-tooling` at
 container runtime via `st-docker-run`'s cache-first architecture:
-each repo's `st-config.toml` declares the version tag, and
+each repo's `standard-tooling.toml` declares the version tag, and
 `st-docker-run` builds a per-branch cached image with
 standard-tooling pre-installed (see
 [Cache-first runtime install](#cache-first-runtime-install)).
@@ -332,18 +332,18 @@ per-branch cached image strategy, implemented in
 [#362](https://github.com/wphillipmoore/standard-tooling/issues/362).
 
 Each consuming repo declares its standard-tooling version in
-`st-config.toml` at the repo root:
+`standard-tooling.toml` under `[dependencies]`:
 
 ```toml
-[standard-tooling]
-tag = "v1.4"
+[dependencies]
+standard-tooling = "v1.4"
 ```
 
 `st-docker-run` reads this file, builds (or reuses) a per-branch
 Docker image with standard-tooling pre-installed via `pip install`
 from the git URL at that tag, and runs the user's command against
 the cached image. Cache invalidation is automatic: when
-`st-config.toml` or the project's lockfile changes, the cached
+`standard-tooling.toml` or the project's lockfile changes, the cached
 image is rebuilt on next invocation.
 
 This decouples `standard-tooling` releases from dev container image
@@ -372,7 +372,7 @@ into one of the two existing paths:
 - **Non-Python consumer CI** — uses the cache-first runtime path.
   Workflows invoke `st-docker-run` from the runner, which builds
   (or reuses) a cached image with standard-tooling installed per
-  `st-config.toml`. CI runners are ephemeral and cannot reuse
+  `standard-tooling.toml`. CI runners are ephemeral and cannot reuse
   cached images across runs, so each CI run pays the one-time
   install cost (~5-10s).
 
@@ -729,7 +729,7 @@ remains a real cost but is mitigated here because:
 
 Under the cache-first model, a new `standard-tooling` release does
 not automatically propagate to non-Python consumers. Each repo's
-`st-config.toml` must be updated to reference the new tag. This is
+`standard-tooling.toml` must be updated to reference the new tag. This is
 deliberate — explicit version control per repo rather than implicit
 propagation through image rebuilds. The tradeoff is a manual step
 per repo per release versus the previous model's silent staleness
@@ -770,8 +770,9 @@ window during image rebuilds.
       `standard-tooling`. Non-Python consumers get it at container
       runtime via `st-docker-run`'s cache-first architecture.
       (Completed in [#362](https://github.com/wphillipmoore/standard-tooling/issues/362).)
-- [x] All consuming repos have `st-config.toml` declaring the
-      standard-tooling version tag. (Completed in #362 Phase 2b.)
+- [x] All consuming repos have `standard-tooling.toml` declaring the
+      standard-tooling version tag. (Completed in #362 Phase 2b,
+      migrated from `st-config.toml` in #363.)
 - [ ] `standards-compliance` (and any other `standard-actions`
       composite that clones `standard-tooling` or puts
       `scripts/bin/` on `PATH`) is updated to rely on the Python

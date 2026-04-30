@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.4.7] - 2026-04-30
+
+### Bug fixes
+
+- force-update tags on git fetch to prevent stale local state
+- add --pull=always to docker run to prevent stale image cache
+- use uv run for validation in Python repos during finalization
+
 ## [1.4.5] - 2026-04-29
 
 ### Bug fixes

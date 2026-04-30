@@ -16,13 +16,13 @@ if TYPE_CHECKING:
 _ST_GIT_URL = "https://github.com/wphillipmoore/standard-tooling"
 
 _CACHE_FILES: dict[str, list[str]] = {
-    "python": ["uv.lock", "st-config.toml"],
-    "ruby": ["Gemfile.lock", "st-config.toml"],
-    "rust": ["Cargo.lock", "st-config.toml"],
-    "go": ["go.sum", "st-config.toml"],
-    "java": ["pom.xml", "st-config.toml"],
+    "python": ["uv.lock", "standard-tooling.toml"],
+    "ruby": ["Gemfile.lock", "standard-tooling.toml"],
+    "rust": ["Cargo.lock", "standard-tooling.toml"],
+    "go": ["go.sum", "standard-tooling.toml"],
+    "java": ["pom.xml", "standard-tooling.toml"],
 }
-_DEFAULT_CACHE_FILES = ["st-config.toml"]
+_DEFAULT_CACHE_FILES = ["standard-tooling.toml"]
 
 _WARMUP_COMMANDS: dict[str, str] = {
     "python": "uv sync --group dev",

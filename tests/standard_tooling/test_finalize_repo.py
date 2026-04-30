@@ -256,6 +256,23 @@ def test_main_prefers_docker_run(tmp_path: Path) -> None:
     assert cmd[1:] == ("--", "st-validate-local")
 
 
+def test_main_docker_run_uses_uv_for_python(tmp_path: Path) -> None:
+    _make_profile(tmp_path, "library-release")
+    (tmp_path / "pyproject.toml").write_text("[project]\nname = 'x'\n")
+    with (
+        patch(_MOD + ".git.repo_root", return_value=tmp_path),
+        patch(_MOD + ".git.current_branch", return_value="develop"),
+        patch(_MOD + ".git.run"),
+        patch(_MOD + ".git.merged_branches", return_value=[]),
+        patch(_MOD + ".shutil.which", side_effect=_which_docker_only),
+        patch(_MOD + ".subprocess.run", return_value=_validation_ok()) as mock_sub,
+    ):
+        result = main([])
+    assert result == 0
+    cmd = mock_sub.call_args[0][0]
+    assert cmd == ("/usr/bin/st-docker-run", "--", "uv", "run", "st-validate-local")
+
+
 def test_main_falls_back_to_direct_validator(tmp_path: Path) -> None:
     _make_profile(tmp_path, "library-release")
     with (

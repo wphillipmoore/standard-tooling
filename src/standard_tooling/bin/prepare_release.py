@@ -153,7 +153,7 @@ def _ensure_clean_tree() -> None:
 
 
 def _ensure_develop_up_to_date() -> None:
-    git.run("fetch", "origin", "develop")
+    git.run("fetch", "--tags", "--force", "origin", "develop")
     local_sha = git.read_output("rev-parse", "HEAD")
     remote_sha = git.read_output("rev-parse", "origin/develop")
     if local_sha != remote_sha:
@@ -181,7 +181,7 @@ def _create_release_branch(branch: str) -> None:
 
 def _merge_main(version: str) -> None:
     print("Merging main into release branch...")
-    git.run("fetch", "origin", "main")
+    git.run("fetch", "--tags", "--force", "origin", "main")
     git.run(
         "merge",
         "origin/main",
