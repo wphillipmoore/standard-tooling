@@ -88,7 +88,7 @@ jobs:
   # ---------------------------------------------------------------------------
 
   security-and-standards:
-    uses: wphillipmoore/standard-actions/.github/workflows/ci-security.yml@v1.4
+    uses: wphillipmoore/standard-actions/.github/workflows/ci-security.yml@v1.4.5
     with:
       language: python
       run-standards: ${{ inputs.run-release-gates || 'true' }}
