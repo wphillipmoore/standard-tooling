@@ -178,7 +178,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"Already on {args.target_branch}.")
 
     print(f"Pulling latest from origin/{args.target_branch}...")
-    _run(["fetch", "origin", args.target_branch], dry_run=args.dry_run)
+    _run(["fetch", "--tags", "--force", "origin", args.target_branch], dry_run=args.dry_run)
     _run(["pull", "--ff-only", "origin", args.target_branch], dry_run=args.dry_run)
 
     print("Checking for merged local branches...")
