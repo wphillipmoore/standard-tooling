@@ -184,19 +184,6 @@ from the repository profile, then dispatches to
 
 ### st-validate-local-common
 
-Thin wrapper that delegates to `st-validate-local-common-container`.
-
-| Attribute | Value |
-|---|---|
-| Source | `standard_tooling.bin.validate_local_common` |
-| Args | None |
-| Preconditions | Same as `st-validate-local-common-container` |
-| Failure mode | Same as `st-validate-local-common-container` |
-| Exit codes | Same as `st-validate-local-common-container` |
-| Status | Active (passthrough) |
-
-### st-validate-local-common-container
-
 Shared validation checks for all repos: repository profile
 validation, markdown standards, shellcheck on `scripts/`, and
 yamllint on `.github/` and `docs/` YAML files.
@@ -322,11 +309,8 @@ interface than argparse would provide. No alignment needed.
 The 1-vs-2 distinction is not universal. Tools added before the
 convention was established use 1 for all errors.
 
-### st-validate-local-common passthrough
+### st-validate-local-common
 
-`st-validate-local-common` is a thin wrapper that calls
-`st-validate-local-common-container.main()` directly. Both entry
-points exist for historical reasons (the split predates the
-container-local convention). Both are active because
-`st-validate-local` dispatches to `st-validate-local-common` by
-name.
+`st-validate-local-common` points directly at the
+`validate_local_common_container` module. The former passthrough
+wrapper (`validate_local_common.py`) was removed in issue #403.
