@@ -230,7 +230,11 @@ def main(argv: list[str] | None = None) -> int:
         if docker_run is not None:
             print()
             print("Running post-finalization validation via st-docker-run...")
-            cmd: tuple[str, ...] = (docker_run, "--", "st-validate-local")
+            repo_root = Path(git.repo_root())
+            if (repo_root / "pyproject.toml").is_file():
+                cmd: tuple[str, ...] = (docker_run, "--", "uv", "run", "st-validate-local")
+            else:
+                cmd = (docker_run, "--", "st-validate-local")
         elif validator is not None:
             print()
             print("Running post-finalization validation...")
@@ -248,7 +252,7 @@ def main(argv: list[str] | None = None) -> int:
         if result.returncode != 0:
             validation_failed = True
     else:
-        print("  [dry-run] st-docker-run -- st-validate-local")
+        print("  [dry-run] st-docker-run -- [uv run] st-validate-local")
 
     # Docs-publish sanity check (issue #303). Runs after validation
     # so a real validation failure stays the headline; a docs failure
