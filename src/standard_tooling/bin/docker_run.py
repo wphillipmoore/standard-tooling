@@ -35,7 +35,7 @@ environment variables:
   GH_TOKEN                (required) GitHub token passed into the container
   DOCKER_DEV_IMAGE        override the auto-detected container image
   DOCKER_NETWORK          join a Docker network (e.g. for integration tests)
-  ST_DOCKER_INSTALL_TAG   override the standard-tooling version tag from st-config.toml
+  ST_DOCKER_INSTALL_TAG   override the standard-tooling version tag from standard-tooling.toml
 
 examples:
   st-docker-run -- uv run st-validate-local
