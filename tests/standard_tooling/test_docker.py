@@ -89,7 +89,7 @@ def test_default_image_empty_with_fallback() -> None:
 def test_build_docker_args_basic(tmp_path: Path) -> None:
     with patch.dict("os.environ", {}, clear=True):
         args = build_docker_args(tmp_path, "img:1", ["echo", "hello"])
-    assert args[:3] == ["docker", "run", "--rm"]
+    assert args[:4] == ["docker", "run", "--rm", "--pull=always"]
     assert f"{tmp_path}:/workspace" in args
     assert "img:1" in args
     assert args[-2:] == ["echo", "hello"]

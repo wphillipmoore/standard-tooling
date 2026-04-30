@@ -95,6 +95,7 @@ def build_docker_args(
         "docker",
         "run",
         "--rm",
+        "--pull=always",
         "-v",
         f"{repo_root}:/workspace",
         "-w",
