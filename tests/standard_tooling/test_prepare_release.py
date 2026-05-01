@@ -21,7 +21,6 @@ from standard_tooling.bin.prepare_release import (
     _ensure_clean_tree,
     _ensure_develop_up_to_date,
     _ensure_on_develop,
-    _ensure_tool,
     _generate_release_notes,
     _normalize_trailing_newline,
     detect_ecosystem,
@@ -299,19 +298,6 @@ def test_ensure_develop_up_to_date_diverged() -> None:
         _ensure_develop_up_to_date()
 
 
-def test_ensure_tool_found() -> None:
-    with patch("standard_tooling.bin.prepare_release.shutil.which", return_value="/usr/bin/gh"):
-        _ensure_tool("gh")
-
-
-def test_ensure_tool_not_found() -> None:
-    with (
-        patch("standard_tooling.bin.prepare_release.shutil.which", return_value=None),
-        pytest.raises(SystemExit, match="not found on PATH"),
-    ):
-        _ensure_tool("missing-tool")
-
-
 # -- main flow tests ---
 
 
@@ -366,10 +352,6 @@ def test_main_full_flow(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None
         ),
         patch("standard_tooling.bin.prepare_release.git.ref_exists", return_value=False),
         patch(
-            "standard_tooling.bin.prepare_release.shutil.which",
-            return_value="/usr/bin/tool",
-        ),
-        patch(
             "standard_tooling.bin.prepare_release.subprocess.run",
             side_effect=mock_subprocess_run,
         ),
@@ -406,10 +388,6 @@ def test_main_release_branch_already_exists(
             side_effect=mock_read_output,
         ),
         patch("standard_tooling.bin.prepare_release.git.ref_exists", return_value=True),
-        patch(
-            "standard_tooling.bin.prepare_release.shutil.which",
-            return_value="/usr/bin/tool",
-        ),
         pytest.raises(SystemExit, match="already exists"),
     ):
         main(["--issue", "42"])
@@ -444,10 +422,6 @@ def test_main_no_publishable_changes(tmp_path: Path, monkeypatch: pytest.MonkeyP
             side_effect=mock_read_output,
         ),
         patch("standard_tooling.bin.prepare_release.git.ref_exists", return_value=False),
-        patch(
-            "standard_tooling.bin.prepare_release.shutil.which",
-            return_value="/usr/bin/tool",
-        ),
         patch(
             "standard_tooling.bin.prepare_release.subprocess.run",
             side_effect=mock_subprocess_run,
@@ -559,10 +533,6 @@ def test_main_full_flow_with_release_notes(tmp_path: Path, monkeypatch: pytest.M
             side_effect=mock_read_output,
         ),
         patch("standard_tooling.bin.prepare_release.git.ref_exists", return_value=False),
-        patch(
-            "standard_tooling.bin.prepare_release.shutil.which",
-            return_value="/usr/bin/tool",
-        ),
         patch(
             "standard_tooling.bin.prepare_release.subprocess.run",
             side_effect=mock_subprocess_run,

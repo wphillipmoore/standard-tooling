@@ -20,7 +20,6 @@ from __future__ import annotations
 
 import argparse
 import re
-import shutil
 import subprocess
 import sys
 from collections.abc import Callable
@@ -164,11 +163,6 @@ def _ensure_develop_up_to_date() -> None:
         )
 
 
-def _ensure_tool(name: str) -> None:
-    if not shutil.which(name):
-        raise SystemExit(f"Required tool '{name}' not found on PATH.")
-
-
 # -- release steps -----------------------------------------------------------
 
 
@@ -197,7 +191,6 @@ RELEASE_NOTES_DIR = "releases"
 
 
 def _generate_changelog(version: str) -> None:
-    _ensure_tool("git-cliff")
     tag = f"develop-v{version}"
     print(f"Generating changelog with boundary tag: {tag}")
     subprocess.run(("git-cliff", "--tag", tag, "-o", "CHANGELOG.md"), check=True)  # noqa: S603, S607
@@ -289,7 +282,6 @@ def main(argv: list[str] | None = None) -> int:
     _ensure_on_develop()
     _ensure_clean_tree()
     _ensure_develop_up_to_date()
-    _ensure_tool("gh")
 
     ecosystem, version = detect_ecosystem()
     branch = f"release/{version}"

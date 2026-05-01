@@ -91,9 +91,9 @@ fleet to behave consistently.
 
 | Target | Install mechanism | Who uses it | Freshness mechanism |
 |---|---|---|---|
-| **Developer host** | `uv tool install` from git URL (canonical); `pip install` from git URL (alternative) | Host-side commands: `st-docker-run`, `st-commit`, `st-submit-pr`, `st-prepare-release`, `st-finalize-repo` | Manual one-liner after each release |
+| **Developer host** | `uv tool install` from git URL | Host-side commands: `st-docker-run`, `st-commit`, `st-submit-pr`, `st-prepare-release`, `st-finalize-repo` | Manual one-liner after each release |
 | **Python project `.venv`** (MUST for Python consumers) | `[tool.uv.sources]` git URL + `uv sync` | `uv run st-*` inside the container for validators: `st-validate-local`, `st-validate-local-python`, `st-markdown-standards`, etc. | `uv lock --upgrade-package standard-tooling` per repo; rolling tag means the upgrade is a no-arg re-lock |
-| **Non-Python container runtime** (cache-first) | `st-docker-run` reads `standard-tooling.toml`, builds per-branch cached image with `pip install` from git URL | `st-*` inside the container for non-Python consumers (plugin, docker, docs) | Automatic cache rebuild when `standard-tooling.toml` tag changes or lockfile changes |
+| **Non-Python container runtime** (cache-first) | `st-docker-run` reads `standard-tooling.toml`, builds per-branch cached image with `uv tool install` from git URL | `st-*` inside the container for non-Python consumers (plugin, docker, docs) | Automatic cache rebuild when `standard-tooling.toml` tag changes or lockfile changes |
 
 These targets are coordinated, not redundant. Each covers a failure
 mode the others cannot:
@@ -141,45 +141,6 @@ cuts a new minor and decides consumers should opt in.
 > diff to the right starting point. Treat any `develop-v*` tag as
 > internal — never pin to one.
 
-### `uv tool install` vs `pip install`
-
-`uv tool install` is canonical. `pip install` is a documented
-alternative, not a replacement.
-
-| | `uv tool install` (canonical) | `pip install` (alternative) |
-|---|---|---|
-| Install target | Isolated venv at `~/.local/share/uv/tools/standard-tooling/` | Whatever Python env `pip` runs from |
-| Scripts land in | `~/.local/bin/` (the path `uv`'s official installer already configures) | `bin/` of the Python env `pip` runs from |
-| Dep isolation | Fully isolated | Shared with the containing env |
-| macOS system Python | Works | Works (user-owned Framework Python) |
-| Linux system Python | Works | Fails without `sudo` or `--break-system-packages` (PEP 668) |
-| `uv` installed standalone (no Python env) | Works | No applicable target env |
-| Uninstall | `uv tool uninstall standard-tooling` | `pip uninstall standard-tooling` |
-
-**Why `uv tool install` is canonical:**
-
-- **Cross-platform without caveats.** Works identically on macOS
-  and Linux. No `--user` vs system-wide decision, no PEP 668
-  exception flags, no `sudo`.
-- **Matches the `uv` installation pattern.** Developers install
-  `uv` via the official installer, which configures `~/.local/bin`
-  on `PATH`. `uv tool install` drops console scripts into the
-  exact same directory, so `standard-tooling` scripts are on `PATH`
-  automatically.
-- **Zero pollution of the developer's Python environments.**
-  `standard-tooling` and its transitive deps live in their own
-  venv, invisible to any other Python work on the machine.
-- **Self-upgrading.** `uv tool upgrade standard-tooling` is a
-  shorter, tag-aware one-liner than the `pip install --upgrade`
-  equivalent.
-
-Developers or CI environments that prefer — or already have — a
-`pip`-based install may use `pip install` with the same git URL,
-accepting the platform caveats above. The existing primary-developer
-machine, which has `standard-tooling` installed via `pip` into
-Framework Python, is a valid alternative install and does not need
-to migrate.
-
 ## Upgrade (host)
 
 Run after each `standard-tooling` release:
@@ -192,17 +153,6 @@ uv tool upgrade standard-tooling
 tip of the rolling minor tag (`v1.2` today), and rebuilds the
 isolated venv. No need to repeat the full git URL — uv remembers
 the source from the initial `uv tool install`.
-
-For `pip install` users:
-
-```bash
-pip install --upgrade 'standard-tooling @ git+https://github.com/wphillipmoore/standard-tooling@v1.2'
-```
-
-`--upgrade` is required for `pip` to re-resolve the git reference;
-without it, pip sees the package already installed and skips. The
-`v1.2` pin ensures resolution picks up the latest patch on the
-current minor.
 
 ### Why not auto-upgrade
 
@@ -340,7 +290,7 @@ standard-tooling = "v1.4"
 ```
 
 `st-docker-run` reads this file, builds (or reuses) a per-branch
-Docker image with standard-tooling pre-installed via `pip install`
+Docker image with standard-tooling pre-installed via `uv tool install`
 from the git URL at that tag, and runs the user's command against
 the cached image. Cache invalidation is automatic: when
 `standard-tooling.toml` or the project's lockfile changes, the cached
@@ -625,7 +575,7 @@ consumer's migration has these steps:
 ### `standard-tooling-docker` (child repo, this spec's work)
 
 1. Replace `git clone -b develop && uv pip install --system` with
-   `pip install 'standard-tooling @ git+…@v1.2'` in the common
+   `uv tool install 'standard-tooling @ git+…@v1.2'` in the common
    fragment.
 2. Wire release-triggered rebuilds per
    [`standard-tooling-docker#51`](https://github.com/wphillipmoore/standard-tooling-docker/issues/51).
@@ -681,10 +631,6 @@ Crossing a major boundary is a deliberate, explicit edit at each
 target (bump `v1.2` → `v2.0` in the consumer's `pyproject.toml`,
 the image's Dockerfile, and the developer's `uv tool install`
 command). This is the point: major bumps are gated, not broadcast.
-
-### `uv tool install` vs `pip install`
-
-Covered in [Canonical install](#canonical-install-host).
 
 ### Host install vs devcontainer-only
 
@@ -784,8 +730,6 @@ window during image rebuilds.
 
 - Rolling-tag behavior:
   [`standard-actions` `tag-and-release`](https://github.com/wphillipmoore/standard-actions/blob/main/actions/publish/tag-and-release/action.yml)
-- `pip install` from VCS:
-  <https://pip.pypa.io/en/stable/topics/vcs-support/>
 - `uv tool install`:
   <https://docs.astral.sh/uv/guides/tools/#installing-tools>
 - uv sources (git URL + tag):

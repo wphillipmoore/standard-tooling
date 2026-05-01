@@ -8,7 +8,6 @@ Structural checks (H1 count, ToC, heading-level skips) live in
 
 from __future__ import annotations
 
-import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -30,10 +29,6 @@ def main(argv: list[str] | None = None) -> int:  # noqa: ARG001
     files = _find_files()
     if not files:
         return 0
-
-    if not shutil.which("markdownlint"):
-        print("FATAL: markdownlint not found on PATH", file=sys.stderr)
-        return 2
 
     cmd: list[str] = ["markdownlint"]
     config = Path(".markdownlint.yaml")
