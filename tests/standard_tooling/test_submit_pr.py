@@ -132,9 +132,12 @@ def test_main_dry_run_release_branch(tmp_path: Path) -> None:
     ):
         result = main(
             [
-                "--issue", "42",
-                "--summary", "Release 1.0.0",
-                "--title", "release: 1.0.0",
+                "--issue",
+                "42",
+                "--summary",
+                "Release 1.0.0",
+                "--title",
+                "release: 1.0.0",
                 "--dry-run",
             ]
         )
