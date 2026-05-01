@@ -6,7 +6,19 @@ import subprocess
 from pathlib import Path
 from unittest.mock import patch
 
-from standard_tooling.bin.validate_local import _find_validator, _run_validator, main
+import pytest
+
+from standard_tooling.bin.validate_local import (
+    _find_validator,
+    _in_dev_container,
+    _run_validator,
+    main,
+)
+
+
+@pytest.fixture(autouse=True)
+def _container_env(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("ST_IN_DEV_CONTAINER", "1")
 
 
 def test_find_validator_entry_point() -> None:
@@ -228,3 +240,37 @@ def test_main_custom_validator_fails(tmp_path: Path) -> None:
     ):
         result = main([])
     assert result == 1
+
+
+# --- Container guard tests ---
+
+
+def test_in_dev_container_true_when_dockerenv_exists(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("ST_IN_DEV_CONTAINER", raising=False)
+    with patch("standard_tooling.bin.validate_local.Path.exists", return_value=True):
+        assert _in_dev_container() is True
+
+
+def test_in_dev_container_true_when_env_var_set(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("ST_IN_DEV_CONTAINER", "1")
+    with patch("standard_tooling.bin.validate_local.Path.exists", return_value=False):
+        assert _in_dev_container() is True
+
+
+def test_in_dev_container_false_when_neither(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("ST_IN_DEV_CONTAINER", raising=False)
+    with patch("standard_tooling.bin.validate_local.Path.exists", return_value=False):
+        assert _in_dev_container() is False
+
+
+def test_main_rejects_host_execution(
+    capsys: pytest.CaptureFixture[str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.delenv("ST_IN_DEV_CONTAINER", raising=False)
+    with patch("standard_tooling.bin.validate_local._in_dev_container", return_value=False):
+        result = main([])
+    assert result == 1
+    captured = capsys.readouterr()
+    assert "st-validate-local" in captured.err
+    assert "st-docker-run" in captured.err
