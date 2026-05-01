@@ -75,7 +75,7 @@ get the fix on the next normal action:
 
 | Consumer | When the patch lands |
 |---|---|
-| Developer host | Manual `uv tool upgrade standard-tooling` (or `pip install --upgrade ...@v1.3`) |
+| Developer host | Manual `uv tool upgrade standard-tooling` |
 | Python repo `.venv` | `uv lock --upgrade-package standard-tooling` (typically batched with other dep bumps) |
 | Dev container image | Already rebuilt by `repository_dispatch`; new pulls of `dev-base` etc. carry the patch within the rebuild window (minutes) |
 

@@ -92,7 +92,7 @@ def _check_docs_workflow_status(target_branch: str) -> str | None:
       - the JSON response is malformed (defensive)
     """
     result = subprocess.run(  # noqa: S603
-        [
+        [  # noqa: S607
             "gh",
             "run",
             "list",

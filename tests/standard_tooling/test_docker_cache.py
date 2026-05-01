@@ -21,8 +21,6 @@ from standard_tooling.lib.docker_cache import (
 if TYPE_CHECKING:
     from pathlib import Path
 
-    import pytest
-
 _VALID_TOML = """\
 [project]
 repository-type = "library"
