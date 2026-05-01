@@ -3,9 +3,8 @@
 Switches to the target branch, fast-forward pulls, deletes merged local
 branches, and prunes stale remote-tracking references. After
 validation succeeds, also checks the most recent Documentation
-workflow run on the target branch and surfaces a warning if it
-failed (issue #303 — docs publish is async and used to fail
-silently).
+workflow run on the target branch and fails if it did not succeed
+(issue #303 — docs publish is async and used to fail silently).
 """
 
 from __future__ import annotations
@@ -249,7 +248,7 @@ def main(argv: list[str] | None = None) -> int:
 
     if validation_failed:
         print()
-        print("WARNING: post-finalization validation failed.", file=sys.stderr)
+        print("ERROR: post-finalization validation failed.", file=sys.stderr)
         print(f"  The {args.target_branch} branch has issues that should be", file=sys.stderr)
         print("  fixed before creating the next PR.", file=sys.stderr)
         return 1
