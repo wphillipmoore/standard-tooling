@@ -8,8 +8,12 @@ from unittest.mock import patch
 from standard_tooling.lib import github
 
 
-def _completed(returncode: int = 0, stdout: str = "") -> subprocess.CompletedProcess[str]:
-    return subprocess.CompletedProcess(args=[], returncode=returncode, stdout=stdout)
+def _completed(
+    returncode: int = 0, stdout: str = "", stderr: str = ""
+) -> subprocess.CompletedProcess[str]:
+    return subprocess.CompletedProcess(
+        args=[], returncode=returncode, stdout=stdout, stderr=stderr
+    )
 
 
 def test_run_delegates_to_subprocess() -> None:
@@ -69,3 +73,21 @@ def test_list_project_repos_empty() -> None:
         return_value="",
     ):
         assert github.list_project_repos("acme", "5") == []
+
+
+def test_checks_registered_returns_false_when_phrase_in_stdout() -> None:
+    cp = _completed(returncode=1, stdout="no checks reported on the 'main' branch\n")
+    with patch("standard_tooling.lib.github.subprocess.run", return_value=cp):
+        assert github._checks_registered("https://github.com/pr/1") is False
+
+
+def test_checks_registered_returns_false_when_phrase_in_stderr() -> None:
+    cp = _completed(returncode=1, stderr="no checks reported on the 'main' branch\n")
+    with patch("standard_tooling.lib.github.subprocess.run", return_value=cp):
+        assert github._checks_registered("https://github.com/pr/1") is False
+
+
+def test_checks_registered_returns_true_when_checks_exist() -> None:
+    cp = _completed(stdout="ci/tests\tpass\nhttps://example.com\n")
+    with patch("standard_tooling.lib.github.subprocess.run", return_value=cp):
+        assert github._checks_registered("https://github.com/pr/1") is True
