@@ -247,21 +247,6 @@ def test_non_python_command_not_wrapped(tmp_path: Path) -> None:
     assert args[-2:] == ["echo", "hi"]
 
 
-def test_python_skips_cache(tmp_path: Path) -> None:
-    (tmp_path / "pyproject.toml").write_text("[project]\n")
-    env = {"GH_TOKEN": "tok"}
-    with (
-        patch("standard_tooling.bin.docker_run.git.repo_root", return_value=tmp_path),
-        patch("standard_tooling.bin.docker_run.assert_docker_available"),
-        patch("standard_tooling.bin.docker_run.ensure_cached_image") as mock_cache,
-        patch("standard_tooling.bin.docker_run.os.execvp") as mock_exec,
-        patch.dict("os.environ", env, clear=True),
-    ):
-        main(["--", "uv", "run", "pytest"])
-    mock_cache.assert_not_called()
-    args = mock_exec.call_args[0][1]
-    assert args[-3:] == ["uv", "run", "pytest"]
-
 
 def test_cached_image_diagnostic(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     (tmp_path / "go.mod").write_text("module example\n")
@@ -277,3 +262,53 @@ def test_cached_image_diagnostic(tmp_path: Path, capsys: pytest.CaptureFixture[s
         main(["--", "cmd"])
     out = capsys.readouterr().out
     assert "(cached)" in out
+
+
+# -- pull policy integration --------------------------------------------------
+
+
+def test_cached_image_uses_pull_never(tmp_path: Path) -> None:
+    (tmp_path / "go.mod").write_text("module example\n")
+    cached = "ghcr.io/wphillipmoore/dev-go:1.26--feature-42--abcd1234"
+    env = {"GH_TOKEN": "tok"}
+    with (
+        patch("standard_tooling.bin.docker_run.git.repo_root", return_value=tmp_path),
+        patch("standard_tooling.bin.docker_run.assert_docker_available"),
+        patch("standard_tooling.bin.docker_run.ensure_cached_image", return_value=cached),
+        patch("standard_tooling.bin.docker_run.os.execvp") as mock_exec,
+        patch.dict("os.environ", env, clear=True),
+    ):
+        main(["--", "cmd"])
+    args = mock_exec.call_args[0][1]
+    assert "--pull=always" not in args
+
+
+def test_registry_image_uses_pull_always(tmp_path: Path) -> None:
+    (tmp_path / "go.mod").write_text("module example\n")
+    base = "ghcr.io/wphillipmoore/dev-go:1.26"
+    env = {"GH_TOKEN": "tok"}
+    with (
+        patch("standard_tooling.bin.docker_run.git.repo_root", return_value=tmp_path),
+        patch("standard_tooling.bin.docker_run.assert_docker_available"),
+        patch("standard_tooling.bin.docker_run.ensure_cached_image", return_value=base),
+        patch("standard_tooling.bin.docker_run.os.execvp") as mock_exec,
+        patch.dict("os.environ", env, clear=True),
+    ):
+        main(["--", "cmd"])
+    args = mock_exec.call_args[0][1]
+    assert "--pull=always" in args
+
+
+def test_python_routes_through_cache(tmp_path: Path) -> None:
+    (tmp_path / "pyproject.toml").write_text("[project]\n")
+    env = {"GH_TOKEN": "tok"}
+    with (
+        patch("standard_tooling.bin.docker_run.git.repo_root", return_value=tmp_path),
+        patch("standard_tooling.bin.docker_run.assert_docker_available"),
+        patch("standard_tooling.bin.docker_run.ensure_cached_image") as mock_cache,
+        patch("standard_tooling.bin.docker_run.os.execvp"),
+        patch.dict("os.environ", env, clear=True),
+    ):
+        mock_cache.return_value = "ghcr.io/wphillipmoore/dev-python:3.14--develop--aabbccdd"
+        main(["--", "uv", "run", "pytest"])
+    mock_cache.assert_called_once()

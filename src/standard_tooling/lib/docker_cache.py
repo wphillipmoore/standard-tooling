@@ -38,11 +38,13 @@ def cache_sensitive_files(repo_root: Path, lang: str) -> list[Path]:
     return [repo_root / n for n in names if (repo_root / n).is_file()]
 
 
-def compute_cache_hash(files: list[Path]) -> str:
-    """SHA-256 over sorted file contents, first 8 hex chars."""
+def compute_cache_hash(files: list[Path], *, salt: str = "") -> str:
+    """SHA-256 over sorted file contents plus optional salt, first 8 hex chars."""
     h = hashlib.sha256()
     for f in sorted(files):
         h.update(f.read_bytes())
+    if salt:
+        h.update(salt.encode())
     return h.hexdigest()[:8]
 
 
@@ -93,7 +95,12 @@ def _build_cached_image(
     tag = st_install_tag(repo_root)
     uv_install = f"uv tool install --quiet 'standard-tooling @ git+{_ST_GIT_URL}@{tag}'"
     warmup = _WARMUP_COMMANDS.get(lang)
-    setup = f"{uv_install} && {warmup}" if warmup else uv_install
+    if lang == "python":
+        setup = warmup or ""
+    elif warmup:
+        setup = f"{uv_install} && {warmup}"
+    else:
+        setup = uv_install
 
     print(f"Building cached image: {target_tag}")
     print(f"  Base:    {base_image}")
@@ -153,20 +160,16 @@ def ensure_cached_image(
 ) -> str:
     """Return a cached image tag, building one if needed.
 
-    Returns *base_image* unchanged for Python repos (they use dev deps)
-    or if the cache build fails.
+    Returns *base_image* unchanged if no cache-sensitive files are found.
     """
-    if lang == "python":
+    files = cache_sensitive_files(repo_root, lang)
+    if not files:
         return base_image
 
     from standard_tooling.lib import git as _git
 
     branch = _git.current_branch()
-    files = cache_sensitive_files(repo_root, lang)
-    if not files:
-        return base_image
-
-    current_hash = compute_cache_hash(files)
+    current_hash = compute_cache_hash(files, salt=repo_root.name)
     existing = find_cached_image(base_image, branch)
 
     if existing is not None:
