@@ -5,6 +5,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 from unittest.mock import MagicMock, patch
 
+import pytest
+
 from standard_tooling.lib.docker_cache import (
     _build_cached_image,
     _sanitize_branch,
@@ -292,9 +294,11 @@ def test_build_cached_image_success(tmp_path: Path) -> None:
 def test_build_cached_image_create_fails(tmp_path: Path) -> None:
     (tmp_path / "standard-tooling.toml").write_text(_VALID_TOML)
     create_result = MagicMock(returncode=1, stderr="no space")
-    with patch("standard_tooling.lib.docker_cache.subprocess.run", return_value=create_result):
-        result = _build_cached_image(tmp_path, "go", "img:1", "img:1--branch--hash")
-    assert result == "img:1"
+    with (
+        patch("standard_tooling.lib.docker_cache.subprocess.run", return_value=create_result),
+        pytest.raises(RuntimeError, match="Failed to create container"),
+    ):
+        _build_cached_image(tmp_path, "go", "img:1", "img:1--branch--hash")
 
 
 def test_build_cached_image_start_fails(tmp_path: Path) -> None:
@@ -303,20 +307,18 @@ def test_build_cached_image_start_fails(tmp_path: Path) -> None:
     start_result = MagicMock(returncode=1)
     rm_result = MagicMock(returncode=0)
 
-    call_count = 0
-
     def mock_run(cmd, **_kwargs):  # noqa: ANN001, ANN003
-        nonlocal call_count
-        call_count += 1
         if cmd[1] == "create":
             return create_result
         if cmd[1] == "start":
             return start_result
         return rm_result
 
-    with patch("standard_tooling.lib.docker_cache.subprocess.run", side_effect=mock_run):
-        result = _build_cached_image(tmp_path, "go", "img:1", "img:1--branch--hash")
-    assert result == "img:1"
+    with (
+        patch("standard_tooling.lib.docker_cache.subprocess.run", side_effect=mock_run),
+        pytest.raises(RuntimeError, match="Cache build failed"),
+    ):
+        _build_cached_image(tmp_path, "go", "img:1", "img:1--branch--hash")
 
 
 def test_build_cached_image_warmup_printed(
@@ -353,3 +355,22 @@ def test_build_cached_image_no_warmup_for_unknown_lang(
         _build_cached_image(tmp_path, "unknown", "img:1", "img:1--branch--hash")
     out = capsys.readouterr().out
     assert "Warmup:" not in out
+
+
+def test_build_cached_image_uses_uv_tool_install(tmp_path: Path) -> None:
+    (tmp_path / "standard-tooling.toml").write_text(_VALID_TOML)
+    create_result = MagicMock(returncode=0, stdout="abc123\n")
+    ok = MagicMock(returncode=0)
+    create_cmd: list[str] = []
+
+    def mock_run(cmd, **_kwargs):  # noqa: ANN001, ANN003
+        if cmd[1] == "create":
+            create_cmd.extend(cmd)
+            return create_result
+        return ok
+
+    with patch("standard_tooling.lib.docker_cache.subprocess.run", side_effect=mock_run):
+        _build_cached_image(tmp_path, "go", "img:1", "img:1--branch--hash")
+    setup_cmd = create_cmd[-1]
+    assert "uv tool install" in setup_cmd
+    assert "pip install" not in setup_cmd
