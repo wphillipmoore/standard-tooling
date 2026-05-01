@@ -29,7 +29,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         "--linkage", default="Ref", choices=ALLOWED_LINKAGES, help="Issue linkage keyword"
     )
     parser.add_argument("--notes", default="", help="Additional notes")
-    parser.add_argument("--title", default="", help="PR title (default: latest commit subject)")
+    parser.add_argument("--title", required=True, help="PR title")
     parser.add_argument("--dry-run", action="store_true", help="Print without executing")
     return parser.parse_args(argv)
 
@@ -70,7 +70,7 @@ def main(argv: list[str] | None = None) -> int:
 
     target_branch = "main" if branch.startswith("release/") else "develop"
 
-    title = args.title or git.read_output("log", "-1", "--pretty=%s")
+    title = args.title
 
     testing_section = _extract_testing_section(root)
 
