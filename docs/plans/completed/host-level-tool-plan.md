@@ -1,10 +1,10 @@
 # Implementation Plan: `standard-tooling` as a host-level developer tool
 
 **Status:** Draft — awaiting `paad:alignment` against the spec
-**Spec:** [`docs/specs/host-level-tool.md`](../specs/host-level-tool.md)
+**Spec:** [`docs/specs/host-level-tool.md`](../../specs/host-level-tool.md)
 **Issue:** [#286](https://github.com/wphillipmoore/standard-tooling/issues/286)
 **Pushback review:**
-[`paad/pushback-reviews/2026-04-24-host-level-tool-pushback.md`](../../paad/pushback-reviews/2026-04-24-host-level-tool-pushback.md)
+[`paad/pushback-reviews/2026-04-24-host-level-tool-pushback.md`](../../../paad/pushback-reviews/2026-04-24-host-level-tool-pushback.md)
 **Last updated:** 2026-04-25
 
 ## Scope
@@ -671,7 +671,7 @@ This phase is the substance of #288.
 - **Action:** In `docs/site/docs/getting-started.md` (and any
   consumer repo equivalent), replace the install / bootstrap
   section with the four-step flow from the spec's
-  [First-time developer setup](../specs/host-level-tool.md#first-time-developer-setup)
+  [First-time developer setup](../../specs/host-level-tool.md#first-time-developer-setup)
   section: install `uv` → `uv tool install standard-tooling` →
   confirm → per-repo `core.hooksPath` + `uv sync --group dev`
   (Python only). This is a **narrative rewrite**, not a

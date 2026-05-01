@@ -1,7 +1,7 @@
 # Implementation Plan: Git Worktree Convention
 
 **Status:** Draft — awaiting `paad:alignment` against the spec
-**Spec:** [`docs/specs/worktree-convention.md`](../specs/worktree-convention.md)
+**Spec:** [`docs/specs/worktree-convention.md`](../../specs/worktree-convention.md)
 **Issue:** [#258](https://github.com/wphillipmoore/standard-tooling/issues/258)
 **Last updated:** 2026-04-22
 
