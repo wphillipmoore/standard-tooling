@@ -96,12 +96,14 @@ def build_docker_args(
     docker_args = ["docker", "run", "--rm"]
     if pull_policy != "never":
         docker_args.append("--pull=always")
-    docker_args.extend([
-        "-v",
-        f"{repo_root}:/workspace",
-        "-w",
-        "/workspace",
-    ])
+    docker_args.extend(
+        [
+            "-v",
+            f"{repo_root}:/workspace",
+            "-w",
+            "/workspace",
+        ]
+    )
 
     # When repo_root is a git worktree, the worktree's `.git` is a file
     # pointing at <parent>/.git/worktrees/<name>. Mount the parent .git

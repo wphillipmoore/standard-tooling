@@ -247,7 +247,6 @@ def test_non_python_command_not_wrapped(tmp_path: Path) -> None:
     assert args[-2:] == ["echo", "hi"]
 
 
-
 def test_cached_image_diagnostic(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     (tmp_path / "go.mod").write_text("module example\n")
     cached = "ghcr.io/wphillipmoore/dev-go:1.26--feature-42--abcd1234"
