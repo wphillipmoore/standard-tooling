@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.4.12] - 2026-05-01
+
+### Bug fixes
+
+- make --title required in st-submit-pr
+
+### Features
+
+- add _checks_registered probe and polling loop to wait_for_checks
+
+### Styling
+
+- apply ruff format to test_github.py
+- fix line length in test_main_dry_run_release_branch
+- apply ruff format to test_submit_pr.py
+
+### Testing
+
+- cover wait_for_checks polling behavior
+
 ## [1.4.11] - 2026-05-01
 
 ### Features
