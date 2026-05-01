@@ -10,10 +10,12 @@ and language-specific validation based on the repository profile.
 ## Usage
 
 ```bash
-st-validate-local
+st-docker-run -- uv run st-validate-local
 ```
 
-Run from the repository root. No arguments required.
+Must run inside a dev container via `st-docker-run`. Running
+`st-validate-local` directly on the host is not supported and will
+exit with an error.
 
 ## Behavior
 

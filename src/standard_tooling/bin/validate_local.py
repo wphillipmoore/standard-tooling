@@ -12,12 +12,9 @@ import os
 import shutil
 import subprocess
 import sys
-from typing import TYPE_CHECKING
+from pathlib import Path
 
 from standard_tooling.lib import config, git
-
-if TYPE_CHECKING:
-    from pathlib import Path
 
 
 def _find_validator(name: str, scripts_bin: Path) -> str | None:
@@ -46,11 +43,18 @@ def _run_validator(name: str, scripts_bin: Path) -> bool:
     return result.returncode == 0
 
 
+def _in_dev_container() -> bool:
+    return Path("/.dockerenv").exists() or bool(os.environ.get("ST_IN_DEV_CONTAINER"))
+
+
 def main(argv: list[str] | None = None) -> int:  # noqa: ARG001
-    # st-validate-local is designed to run inside a dev container
-    # (launched by `st-docker-run`).  No host-level docker check is
-    # appropriate — if a caller runs this on the host, the inner scripts
-    # will surface missing tooling (uv, ruff, etc.) with their own errors.
+    if not _in_dev_container():
+        print(
+            "ERROR: st-validate-local must run inside a dev container.\n"
+            "       Run: st-docker-run -- uv run st-validate-local",
+            file=sys.stderr,
+        )
+        return 1
 
     root = git.repo_root()
     scripts_bin = root / "scripts" / "bin"
