@@ -3,16 +3,14 @@
 Switches to the target branch, fast-forward pulls, deletes merged local
 branches, and prunes stale remote-tracking references. After
 validation succeeds, also checks the most recent Documentation
-workflow run on the target branch and surfaces a warning if it
-failed (issue #303 — docs publish is async and used to fail
-silently).
+workflow run on the target branch and fails if it did not succeed
+(issue #303 — docs publish is async and used to fail silently).
 """
 
 from __future__ import annotations
 
 import argparse
 import json
-import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -89,17 +87,13 @@ def _check_docs_workflow_status(target_branch: str) -> str | None:
     immediately. Issue #303.
 
     Returns None when:
-      - ``gh`` is not on PATH (can't query)
       - no Documentation workflow exists in the repo
       - the latest run succeeded or is still in progress
       - the JSON response is malformed (defensive)
     """
-    gh = shutil.which("gh")
-    if gh is None:
-        return None
     result = subprocess.run(  # noqa: S603
-        [
-            gh,
+        [  # noqa: S607
+            "gh",
             "run",
             "list",
             "--workflow",
@@ -224,29 +218,13 @@ def main(argv: list[str] | None = None) -> int:
 
     validation_failed = False
     if not args.dry_run:
-        docker_run = shutil.which("st-docker-run")
-        validator = shutil.which("st-validate-local")
-
-        if docker_run is not None:
-            print()
-            print("Running post-finalization validation via st-docker-run...")
-            repo_root = Path(git.repo_root())
-            if (repo_root / "pyproject.toml").is_file():
-                cmd: tuple[str, ...] = (docker_run, "--", "uv", "run", "st-validate-local")
-            else:
-                cmd = (docker_run, "--", "st-validate-local")
-        elif validator is not None:
-            print()
-            print("Running post-finalization validation...")
-            cmd = (validator,)
+        print()
+        print("Running post-finalization validation via st-docker-run...")
+        repo_root = Path(git.repo_root())
+        if (repo_root / "pyproject.toml").is_file():
+            cmd: tuple[str, ...] = ("st-docker-run", "--", "uv", "run", "st-validate-local")
         else:
-            print()
-            print(
-                "ERROR: neither st-docker-run nor st-validate-local found on PATH.",
-                file=sys.stderr,
-            )
-            print("  Ensure standard-tooling is installed and on PATH.", file=sys.stderr)
-            return 1
+            cmd = ("st-docker-run", "--", "st-validate-local")
 
         result = subprocess.run(cmd, check=False)  # noqa: S603
         if result.returncode != 0:
@@ -270,7 +248,7 @@ def main(argv: list[str] | None = None) -> int:
 
     if validation_failed:
         print()
-        print("WARNING: post-finalization validation failed.", file=sys.stderr)
+        print("ERROR: post-finalization validation failed.", file=sys.stderr)
         print(f"  The {args.target_branch} branch has issues that should be", file=sys.stderr)
         print("  fixed before creating the next PR.", file=sys.stderr)
         return 1
@@ -278,7 +256,7 @@ def main(argv: list[str] | None = None) -> int:
     if docs_failure is not None:
         print()
         print(
-            "WARNING: most recent Documentation workflow run did not succeed.",
+            "ERROR: most recent Documentation workflow run did not succeed.",
             file=sys.stderr,
         )
         print(f"  {docs_failure}", file=sys.stderr)
@@ -287,7 +265,7 @@ def main(argv: list[str] | None = None) -> int:
             file=sys.stderr,
         )
         print("  the site doesn't drift further from develop.", file=sys.stderr)
-        # Soft warning: keep exit code 0 since finalize itself succeeded.
+        return 1
 
     return 0
 

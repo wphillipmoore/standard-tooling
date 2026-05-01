@@ -5,7 +5,6 @@ from __future__ import annotations
 import hashlib
 import re
 import subprocess
-import sys
 from typing import TYPE_CHECKING
 
 from standard_tooling.lib.config import st_install_tag
@@ -92,9 +91,9 @@ def _build_cached_image(
 ) -> str:
     """Build a cached image with standard-tooling installed."""
     tag = st_install_tag(repo_root)
-    pip_install = f"pip install --quiet 'standard-tooling @ git+{_ST_GIT_URL}@{tag}'"
+    uv_install = f"uv tool install --quiet 'standard-tooling @ git+{_ST_GIT_URL}@{tag}'"
     warmup = _WARMUP_COMMANDS.get(lang)
-    setup = f"{pip_install} && {warmup}" if warmup else pip_install
+    setup = f"{uv_install} && {warmup}" if warmup else uv_install
 
     print(f"Building cached image: {target_tag}")
     print(f"  Base:    {base_image}")
@@ -119,11 +118,8 @@ def _build_cached_image(
         text=True,
     )
     if cid_result.returncode != 0:
-        print(
-            f"ERROR: Failed to create container: {cid_result.stderr.strip()}",
-            file=sys.stderr,
-        )
-        return base_image
+        msg = f"Failed to create container: {cid_result.stderr.strip()}"
+        raise RuntimeError(msg)
 
     container_id = cid_result.stdout.strip()
 
@@ -132,11 +128,8 @@ def _build_cached_image(
             ["docker", "start", "-a", container_id],  # noqa: S607
         )
         if run_result.returncode != 0:
-            print(
-                "ERROR: Cache build failed. Falling back to base image.",
-                file=sys.stderr,
-            )
-            return base_image
+            msg = "Cache build failed"
+            raise RuntimeError(msg)
 
         subprocess.run(  # noqa: S603
             ["docker", "commit", container_id, target_tag],  # noqa: S607

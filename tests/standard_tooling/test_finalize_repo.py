@@ -79,16 +79,6 @@ def _validation_ok() -> CompletedProcess[bytes]:
     return CompletedProcess(args=("st-validate-local",), returncode=0)
 
 
-def _which_docker_only(name: str) -> str | None:
-    """Simulate st-docker-run on PATH, st-validate-local not."""
-    return "/usr/bin/st-docker-run" if name == "st-docker-run" else None
-
-
-def _which_validator_only(name: str) -> str | None:
-    """Simulate st-validate-local on PATH, st-docker-run not."""
-    return "/usr/bin/st-validate-local" if name == "st-validate-local" else None
-
-
 def test_main_library_release(tmp_path: Path) -> None:
     _make_profile(tmp_path, "library-release")
     with (
@@ -100,9 +90,9 @@ def test_main_library_release(tmp_path: Path) -> None:
             return_value=["feature/x", "develop"],
         ),
         patch(_MOD + ".git.read_output", return_value=""),
-        patch(_MOD + ".shutil.which", side_effect=_which_validator_only),
         patch(_MOD + ".subprocess.run", return_value=_validation_ok()),
         patch(_MOD + ".clean_branch_images", return_value=0),
+        patch(_MOD + "._check_docs_workflow_status", return_value=None),
     ):
         result = main([])
     assert result == 0
@@ -117,8 +107,8 @@ def test_main_already_on_target(tmp_path: Path) -> None:
         patch(_MOD + ".git.current_branch", return_value="develop"),
         patch(_MOD + ".git.run"),
         patch(_MOD + ".git.merged_branches", return_value=[]),
-        patch(_MOD + ".shutil.which", side_effect=_which_validator_only),
         patch(_MOD + ".subprocess.run", return_value=_validation_ok()),
+        patch(_MOD + "._check_docs_workflow_status", return_value=None),
     ):
         result = main([])
     assert result == 0
@@ -146,8 +136,8 @@ def test_main_no_profile(tmp_path: Path) -> None:
         patch(_MOD + ".git.current_branch", return_value="develop"),
         patch(_MOD + ".git.run"),
         patch(_MOD + ".git.merged_branches", return_value=[]),
-        patch(_MOD + ".shutil.which", side_effect=_which_validator_only),
         patch(_MOD + ".subprocess.run", return_value=_validation_ok()),
+        patch(_MOD + "._check_docs_workflow_status", return_value=None),
     ):
         result = main([])
     assert result == 0
@@ -173,9 +163,9 @@ def test_main_application_promotion(tmp_path: Path) -> None:
             return_value=["develop", "release", "main", "feature/y"],
         ),
         patch(_MOD + ".git.read_output", return_value=""),
-        patch(_MOD + ".shutil.which", side_effect=_which_validator_only),
         patch(_MOD + ".subprocess.run", return_value=_validation_ok()),
         patch(_MOD + ".clean_branch_images", return_value=0),
+        patch(_MOD + "._check_docs_workflow_status", return_value=None),
     ):
         result = main([])
     assert result == 0
@@ -188,8 +178,8 @@ def test_main_docs_single_branch(tmp_path: Path) -> None:
         patch(_MOD + ".git.current_branch", return_value="develop"),
         patch(_MOD + ".git.run"),
         patch(_MOD + ".git.merged_branches", return_value=[]),
-        patch(_MOD + ".shutil.which", side_effect=_which_validator_only),
         patch(_MOD + ".subprocess.run", return_value=_validation_ok()),
+        patch(_MOD + "._check_docs_workflow_status", return_value=None),
     ):
         result = main([])
     assert result == 0
@@ -202,8 +192,8 @@ def test_main_no_deleted_branches(tmp_path: Path) -> None:
         patch(_MOD + ".git.current_branch", return_value="develop"),
         patch(_MOD + ".git.run"),
         patch(_MOD + ".git.merged_branches", return_value=["develop"]),
-        patch(_MOD + ".shutil.which", side_effect=_which_validator_only),
         patch(_MOD + ".subprocess.run", return_value=_validation_ok()),
+        patch(_MOD + "._check_docs_workflow_status", return_value=None),
     ):
         result = main([])
     assert result == 0
@@ -216,43 +206,30 @@ def test_main_validation_fails(tmp_path: Path) -> None:
         patch(_MOD + ".git.current_branch", return_value="develop"),
         patch(_MOD + ".git.run"),
         patch(_MOD + ".git.merged_branches", return_value=[]),
-        patch(_MOD + ".shutil.which", side_effect=_which_validator_only),
         patch(
             "standard_tooling.bin.finalize_repo.subprocess.run",
             return_value=CompletedProcess(args=("st-validate-local",), returncode=1),
         ),
+        patch(_MOD + "._check_docs_workflow_status", return_value=None),
     ):
         result = main([])
     assert result == 1
 
 
-def test_main_validator_not_found(tmp_path: Path) -> None:
+def test_main_calls_docker_run(tmp_path: Path) -> None:
     _make_profile(tmp_path, "library-release")
     with (
         patch(_MOD + ".git.repo_root", return_value=tmp_path),
         patch(_MOD + ".git.current_branch", return_value="develop"),
         patch(_MOD + ".git.run"),
         patch(_MOD + ".git.merged_branches", return_value=[]),
-        patch(_MOD + ".shutil.which", return_value=None),
-    ):
-        result = main([])
-    assert result == 1
-
-
-def test_main_prefers_docker_run(tmp_path: Path) -> None:
-    _make_profile(tmp_path, "library-release")
-    with (
-        patch(_MOD + ".git.repo_root", return_value=tmp_path),
-        patch(_MOD + ".git.current_branch", return_value="develop"),
-        patch(_MOD + ".git.run"),
-        patch(_MOD + ".git.merged_branches", return_value=[]),
-        patch(_MOD + ".shutil.which", side_effect=_which_docker_only),
         patch(_MOD + ".subprocess.run", return_value=_validation_ok()) as mock_sub,
+        patch(_MOD + "._check_docs_workflow_status", return_value=None),
     ):
         result = main([])
     assert result == 0
     cmd = mock_sub.call_args[0][0]
-    assert cmd[0] == "/usr/bin/st-docker-run"
+    assert cmd[0] == "st-docker-run"
     assert cmd[1:] == ("--", "st-validate-local")
 
 
@@ -264,29 +241,13 @@ def test_main_docker_run_uses_uv_for_python(tmp_path: Path) -> None:
         patch(_MOD + ".git.current_branch", return_value="develop"),
         patch(_MOD + ".git.run"),
         patch(_MOD + ".git.merged_branches", return_value=[]),
-        patch(_MOD + ".shutil.which", side_effect=_which_docker_only),
         patch(_MOD + ".subprocess.run", return_value=_validation_ok()) as mock_sub,
+        patch(_MOD + "._check_docs_workflow_status", return_value=None),
     ):
         result = main([])
     assert result == 0
     cmd = mock_sub.call_args[0][0]
-    assert cmd == ("/usr/bin/st-docker-run", "--", "uv", "run", "st-validate-local")
-
-
-def test_main_falls_back_to_direct_validator(tmp_path: Path) -> None:
-    _make_profile(tmp_path, "library-release")
-    with (
-        patch(_MOD + ".git.repo_root", return_value=tmp_path),
-        patch(_MOD + ".git.current_branch", return_value="develop"),
-        patch(_MOD + ".git.run"),
-        patch(_MOD + ".git.merged_branches", return_value=[]),
-        patch(_MOD + ".shutil.which", side_effect=_which_validator_only),
-        patch(_MOD + ".subprocess.run", return_value=_validation_ok()) as mock_sub,
-    ):
-        result = main([])
-    assert result == 0
-    cmd = mock_sub.call_args[0][0]
-    assert cmd == ("/usr/bin/st-validate-local",)
+    assert cmd == ("st-docker-run", "--", "uv", "run", "st-validate-local")
 
 
 # -- _check_docs_workflow_status (issue #303) --------------------------------
@@ -307,63 +268,43 @@ def _gh_run_json(conclusion: str | None) -> str:
     )
 
 
-def test_check_docs_workflow_returns_none_when_gh_missing() -> None:
-    with patch(_MOD + ".shutil.which", return_value=None):
-        assert _check_docs_workflow_status("develop") is None
-
-
 def test_check_docs_workflow_returns_none_when_gh_fails() -> None:
-    with (
-        patch(_MOD + ".shutil.which", return_value="/usr/bin/gh"),
-        patch(
-            _MOD + ".subprocess.run",
-            return_value=CompletedProcess(args=(), returncode=1, stdout="", stderr="oops"),
-        ),
+    with patch(
+        _MOD + ".subprocess.run",
+        return_value=CompletedProcess(args=(), returncode=1, stdout="", stderr="oops"),
     ):
         assert _check_docs_workflow_status("develop") is None
 
 
 def test_check_docs_workflow_returns_none_when_no_runs() -> None:
-    with (
-        patch(_MOD + ".shutil.which", return_value="/usr/bin/gh"),
-        patch(
-            _MOD + ".subprocess.run",
-            return_value=CompletedProcess(args=(), returncode=0, stdout="[]"),
-        ),
+    with patch(
+        _MOD + ".subprocess.run",
+        return_value=CompletedProcess(args=(), returncode=0, stdout="[]"),
     ):
         assert _check_docs_workflow_status("develop") is None
 
 
 def test_check_docs_workflow_returns_none_on_success() -> None:
-    with (
-        patch(_MOD + ".shutil.which", return_value="/usr/bin/gh"),
-        patch(
-            _MOD + ".subprocess.run",
-            return_value=CompletedProcess(args=(), returncode=0, stdout=_gh_run_json("success")),
-        ),
+    with patch(
+        _MOD + ".subprocess.run",
+        return_value=CompletedProcess(args=(), returncode=0, stdout=_gh_run_json("success")),
     ):
         assert _check_docs_workflow_status("develop") is None
 
 
 def test_check_docs_workflow_returns_none_on_in_progress() -> None:
     # gh reports null conclusion (in_progress / queued).
-    with (
-        patch(_MOD + ".shutil.which", return_value="/usr/bin/gh"),
-        patch(
-            _MOD + ".subprocess.run",
-            return_value=CompletedProcess(args=(), returncode=0, stdout=_gh_run_json(None)),
-        ),
+    with patch(
+        _MOD + ".subprocess.run",
+        return_value=CompletedProcess(args=(), returncode=0, stdout=_gh_run_json(None)),
     ):
         assert _check_docs_workflow_status("develop") is None
 
 
 def test_check_docs_workflow_returns_message_on_failure() -> None:
-    with (
-        patch(_MOD + ".shutil.which", return_value="/usr/bin/gh"),
-        patch(
-            _MOD + ".subprocess.run",
-            return_value=CompletedProcess(args=(), returncode=0, stdout=_gh_run_json("failure")),
-        ),
+    with patch(
+        _MOD + ".subprocess.run",
+        return_value=CompletedProcess(args=(), returncode=0, stdout=_gh_run_json("failure")),
     ):
         msg = _check_docs_workflow_status("develop")
     assert msg is not None
@@ -375,29 +316,23 @@ def test_check_docs_workflow_returns_message_on_failure() -> None:
 
 
 def test_check_docs_workflow_returns_none_on_malformed_json() -> None:
-    with (
-        patch(_MOD + ".shutil.which", return_value="/usr/bin/gh"),
-        patch(
-            _MOD + ".subprocess.run",
-            return_value=CompletedProcess(args=(), returncode=0, stdout="not json"),
-        ),
+    with patch(
+        _MOD + ".subprocess.run",
+        return_value=CompletedProcess(args=(), returncode=0, stdout="not json"),
     ):
         assert _check_docs_workflow_status("develop") is None
 
 
 def test_check_docs_workflow_returns_none_on_empty_stdout() -> None:
     # Defensive: stdout missing entirely (None) shouldn't crash.
-    with (
-        patch(_MOD + ".shutil.which", return_value="/usr/bin/gh"),
-        patch(
-            _MOD + ".subprocess.run",
-            return_value=CompletedProcess(args=(), returncode=0, stdout=None),
-        ),
+    with patch(
+        _MOD + ".subprocess.run",
+        return_value=CompletedProcess(args=(), returncode=0, stdout=None),
     ):
         assert _check_docs_workflow_status("develop") is None
 
 
-def test_main_warns_on_docs_failure_but_returns_zero(
+def test_main_returns_one_on_docs_failure(
     tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
     _make_profile(tmp_path, "library-release")
@@ -406,7 +341,6 @@ def test_main_warns_on_docs_failure_but_returns_zero(
         patch(_MOD + ".git.current_branch", return_value="develop"),
         patch(_MOD + ".git.run"),
         patch(_MOD + ".git.merged_branches", return_value=[]),
-        patch(_MOD + ".shutil.which", side_effect=_which_validator_only),
         patch(_MOD + ".subprocess.run", return_value=_validation_ok()),
         patch(
             _MOD + "._check_docs_workflow_status",
@@ -417,11 +351,9 @@ def test_main_warns_on_docs_failure_but_returns_zero(
         ),
     ):
         result = main([])
-    # Soft warning: finalize itself succeeded, so exit 0.
-    assert result == 0
+    assert result == 1
     stderr = capsys.readouterr().err
     assert "Documentation workflow" in stderr
-    assert "Docs publish is async" in stderr
 
 
 def test_main_skips_docs_check_on_dry_run(tmp_path: Path) -> None:
@@ -431,7 +363,6 @@ def test_main_skips_docs_check_on_dry_run(tmp_path: Path) -> None:
         patch(_MOD + ".git.current_branch", return_value="develop"),
         patch(_MOD + ".git.run"),
         patch(_MOD + ".git.merged_branches", return_value=[]),
-        patch(_MOD + ".shutil.which", side_effect=_which_validator_only),
         patch(
             _MOD + "._check_docs_workflow_status",
             return_value="should not appear",
@@ -530,9 +461,9 @@ def test_main_removes_worktree_before_deleting_branch(tmp_path: Path) -> None:
         patch(_MOD + ".git.run", side_effect=mock_git_run),
         patch(_MOD + ".git.merged_branches", return_value=["feature/99-x"]),
         patch(_MOD + ".git.read_output", return_value=porcelain),
-        patch(_MOD + ".shutil.which", side_effect=_which_validator_only),
         patch(_MOD + ".subprocess.run", return_value=_validation_ok()),
         patch(_MOD + ".clean_branch_images", return_value=0),
+        patch(_MOD + "._check_docs_workflow_status", return_value=None),
     ):
         result = main([])
 
@@ -563,9 +494,9 @@ def test_main_skips_worktree_remove_when_branch_not_in_worktree(tmp_path: Path) 
         patch(_MOD + ".git.run", side_effect=mock_git_run),
         patch(_MOD + ".git.merged_branches", return_value=["feature/99-x"]),
         patch(_MOD + ".git.read_output", return_value=porcelain),
-        patch(_MOD + ".shutil.which", side_effect=_which_validator_only),
         patch(_MOD + ".subprocess.run", return_value=_validation_ok()),
         patch(_MOD + ".clean_branch_images", return_value=0),
+        patch(_MOD + "._check_docs_workflow_status", return_value=None),
     ):
         result = main([])
 
@@ -584,9 +515,9 @@ def test_main_cleans_docker_cache_on_branch_delete(
         patch(_MOD + ".git.run"),
         patch(_MOD + ".git.merged_branches", return_value=["feature/x"]),
         patch(_MOD + ".git.read_output", return_value=""),
-        patch(_MOD + ".shutil.which", side_effect=_which_validator_only),
         patch(_MOD + ".subprocess.run", return_value=_validation_ok()),
         patch(_MOD + ".clean_branch_images", return_value=2) as mock_clean,
+        patch(_MOD + "._check_docs_workflow_status", return_value=None),
     ):
         result = main([])
     assert result == 0
