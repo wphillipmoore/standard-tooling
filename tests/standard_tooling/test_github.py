@@ -11,9 +11,7 @@ from standard_tooling.lib import github
 def _completed(
     returncode: int = 0, stdout: str = "", stderr: str = ""
 ) -> subprocess.CompletedProcess[str]:
-    return subprocess.CompletedProcess(
-        args=[], returncode=returncode, stdout=stdout, stderr=stderr
-    )
+    return subprocess.CompletedProcess(args=[], returncode=returncode, stdout=stdout, stderr=stderr)
 
 
 def test_run_delegates_to_subprocess() -> None:
