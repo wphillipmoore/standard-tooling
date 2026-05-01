@@ -1992,9 +1992,11 @@
 <p>Shared driver for pre-PR local validation. Orchestrates common checks
 and language-specific validation based on the repository profile.</p>
 <h2 id="usage">Usage<a class="headerlink" href="#usage" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>st-validate-local
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>st-docker-run<span class="w"> </span>--<span class="w"> </span>uv<span class="w"> </span>run<span class="w"> </span>st-validate-local
 </code></pre></div>
-<p>Run from the repository root. No arguments required.</p>
+<p>Must run inside a dev container via <code>st-docker-run</code>. Running
+<code>st-validate-local</code> directly on the host is not supported and will
+exit with an error.</p>
 <h2 id="behavior">Behavior<a class="headerlink" href="#behavior" title="Permanent link">&para;</a></h2>
 <p>The tool reads <code>primary_language</code> from
 <code>docs/repository-standards.md</code> and runs up to three validation
