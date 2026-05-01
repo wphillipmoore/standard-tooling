@@ -3,6 +3,11 @@
 from __future__ import annotations
 
 import subprocess
+import time
+
+_NO_CHECKS_PHRASE = "no checks reported"
+_POLL_INTERVAL_SECS = 5
+_POLL_TIMEOUT_SECS = 60
 
 
 def run(*args: str) -> None:
@@ -26,13 +31,38 @@ def create_pr(*, base: str, title: str, body_file: str) -> str:
     return read_output("pr", "create", "--base", base, "--title", title, "--body-file", body_file)
 
 
-def wait_for_checks(pr: str) -> None:
+def _checks_registered(pr: str) -> bool:
+    """Return True if at least one check is registered on ``pr``."""
+    result = subprocess.run(  # noqa: S603
+        ("gh", "pr", "checks", pr),  # noqa: S607
+        capture_output=True,
+        text=True,
+    )
+    return _NO_CHECKS_PHRASE not in (result.stdout + result.stderr)
+
+
+def wait_for_checks(
+    pr: str,
+    *,
+    poll_interval: int = _POLL_INTERVAL_SECS,
+    poll_timeout: int = _POLL_TIMEOUT_SECS,
+) -> None:
     """Block until all required checks on ``pr`` complete; fail fast on the first red.
+
+    Polls internally when no checks have registered yet (the window between
+    git push and GitHub registering the checks run). Polls every
+    ``poll_interval`` seconds for up to ``poll_timeout`` seconds before
+    falling through to the blocking watch.
 
     Surfaces the failure via ``subprocess.CalledProcessError`` — callers are
     responsible for deciding how to react (the release-workflow convention is
     to stop and surface; do not retry).
     """
+    deadline = time.monotonic() + poll_timeout
+    while not _checks_registered(pr):
+        if time.monotonic() >= deadline:
+            break
+        time.sleep(poll_interval)
     run("pr", "checks", pr, "--watch", "--fail-fast")
 
 
