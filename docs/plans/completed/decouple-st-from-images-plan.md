@@ -1,10 +1,10 @@
 # Implementation Plan: Decouple standard-tooling from dev container images
 
 **Status:** All phases complete
-**Spec:** [`docs/specs/decouple-st-from-images-plan.md`](../specs/decouple-st-from-images-plan.md)
+**Spec:** [`docs/specs/decouple-st-from-images-plan.md`](../../specs/decouple-st-from-images-plan.md)
 **Issue:** [#362](https://github.com/wphillipmoore/standard-tooling/issues/362) (closed)
 **Pushback review:**
-[`paad/pushback-reviews/2026-04-29-decouple-st-from-images-pushback.md`](../../paad/pushback-reviews/2026-04-29-decouple-st-from-images-pushback.md)
+[`paad/pushback-reviews/2026-04-29-decouple-st-from-images-pushback.md`](../../../paad/pushback-reviews/2026-04-29-decouple-st-from-images-pushback.md)
 **Last updated:** 2026-04-29
 
 ## Scope

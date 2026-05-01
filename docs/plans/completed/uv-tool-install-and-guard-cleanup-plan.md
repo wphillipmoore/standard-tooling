@@ -18,7 +18,7 @@
 - Modify: `src/standard_tooling/lib/docker_cache.py:87-153`
 - Test: `tests/standard_tooling/test_docker_cache.py`
 
-- [ ] **Step 1: Update test for uv command string**
+- [x] **Step 1: Update test for uv command string**
 
 In `tests/standard_tooling/test_docker_cache.py`, the `test_build_cached_image_success` test (line 266) verifies the build works but doesn't assert the install command string. Add a test that verifies `uv tool install` is in the docker create command:
 
@@ -42,12 +42,12 @@ def test_build_cached_image_uses_uv_tool_install(tmp_path: Path) -> None:
     assert "pip install" not in setup_cmd
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `st-docker-run -- uv run pytest tests/standard_tooling/test_docker_cache.py::test_build_cached_image_uses_uv_tool_install -v`
 Expected: FAIL — the current code still uses `pip install`.
 
-- [ ] **Step 3: Update tests for fatal failures**
+- [x] **Step 3: Update tests for fatal failures**
 
 Replace `test_build_cached_image_create_fails` and `test_build_cached_image_start_fails` to expect exceptions instead of base image fallback:
 
@@ -84,12 +84,12 @@ def test_build_cached_image_start_fails(tmp_path: Path) -> None:
 
 Add `pytest` to the imports at the top of the test file (it's not currently imported directly — add `import pytest` after the existing imports).
 
-- [ ] **Step 4: Run failure tests to verify they fail**
+- [x] **Step 4: Run failure tests to verify they fail**
 
 Run: `st-docker-run -- uv run pytest tests/standard_tooling/test_docker_cache.py::test_build_cached_image_create_fails tests/standard_tooling/test_docker_cache.py::test_build_cached_image_start_fails -v`
 Expected: FAIL — the current code returns base image instead of raising.
 
-- [ ] **Step 5: Implement the changes in `docker_cache.py`**
+- [x] **Step 5: Implement the changes in `docker_cache.py`**
 
 In `src/standard_tooling/lib/docker_cache.py`, make three changes:
 
@@ -149,12 +149,12 @@ print(f"  Install: standard-tooling@{tag}")
 
 This line already says `Install:` without mentioning pip, so no change needed — verify it's correct and move on.
 
-- [ ] **Step 6: Run all docker_cache tests**
+- [x] **Step 6: Run all docker_cache tests**
 
 Run: `st-docker-run -- uv run pytest tests/standard_tooling/test_docker_cache.py -v`
 Expected: ALL PASS
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```
 git add src/standard_tooling/lib/docker_cache.py tests/standard_tooling/test_docker_cache.py
@@ -175,7 +175,7 @@ Ref #427, Ref #429"
 - Modify: `src/standard_tooling/bin/finalize_repo.py`
 - Test: `tests/standard_tooling/test_finalize_repo.py`
 
-- [ ] **Step 1: Update tests — remove shutil.which patches and fallback test**
+- [x] **Step 1: Update tests — remove shutil.which patches and fallback test**
 
 In `tests/standard_tooling/test_finalize_repo.py`:
 
@@ -244,7 +244,7 @@ For each, remove the `patch(_MOD + ".shutil.which", ...)` line and add `patch(_M
 Run: `grep -rn "shutil.which" tests/ --include='*.py'`
 Expected: Only `test_validate_local.py` (out of scope — legitimate discovery) and `test_pre_commit_gate.py` (direct call to locate bash, not a mock).
 
-- [ ] **Step 2: Update test — docs workflow failure is now fatal**
+- [x] **Step 2: Update test — docs workflow failure is now fatal**
 
 Replace `test_main_warns_on_docs_failure_but_returns_zero` (lines 400-424) with a test that asserts exit code 1:
 
@@ -273,7 +273,7 @@ def test_main_returns_one_on_docs_failure(
     assert "Documentation workflow" in stderr
 ```
 
-- [ ] **Step 3: Update tests — remove shutil.which patches from `_check_docs_workflow_status` tests**
+- [x] **Step 3: Update tests — remove shutil.which patches from `_check_docs_workflow_status` tests**
 
 All `_check_docs_workflow_status` tests currently patch `shutil.which`. Remove those patches. The tests that mock `subprocess.run` directly will continue to work — `subprocess.run` is what gets called now.
 
@@ -288,12 +288,12 @@ For the remaining `_check_docs_workflow_status` tests, remove the `patch(_MOD + 
 - `test_check_docs_workflow_returns_none_on_malformed_json`
 - `test_check_docs_workflow_returns_none_on_empty_stdout`
 
-- [ ] **Step 4: Run tests to verify they fail**
+- [x] **Step 4: Run tests to verify they fail**
 
 Run: `st-docker-run -- uv run pytest tests/standard_tooling/test_finalize_repo.py -v`
 Expected: FAIL — implementation still uses old patterns.
 
-- [ ] **Step 5: Implement the changes in `finalize_repo.py`**
+- [x] **Step 5: Implement the changes in `finalize_repo.py`**
 
 **5a.** Remove the `shutil` import (line 16):
 
@@ -372,12 +372,12 @@ result = subprocess.run(  # noqa: S603
         return 1
 ```
 
-- [ ] **Step 6: Run all finalize_repo tests**
+- [x] **Step 6: Run all finalize_repo tests**
 
 Run: `st-docker-run -- uv run pytest tests/standard_tooling/test_finalize_repo.py -v`
 Expected: ALL PASS
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```
 git add src/standard_tooling/bin/finalize_repo.py tests/standard_tooling/test_finalize_repo.py
@@ -398,7 +398,7 @@ Ref #427"
 - Modify: `src/standard_tooling/bin/prepare_release.py`
 - Test: `tests/standard_tooling/test_prepare_release.py`
 
-- [ ] **Step 1: Update tests — remove `_ensure_tool` tests and imports**
+- [x] **Step 1: Update tests — remove `_ensure_tool` tests and imports**
 
 In `tests/standard_tooling/test_prepare_release.py`:
 
@@ -408,12 +408,12 @@ In `tests/standard_tooling/test_prepare_release.py`:
 
 **1c.** In `test_main_full_flow`, `test_main_release_branch_already_exists`, `test_main_no_publishable_changes`, and `test_main_full_flow_with_release_notes` — remove the `patch("standard_tooling.bin.prepare_release.shutil.which", ...)` line from each.
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `st-docker-run -- uv run pytest tests/standard_tooling/test_prepare_release.py -v`
 Expected: FAIL — `_ensure_tool` import will fail once removed from source, and `shutil.which` patches will be patching a removed import.
 
-- [ ] **Step 3: Implement the changes in `prepare_release.py`**
+- [x] **Step 3: Implement the changes in `prepare_release.py`**
 
 **3a.** Remove the `shutil` import (line 25):
 
@@ -445,12 +445,12 @@ _ensure_tool("git-cliff")
 _ensure_tool("gh")
 ```
 
-- [ ] **Step 4: Run all prepare_release tests**
+- [x] **Step 4: Run all prepare_release tests**
 
 Run: `st-docker-run -- uv run pytest tests/standard_tooling/test_prepare_release.py -v`
 Expected: ALL PASS
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```
 git add src/standard_tooling/bin/prepare_release.py tests/standard_tooling/test_prepare_release.py
@@ -471,7 +471,7 @@ Ref #427"
 - Modify: `src/standard_tooling/bin/markdown_standards.py`
 - Test: `tests/standard_tooling/test_markdown_standards.py`
 
-- [ ] **Step 1: Update tests — remove shutil.which patches and guard test**
+- [x] **Step 1: Update tests — remove shutil.which patches and guard test**
 
 In `tests/standard_tooling/test_markdown_standards.py`:
 
@@ -479,12 +479,12 @@ In `tests/standard_tooling/test_markdown_standards.py`:
 
 **1b.** In `test_main_pass`, `test_main_fail`, and `test_main_with_config` — remove the `patch("standard_tooling.bin.markdown_standards.shutil.which", ...)` line from each. The `subprocess.run` mock will handle the command call.
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `st-docker-run -- uv run pytest tests/standard_tooling/test_markdown_standards.py -v`
 Expected: FAIL — `shutil.which` patches will be patching a removed import.
 
-- [ ] **Step 3: Implement the changes in `markdown_standards.py`**
+- [x] **Step 3: Implement the changes in `markdown_standards.py`**
 
 **3a.** Remove the `shutil` import (line 3):
 
@@ -502,12 +502,12 @@ import shutil
         return 2
 ```
 
-- [ ] **Step 4: Run all markdown_standards tests**
+- [x] **Step 4: Run all markdown_standards tests**
 
 Run: `st-docker-run -- uv run pytest tests/standard_tooling/test_markdown_standards.py -v`
 Expected: ALL PASS
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```
 git add src/standard_tooling/bin/markdown_standards.py tests/standard_tooling/test_markdown_standards.py
@@ -527,7 +527,7 @@ Ref #427"
 **Files:**
 - Modify: `docs/specs/host-level-tool.md`
 
-- [ ] **Step 1: Identify all pip install references**
+- [x] **Step 1: Identify all pip install references**
 
 Run: `grep -n "pip install\|pip_install\|pip .*install" docs/specs/host-level-tool.md`
 
@@ -539,7 +539,7 @@ The known locations from the spec:
 5. Upgrade section — `pip install` upgrade command and "For `pip install` users" block
 6. standard-tooling-docker migration steps — `pip install` instruction
 
-- [ ] **Step 2: Remove all pip install references**
+- [x] **Step 2: Remove all pip install references**
 
 **2a.** In the deployment targets table (line 94 area):
 - "Developer host" row: change install mechanism to just `uv tool install from git URL` (remove the `pip install from git URL (alternative)` part)
@@ -555,7 +555,7 @@ The known locations from the spec:
 
 **2f.** Search for any remaining references and update them.
 
-- [ ] **Step 3: Verify no pip install references remain**
+- [x] **Step 3: Verify no pip install references remain**
 
 Run: `grep -rn "pip install" docs/specs/host-level-tool.md`
 Expected: No output.
@@ -563,7 +563,7 @@ Expected: No output.
 Run: `grep -rn "pip install" docs/ CLAUDE.md`
 Expected: No standard-tooling references (may have references in other contexts like general Python docs — those are fine).
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```
 git add docs/specs/host-level-tool.md
@@ -584,7 +584,7 @@ Ref #429"
 - Read: all files under `src/standard_tooling/`
 - Possibly modify: files where catch-and-suppress patterns are found
 
-- [ ] **Step 1: Audit all except clauses**
+- [x] **Step 1: Audit all except clauses**
 
 Run: `grep -rn 'except.*:\|except:' src/standard_tooling/ --include='*.py'`
 
@@ -611,7 +611,7 @@ Known exception handlers to audit (from the grep in context exploration):
 | `docker.py:76` | `except OSError` | Reading .git file | Legitimate — worktree detection fallback |
 | `docker.py:154` | `except (FileNotFoundError, TimeoutExpired)` | Docker daemon check | Legitimate — system boundary |
 
-- [ ] **Step 2: Review flagged items**
+- [x] **Step 2: Review flagged items**
 
 For each "Review" item above, read the surrounding code to determine whether the exception handler is justified. If it suppresses an error without justification, either:
 - Convert to fatal (raise or return error code), or
@@ -623,16 +623,16 @@ Read the relevant code sections:
 - `finalize_repo.py` around line 125
 - `ensure_label.py` around line 73
 
-- [ ] **Step 3: Apply fixes if needed**
+- [x] **Step 3: Apply fixes if needed**
 
 For any handler that should be fatal, update the code and its tests. For any handler that is correctly suppressing, add a brief comment explaining why (if one doesn't already exist).
 
-- [ ] **Step 4: Run full test suite**
+- [x] **Step 4: Run full test suite**
 
 Run: `st-docker-run -- uv run st-validate-local`
 Expected: ALL PASS
 
-- [ ] **Step 5: Commit (if changes were made)**
+- [x] **Step 5: Commit (if changes were made)**
 
 ```
 git add -A
@@ -648,17 +648,17 @@ Ref #427"
 
 ### Task 7: Final validation
 
-- [ ] **Step 1: Run full validation**
+- [x] **Step 1: Run full validation**
 
 Run: `st-docker-run -- uv run st-validate-local`
 Expected: ALL PASS — lint, typecheck, tests, audit.
 
-- [ ] **Step 2: Verify no shutil.which guard patterns remain (codebase-wide)**
+- [x] **Step 2: Verify no shutil.which guard patterns remain (codebase-wide)**
 
 Run: `grep -rn "shutil.which" src/ tests/ --include='*.py'`
 Expected: Only `validate_local.py` (legitimate discovery), `test_validate_local.py` (tests for that discovery), and `test_pre_commit_gate.py` (direct call to locate bash).
 
-- [ ] **Step 3: Verify no pip install references remain (codebase-wide)**
+- [x] **Step 3: Verify no pip install references remain (codebase-wide)**
 
 Run: `grep -rn "pip.install\|pip_install" src/ tests/ docs/ CLAUDE.md --include='*.py' --include='*.md' --include='*.toml'`
 Expected: No standard-tooling references. (General Python documentation about pip in other contexts is fine.)
