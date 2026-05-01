@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.4.8] - 2026-05-01
+
+### Bug fixes
+
+- replace pip install with uv tool install in docker cache build
+
+### Documentation
+
+- add spec, plan, and pushback review for uv tool install and guard cleanup
+
 ## [1.4.7] - 2026-04-30
 
 ### Bug fixes
