@@ -163,7 +163,7 @@ def test_ensure_returns_existing_cache_on_hash_match(tmp_path: Path) -> None:
     (tmp_path / "standard-tooling.toml").write_text(_VALID_TOML)
     cached_tag = "ghcr.io/r/dev-go:1.26--feature-42--"
     files = cache_sensitive_files(tmp_path, "go")
-    expected_hash = compute_cache_hash(files)
+    expected_hash = compute_cache_hash(files, salt=tmp_path.name)
     full_tag = cached_tag + expected_hash
 
     with (
@@ -372,3 +372,92 @@ def test_build_cached_image_uses_uv_tool_install(tmp_path: Path) -> None:
     setup_cmd = create_cmd[-1]
     assert "uv tool install" in setup_cmd
     assert "pip install" not in setup_cmd
+
+
+# -- compute_cache_hash salt --------------------------------------------------
+
+
+def test_compute_cache_hash_differs_with_different_salt(tmp_path: Path) -> None:
+    (tmp_path / "f.toml").write_text("same content")
+    h1 = compute_cache_hash([tmp_path / "f.toml"], salt="repo-a")
+    h2 = compute_cache_hash([tmp_path / "f.toml"], salt="repo-b")
+    assert h1 != h2
+
+
+def test_compute_cache_hash_same_salt_is_stable(tmp_path: Path) -> None:
+    (tmp_path / "f.toml").write_text("content")
+    h1 = compute_cache_hash([tmp_path / "f.toml"], salt="my-repo")
+    h2 = compute_cache_hash([tmp_path / "f.toml"], salt="my-repo")
+    assert h1 == h2
+
+
+def test_compute_cache_hash_no_salt_matches_empty_salt(tmp_path: Path) -> None:
+    (tmp_path / "f.toml").write_text("content")
+    assert compute_cache_hash([tmp_path / "f.toml"]) == compute_cache_hash(
+        [tmp_path / "f.toml"], salt=""
+    )
+
+
+# -- Python caching -----------------------------------------------------------
+
+
+def test_ensure_python_builds_cached_image(tmp_path: Path) -> None:
+    (tmp_path / "uv.lock").write_text("lock\n")
+    (tmp_path / "standard-tooling.toml").write_text(_VALID_TOML)
+
+    with (
+        patch("standard_tooling.lib.git.current_branch", return_value="develop"),
+        patch("standard_tooling.lib.docker_cache.find_cached_image", return_value=None),
+        patch(
+            "standard_tooling.lib.docker_cache._build_cached_image",
+            return_value="img:1--develop--hash",
+        ) as mock_build,
+    ):
+        result = ensure_cached_image(tmp_path, "python", "img:1")
+    mock_build.assert_called_once()
+    assert result != "img:1"
+
+
+def test_build_cached_image_python_skips_uv_install(tmp_path: Path) -> None:
+    (tmp_path / "standard-tooling.toml").write_text(_VALID_TOML)
+    create_result = MagicMock(returncode=0, stdout="abc123\n")
+    ok = MagicMock(returncode=0)
+    create_cmd: list[str] = []
+
+    def mock_run(cmd, **_kwargs):  # noqa: ANN001, ANN003
+        if cmd[1] == "create":
+            create_cmd.extend(cmd)
+            return create_result
+        return ok
+
+    with patch("standard_tooling.lib.docker_cache.subprocess.run", side_effect=mock_run):
+        _build_cached_image(tmp_path, "python", "img:1", "img:1--branch--hash")
+    setup_cmd = create_cmd[-1]
+    assert "uv tool install" not in setup_cmd
+    assert "uv sync" in setup_cmd
+
+
+def test_ensure_repo_name_included_in_hash(tmp_path: Path) -> None:
+    repo_a = tmp_path / "repo-alpha"
+    repo_b = tmp_path / "repo-beta"
+    repo_a.mkdir()
+    repo_b.mkdir()
+    (repo_a / "standard-tooling.toml").write_text(_VALID_TOML)
+    (repo_b / "standard-tooling.toml").write_text(_VALID_TOML)
+
+    built_tags: list[str] = []
+
+    def capture_build(repo_root, lang, base_image, target_tag) -> str:  # noqa: ANN001
+        built_tags.append(target_tag)
+        return target_tag
+
+    with (
+        patch("standard_tooling.lib.git.current_branch", return_value="develop"),
+        patch("standard_tooling.lib.docker_cache.find_cached_image", return_value=None),
+        patch("standard_tooling.lib.docker_cache._build_cached_image", side_effect=capture_build),
+    ):
+        ensure_cached_image(repo_a, "go", "img:1")
+        ensure_cached_image(repo_b, "go", "img:1")
+
+    assert len(built_tags) == 2
+    assert built_tags[0] != built_tags[1], "repos with identical files must get distinct image tags"
