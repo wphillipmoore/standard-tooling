@@ -311,3 +311,19 @@ def test_build_docker_args_no_extra_mount_for_main_worktree(tmp_path: Path) -> N
     v_indices = [i for i, a in enumerate(args) if a == "-v"]
     assert len(v_indices) == 1
     assert args[v_indices[0] + 1] == f"{tmp_path}:/workspace"
+
+
+# -- pull policy --------------------------------------------------------------
+
+
+def test_build_docker_args_pull_always_by_default(tmp_path: Path) -> None:
+    with patch.dict("os.environ", {}, clear=True):
+        args = build_docker_args(tmp_path, "img:1", ["cmd"])
+    assert "--pull=always" in args
+
+
+def test_build_docker_args_pull_never_omits_pull_flag(tmp_path: Path) -> None:
+    with patch.dict("os.environ", {}, clear=True):
+        args = build_docker_args(tmp_path, "img:1", ["cmd"], pull_policy="never")
+    assert "--pull=always" not in args
+    assert not any(a.startswith("--pull=") for a in args)

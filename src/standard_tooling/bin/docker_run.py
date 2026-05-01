@@ -79,9 +79,6 @@ def main(argv: list[str] | None = None) -> int:
     if env_image:
         image = env_image
         image_source = "env"
-    elif lang == "python":
-        image = default_image(lang, fallback=True)
-        image_source = "default"
     else:
         base = default_image(lang, fallback=True)
         image = ensure_cached_image(repo_root, lang, base)
@@ -100,7 +97,8 @@ def main(argv: list[str] | None = None) -> int:
 
     assert_docker_available()
 
-    docker_args = build_docker_args(repo_root, image, command)
+    pull_policy = "never" if image_source == "cached" else "always"
+    docker_args = build_docker_args(repo_root, image, command, pull_policy=pull_policy)
     os.execvp("docker", docker_args)  # noqa: S606, S607
     return 0  # pragma: no cover
 

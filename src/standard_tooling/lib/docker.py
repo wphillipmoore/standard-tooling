@@ -87,20 +87,23 @@ def build_docker_args(
     repo_root: Path,
     image: str,
     command: list[str],
+    *,
+    pull_policy: str = "always",
 ) -> list[str]:
     """Build the ``docker run`` argument list."""
     network = os.environ.get("DOCKER_NETWORK", "")
 
-    docker_args = [
-        "docker",
-        "run",
-        "--rm",
-        "--pull=always",
-        "-v",
-        f"{repo_root}:/workspace",
-        "-w",
-        "/workspace",
-    ]
+    docker_args = ["docker", "run", "--rm"]
+    if pull_policy != "never":
+        docker_args.append("--pull=always")
+    docker_args.extend(
+        [
+            "-v",
+            f"{repo_root}:/workspace",
+            "-w",
+            "/workspace",
+        ]
+    )
 
     # When repo_root is a git worktree, the worktree's `.git` is a file
     # pointing at <parent>/.git/worktrees/<name>. Mount the parent .git
