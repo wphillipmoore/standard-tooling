@@ -36,7 +36,11 @@ commit_parsers = [
   { message = "^style", group = "Styling" },
   { message = "^test", group = "Testing" },
   { message = "^ci", group = "CI" },
-  { message = "^chore", skip = true },
+  { message = "^chore: bump version to", skip = true },
+  { message = "^chore\\(version\\):", skip = true },
+  { message = "^chore: prepare release", skip = true },
+  { message = "^chore: merge .* into release/", skip = true },
+  { message = "^chore", group = "Chores" },
 ]
 protect_breaking_commits = false
 filter_commits = false
