@@ -88,6 +88,20 @@ CI checkout (GitHub Actions).
 — historical reference; active standards documentation lives in this
 repository under `docs/`.
 
+## Memory management
+
+Memory is allowed with human approval. The authoritative policy is in
+the user's global `~/.claude/CLAUDE.md` — agents must propose memory
+writes and suggest a destination (repo memory, global CLAUDE.md, or
+plugin/skill issue) before writing. See that file for the full
+workflow.
+
+Available skills:
+- `/standard-tooling:memory-init` — set up or update the policy header
+  in a project's `MEMORY.md`.
+- `/standard-tooling:memory-audit` — structured collaborative review
+  of memory files.
+
 ## Development Commands
 
 ### Environment Setup
