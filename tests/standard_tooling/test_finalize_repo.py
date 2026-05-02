@@ -561,3 +561,16 @@ def test_main_fails_on_dirty_working_tree(
     assert "working tree is not clean" in stderr
     assert "orphan-spec.md" in stderr
     assert "stale-plan.md" in stderr
+
+
+def test_main_skips_dirty_check_on_dry_run(tmp_path: Path) -> None:
+    _make_profile(tmp_path, "library-release")
+    with (
+        patch(_MOD + ".git.repo_root", return_value=tmp_path),
+        patch(_MOD + ".git.current_branch", return_value="feature/x"),
+        patch(_MOD + ".git.run"),
+        patch(_MOD + ".git.merged_branches", return_value=[]),
+        patch(_MOD + ".git.working_tree_status", return_value="?? should-not-fail.md"),
+    ):
+        result = main(["--dry-run"])
+    assert result == 0
