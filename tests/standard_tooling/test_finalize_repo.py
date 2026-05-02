@@ -534,3 +534,30 @@ def test_main_cleans_docker_cache_on_branch_delete(
     assert result == 0
     mock_clean.assert_called_once_with("feature/x")
     assert "Cleaned 2 cached Docker image(s)" in capsys.readouterr().out
+
+
+# -- working-tree cleanliness gate (issue #472) -------------------------------
+
+
+def test_main_fails_on_dirty_working_tree(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """Issue #472: after cleanup, develop must be clean — any dirty state
+    is a hard error so orphaned files don't silently accumulate.
+    """
+    _make_profile(tmp_path, "library-release")
+    dirty_status = "?? orphan-spec.md\n?? stale-plan.md"
+    with (
+        patch(_MOD + ".git.repo_root", return_value=tmp_path),
+        patch(_MOD + ".git.current_branch", return_value="develop"),
+        patch(_MOD + ".git.run"),
+        patch(_MOD + ".git.merged_branches", return_value=[]),
+        patch(_MOD + ".git.working_tree_status", return_value=dirty_status),
+    ):
+        result = main([])
+
+    assert result == 1
+    stderr = capsys.readouterr().err
+    assert "working tree is not clean" in stderr
+    assert "orphan-spec.md" in stderr
+    assert "stale-plan.md" in stderr

@@ -211,6 +211,23 @@ def main(argv: list[str] | None = None) -> int:
     else:
         git.run("remote", "prune", "origin")
 
+    # -- working-tree cleanliness gate (issue #472) ----------------------------
+    if not args.dry_run:
+        dirty = git.working_tree_status()
+        if dirty:
+            print()
+            print(
+                f"ERROR: {args.target_branch} working tree is not clean.",
+                file=sys.stderr,
+            )
+            for line in dirty.splitlines():
+                print(f"  {line}", file=sys.stderr)
+            print(
+                "\n  Clean up these files before starting the next issue.",
+                file=sys.stderr,
+            )
+            return 1
+
     # -- post-finalization validation ------------------------------------------
     # Run canonical validation to catch problems on the target branch before
     # the next PR is created.  Failures are reported as warnings — the
