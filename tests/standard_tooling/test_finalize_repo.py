@@ -36,6 +36,17 @@ def _main_worktree() -> Iterator[None]:
         yield
 
 
+@pytest.fixture(autouse=True)
+def _clean_working_tree() -> Iterator[None]:
+    """Default every test to a clean working tree.
+
+    Individual tests can override by patching working_tree_status
+    directly — the innermost patch wins.
+    """
+    with patch(_MOD + ".git.working_tree_status", return_value=""):
+        yield
+
+
 def test_parse_args_defaults() -> None:
     args = parse_args([])
     assert args.target_branch == "develop"
