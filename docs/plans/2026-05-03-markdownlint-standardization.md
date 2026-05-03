@@ -16,19 +16,23 @@ bundled config files:
 - `src/standard_tooling/configs/markdownlint.yaml` (canonical config)
 - `src/standard_tooling/configs/markdownlintignore` (vendored paths)
 
-Ensure `pyproject.toml` includes the configs directory in package data
-(verify `[tool.setuptools.package-data]` or equivalent for the build
-backend).
+Update `[tool.setuptools.package-data]` in `pyproject.toml` to include
+the new config files. The current glob (`data/*.json`) does not match
+`.yaml` or extensionless files. Add `configs/*` to the list so that
+`importlib.resources` can resolve the bundled files at runtime.
 
 ### Step 2: Update `validate_local_common_container.py`
 
 Replace the markdownlint section:
 
-1. Remove `_find_markdown_files()` helper.
-2. Replace the markdownlint invocation block with:
+1. Update the module docstring to reflect the new scope (all
+   repo-owned markdown via bundled config, not just `docs/site/`
+   + `README.md`).
+2. Remove `_find_markdown_files()` helper.
+3. Replace the markdownlint invocation block with:
    - Resolve bundled config and ignore paths via `importlib.resources`.
    - Run `markdownlint --config <config> -p <ignore> .` from repo root.
-3. Keep shellcheck and yamllint sections unchanged.
+4. Keep shellcheck and yamllint sections unchanged.
 
 ### Step 3: Remove `st-markdown-standards`
 
@@ -111,5 +115,3 @@ pin — no dedicated sweep PR needed unless violations already exist.
 
 - Implementing Approach B (repo-local override fallback). Only added
   if a repo proves non-conformable during the sweep.
-- Fixing the changelog generator if it produces non-compliant output.
-  That would be a separate issue if discovered.

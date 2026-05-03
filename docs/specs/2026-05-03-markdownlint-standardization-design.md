@@ -44,8 +44,21 @@ MD060: false
 Bundled at `src/standard_tooling/configs/markdownlintignore`:
 
 ```
-# Empty — lint everything. Add entries here only with documented justification.
+# Vendored / build / duplicate paths — these contain third-party or
+# duplicated markdown that cannot conform and is not repo-owned content.
+.venv/
+.venv-host/
+node_modules/
+.worktrees/
 ```
+
+**Philosophy: global by default, shrink back as needed.** The ignore
+file excludes only paths that are structurally non-repo-owned (vendored
+dependencies, build artifacts, worktree duplicates). Generated content
+like `CHANGELOG.md` and `releases/` stays in scope — if the generators
+produce non-compliant markdown, fix the generators. Exceptions are
+added only when a specific path proves non-conformable after reasonable
+effort.
 
 ### Rule Rationale
 
@@ -89,6 +102,17 @@ cmd = ["markdownlint", "--config", str(config), "-p", str(ignore), "."]
 
 ## Fleet Cleanup
 
+**Blast radius note.** Switching from `docs/site/**/*.md` + `README.md`
+to `markdownlint .` is a fundamental change in lint scope. Every `.md`
+file in every repo — specs, plans, design docs, `CLAUDE.md`, etc. —
+will now be linted for the first time. The cleanup effort is
+proportional to how much unlinted markdown exists across the fleet,
+not just config file deletion.
+
+Order the sweep from least to most markdown-heavy repos to surface
+issues incrementally and refine the bundled config before hitting the
+repos with the most content.
+
 Order of operations:
 
 1. Ship the validator change in a standard-tooling release.
@@ -101,6 +125,7 @@ Order of operations:
 Per-repo cleanup:
 - Delete `.markdownlint.yaml` / `.markdownlint.json`
 - Delete `.markdownlintignore`
+- Delete `releases/.markdownlint.json` (directory-level override)
 - Fix lint violations (use `markdownlint --fix .` where possible,
   manual fixes for the rest)
 
