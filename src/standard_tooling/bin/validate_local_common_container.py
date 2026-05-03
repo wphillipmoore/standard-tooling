@@ -2,7 +2,8 @@
 
 Runs inside the dev container via ``st-docker-run``:
   1. Repository profile validation (includes README structural checks)
-  2. markdownlint on published markdown (docs/site/, README.md)
+  2. markdownlint on published markdown (docs/site/, README.md) using
+     the bundled canonical config
   3. shellcheck on all shell scripts under ``scripts/``
   4. yamllint on YAML files under ``.github/`` and ``docs/`` (issue #302)
 """
@@ -11,6 +12,7 @@ from __future__ import annotations
 
 import subprocess
 import sys
+from importlib.resources import files
 from typing import TYPE_CHECKING
 
 from standard_tooling.bin import repo_profile_cli
@@ -26,29 +28,29 @@ def _find_shell_files(repo_root: Path) -> list[str]:
     if not scripts_dir.is_dir():
         return []
 
-    files: list[str] = []
+    found: list[str] = []
     for path in scripts_dir.rglob("*"):
         if not path.is_file():
             continue
         if path.suffix == ".sh" or "git-hooks" in path.parts or "bin" in path.parts:
-            files.append(str(path))
-    return sorted(files)
+            found.append(str(path))
+    return sorted(found)
 
 
 def _find_markdown_files(repo_root: Path) -> list[str]:
     """Discover published markdown files: docs/site/**/*.md and README.md."""
-    files: list[str] = []
+    found: list[str] = []
 
     site_dir = repo_root / "docs" / "site"
     if site_dir.is_dir():
         for path in site_dir.rglob("*.md"):
-            files.append(str(path))
+            found.append(str(path))
 
     readme = repo_root / "README.md"
     if readme.is_file():
-        files.append(str(readme))
+        found.append(str(readme))
 
-    return sorted(files)
+    return sorted(found)
 
 
 _YAML_EXTS = frozenset({".yml", ".yaml"})
@@ -64,26 +66,26 @@ def _find_yaml_files(repo_root: Path) -> list[str]:
     `node_modules`) are excluded by construction — discovery only
     walks the listed locations, never venv/worktree subtrees.
     """
-    files: list[str] = []
+    found: list[str] = []
 
     # Repo-root level YAML config files (e.g., .markdownlint.yaml).
     for path in repo_root.iterdir():
         if path.is_file() and path.suffix in _YAML_EXTS:
-            files.append(str(path))
+            found.append(str(path))
 
     # .github/ tree (workflows, issue templates, etc.).
     github_dir = repo_root / ".github"
     if github_dir.is_dir():
         for path in github_dir.rglob("*"):
             if path.is_file() and path.suffix in _YAML_EXTS:
-                files.append(str(path))
+                found.append(str(path))
 
     # docs/site/mkdocs.yml.
     mkdocs = repo_root / "docs" / "site" / "mkdocs.yml"
     if mkdocs.is_file():
-        files.append(str(mkdocs))
+        found.append(str(mkdocs))
 
-    return sorted(set(files))
+    return sorted(set(found))
 
 
 def main(argv: list[str] | None = None) -> int:  # noqa: ARG001
@@ -97,11 +99,8 @@ def main(argv: list[str] | None = None) -> int:  # noqa: ARG001
     md_files = _find_markdown_files(repo_root)
     if md_files:
         print(f"Running: markdownlint ({len(md_files)} files)")
-        cmd: list[str] = ["markdownlint"]
-        config = repo_root / ".markdownlint.yaml"
-        if config.is_file():
-            cmd.extend(["--config", str(config)])
-        cmd.extend(md_files)
+        config = files("standard_tooling.configs") / "markdownlint.yaml"
+        cmd: list[str] = ["markdownlint", "--config", str(config), *md_files]
         result = subprocess.run(cmd, check=False)  # noqa: S603, S607
         if result.returncode != 0:
             return result.returncode
