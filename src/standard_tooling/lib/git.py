@@ -93,3 +93,8 @@ def merged_branches(target: str) -> list[str]:
     if not output:
         return []
     return output.splitlines()
+
+
+def working_tree_status() -> str:
+    """Return ``git status --porcelain`` output (empty string when clean)."""
+    return read_output("status", "--porcelain")

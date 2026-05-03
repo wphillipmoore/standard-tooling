@@ -152,3 +152,15 @@ def test_merged_branches_empty() -> None:
     with patch("standard_tooling.lib.git.read_output", return_value=""):
         result = git.merged_branches("develop")
     assert result == []
+
+
+def test_working_tree_status_returns_porcelain_output() -> None:
+    with patch("standard_tooling.lib.git.read_output", return_value="?? orphan.md") as mock:
+        result = git.working_tree_status()
+    assert result == "?? orphan.md"
+    mock.assert_called_once_with("status", "--porcelain")
+
+
+def test_working_tree_status_returns_empty_when_clean() -> None:
+    with patch("standard_tooling.lib.git.read_output", return_value=""):
+        assert git.working_tree_status() == ""
