@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.4.13] - 2026-05-03
+
+### CI
+
+- bump standard-actions CI pin to v1.4.7
+
+### Chores
+
+- add memory management policy (#474)
+- replace blanket chore skip with targeted mechanical-commit filters (#475)
+
+### Documentation
+
+- markdownlint standardization spec, plan, and reviews (#476) (#478)
+- narrow markdownlint standardization to published docs scope (#476) (#480)
+
+### Features
+
+- fail on dirty working tree after cleanup (#477)
+- bundle canonical config and remove per-repo configs (#476) (#481)
+
 ## [1.4.12] - 2026-05-01
 
 ### Bug fixes
@@ -38,11 +59,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - Fix --pull=always breaking cached image lookup; route Python through cache
 - Fix ruff format violations
 
+## [1.4.9] - 2026-05-01
+
+### Chores
+
+- organize plans into proposed/in-progress/completed lifecycle
+
 ## [1.4.8] - 2026-05-01
 
 ### Bug fixes
 
 - replace pip install with uv tool install in docker cache build
+
+### Chores
+
+- add consumer-refresh config to standard-tooling.toml
+- remove shutil.which guards and make docs failure fatal
+- remove _ensure_tool guard and shutil.which dependency
+- remove markdownlint shutil.which guard
+- remove all pip install references from host-level-tool spec
+- update docstring and validation failure label to reflect fatal semantics
+- fix S607 noqa, duplicate pytest import, and pip reference in releasing guide
 
 ### Documentation
 
@@ -56,11 +93,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - add --pull=always to docker run to prevent stale image cache
 - use uv run for validation in Python repos during finalization
 
+### Chores
+
+- next-cycle dependency updates for 1.4.6
+- retire st-config.toml in favor of standard-tooling.toml
+- retrigger CI after standard-actions v1.4.5
+- retrigger CI (force action cache refresh)
+- retrigger CI (GitHub Actions tag cache)
+- trigger CI for PR #417
+- pin ci-security workflow to v1.4.5 to bypass tag cache
+- pin ci-security workflow to v1.4.6
+- remove dead validate_local_common wrapper
+
+## [1.4.6] - 2026-04-29
+
+### Chores
+
+- change license from GPL-3.0-only to GPL-3.0-or-later
+
 ## [1.4.5] - 2026-04-29
 
 ### Bug fixes
 
 - eliminate unreachable elif branch for full coverage
+
+### Chores
+
+- seed standard-tooling.toml with this repo's values
+- delete repo_profile.py — replaced by config.read_config
 
 ### Documentation
 
@@ -117,6 +177,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 - retrigger checks after adding issue linkage
 
+### Chores
+
+- update all Python dependencies for next cycle
+- remove docker dispatch and verification pipeline
+- point ci-security ref to @develop for install fix (#362)
+- restore ci-security ref to @v1.4 after standard-actions 1.4.2 release (#379)
+- remove auto-close linkage keywords from st-submit-pr
+
 ### Documentation
 
 - update spec and docs for cache-first architecture (#362)
@@ -153,6 +221,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [1.4.1] - 2026-04-28
 
+### Chores
+
+- retrigger CI after adding issue linkage
+- upgrade standard-actions from @v1.3 to @v1.4
+- audit st-* catalog: remove broken entry points, add CLI tools overview
+- change st-submit-pr default linkage from Fixes to Ref (#358)
+
 ### Documentation
 
 - rewrite docs for host-install model and deprecate include-and-remember
@@ -166,6 +241,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - skip --delete-branch when running from a secondary worktree
 - bump stale standard-actions pins from @v1.1 to @v1.3
 - support --help and -h as program options
+
+### Chores
+
+- delete ci-push.yml; collapse three-tier CI to two-tier
+- migrate standard-actions refs from @develop to @v1.3
+- remove add-to-project.yml workflow
+- remove st-list-project-repos and st-set-project-field
+- remove st-observatory and dead-code registry module
 
 ### Features
 
@@ -235,6 +318,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - use dev-docs container for docs CI (#210)
 - restore standards-compliance after wrapper fallback landed (#219)
 
+### Chores
+
+- update dependencies for next development cycle (#172)
+- install standard-tooling plugin via marketplace (#180)
+- strip CLAUDE.md boilerplate now covered by plugin (#183)
+- use .markdownlintignore for lint exclusions (#195)
+- remove commit-msg hook and commit-message linter (#196)
+- update CLAUDE.md for docker-only standard-tooling (#221)
+- ban MEMORY.md usage in CLAUDE.md (#225)
+- remove legacy bash wrapper scripts and use st-* entry points directly (#227)
+- add .coverage to .gitignore (#229)
+- rename dev-docs references to dev-base (#252)
+- remove MEMORY.md ban from CLAUDE.md (#267)
+
 ### Documentation
 
 - add consolidated git-workflow guide as canonical entry point (#271)
@@ -276,6 +373,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 - add concurrency group to ci-push workflow (#167)
 
+### Chores
+
+- update ruff 0.15.4, certifi 2026.2.25, hadolint 2.14.0 (#134)
+- pass run-standards and run-security flags to ci-security workflow (#137)
+- deploy standardized issue template (#163)
+
 ### Documentation
 
 - move Releases nav to right of Home for consistency (#136)
@@ -305,6 +408,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### CI
 
 - migrate CI to three-tier model (#112)
+
+### Chores
+
+- trigger CI with updated PR body
+- add Python 3.12 and Java 17 to image matrix (#104)
+- add per-release notes and generate retroactive release notes (#116)
+- add typecheck.sh for mypy type checking (#119)
+- add Releases nav section with navigation.indexes support (#130)
 
 ### Documentation
 
@@ -381,6 +492,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - handle empty docsite_files array with set -u
 - prevent --actions-compat from leaking during self-update re-exec
 - accept cross-repo issue references in PR linkage check (#36)
+
+### Chores
+
+- add commit.sh and submit-pr.sh to managed files list (#18)
+- remove push trigger from CI workflow (#41)
 
 ### Documentation
 

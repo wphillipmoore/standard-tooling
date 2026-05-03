@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "standard-tooling"
-version = "1.4.12"
+version = "1.4.13"
 description = "Shared development tooling for managed repositories"
 requires-python = ">=3.12,<4.0"
 license = "GPL-3.0-or-later"
@@ -32,7 +32,6 @@ st-validate-local-rust = "standard_tooling.bin.validate_local_lang:main"
 st-validate-local-go = "standard_tooling.bin.validate_local_lang:main"
 st-validate-local-java = "standard_tooling.bin.validate_local_lang:main"
 st-validate-local-common = "standard_tooling.bin.validate_local_common_container:main"
-st-markdown-standards = "standard_tooling.bin.markdown_standards:main"
 st-pr-issue-linkage = "standard_tooling.bin.pr_issue_linkage:main"
 
 [dependency-groups]
@@ -42,7 +41,7 @@ dev = ["ruff", "mypy", "pytest", "pytest-cov", "pip-audit", "pip-licenses"]
 package-dir = {"" = "src"}
 
 [tool.setuptools.package-data]
-standard_tooling = ["data/*.json"]
+standard_tooling = ["data/*.json", "configs/*.yaml"]
 
 [tool.setuptools.packages.find]
 where = ["src"]

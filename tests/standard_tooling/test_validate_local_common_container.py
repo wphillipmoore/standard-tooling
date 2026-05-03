@@ -140,7 +140,7 @@ def test_main_repo_profile_fails(tmp_path: Path) -> None:
         assert main() == 1
 
 
-def test_main_markdownlint_runs(tmp_path: Path) -> None:
+def test_main_markdownlint_uses_bundled_config(tmp_path: Path) -> None:
     site = tmp_path / "docs" / "site"
     site.mkdir(parents=True)
     (site / "index.md").write_text("# Hello\n")
@@ -163,9 +163,12 @@ def test_main_markdownlint_runs(tmp_path: Path) -> None:
     mock_run.assert_called_once()
     call_args = mock_run.call_args[0][0]
     assert call_args[0] == "markdownlint"
+    assert call_args[1] == "--config"
+    assert call_args[2].endswith("markdownlint.yaml")
+    assert "standard_tooling" in call_args[2]
 
 
-def test_main_markdownlint_with_config(tmp_path: Path) -> None:
+def test_main_markdownlint_ignores_repo_local_config(tmp_path: Path) -> None:
     site = tmp_path / "docs" / "site"
     site.mkdir(parents=True)
     (site / "index.md").write_text("# Hello\n")
@@ -188,7 +191,9 @@ def test_main_markdownlint_with_config(tmp_path: Path) -> None:
         assert main() == 0
     ml_call = mock_run.call_args_list[0][0][0]
     assert ml_call[0] == "markdownlint"
-    assert "--config" in ml_call
+    assert ml_call[1] == "--config"
+    assert str(tmp_path) not in ml_call[2]
+    assert "standard_tooling" in ml_call[2]
 
 
 def test_main_markdownlint_fails(tmp_path: Path) -> None:
