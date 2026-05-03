@@ -116,5 +116,6 @@ pin — no dedicated sweep PR needed unless violations already exist.
 
 ## Out of scope
 
-- Implementing Approach B (repo-local override fallback). Only added
-  if a repo proves non-conformable during the sweep.
+- Repo-local config overrides. The lint scope covers only content we
+  fully own (`docs/site/` + `README.md`), so there is no legitimate
+  need for per-repo exceptions.

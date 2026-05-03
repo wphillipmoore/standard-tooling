@@ -23,6 +23,11 @@ as package data and uses it for all repos. The lint scope stays at
 `docs/site/**/*.md` + `README.md` — published, user-facing
 documentation. Repos delete their local markdownlint configs entirely.
 
+No repo-local config overrides are supported. The lint scope covers
+only `docs/site/**/*.md` + `README.md` — content we fully own and
+control. There is no scenario where a repo legitimately cannot conform
+to the canonical rules for its own published documentation.
+
 Rejected alternative: running `markdownlint .` against the entire repo.
 This was explored and rejected during pushback review — it introduces
 vendored-path exclusions, generator-compliance questions, and
@@ -68,9 +73,8 @@ File: `src/standard_tooling/bin/validate_local_common_container.py`
 1. **Scope unchanged**: Keep `_find_markdown_files()` — it discovers
    `docs/site/**/*.md` + `README.md`, which is the correct scope.
 2. **Config resolution**: Use `importlib.resources` to resolve the
-   bundled config path. Replace the repo-local `.markdownlint.yaml`
-   check with the bundled config — always use it, ignore any
-   repo-local config.
+   bundled config path. Remove the repo-local `.markdownlint.yaml`
+   check entirely — the bundled config is the only config.
 3. **Remove `st-markdown-standards`**: The standalone
    `markdown_standards.py` entry point is redundant — remove the
    console script and module. This is an internal tool (not consumed
