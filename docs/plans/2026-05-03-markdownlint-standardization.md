@@ -10,28 +10,29 @@ All work in the `issue-476-markdownlint-standardization` worktree.
 ### Step 1: Create the configs package
 
 Create `src/standard_tooling/configs/` as a Python package with the
-bundled config files:
+bundled config:
 
 - `src/standard_tooling/configs/__init__.py` (empty)
 - `src/standard_tooling/configs/markdownlint.yaml` (canonical config)
-- `src/standard_tooling/configs/markdownlintignore` (vendored paths)
+
+No ignore file is needed — the scoped file discovery
+(`docs/site/**/*.md` + `README.md`) avoids vendored and internal
+content by construction.
 
 Update `[tool.setuptools.package-data]` in `pyproject.toml` to include
 the new config files. The current glob (`data/*.json`) does not match
-`.yaml` or extensionless files. Add `configs/*` to the list so that
-`importlib.resources` can resolve the bundled files at runtime.
+`.yaml` files. Add `configs/*` to the list so that
+`importlib.resources` can resolve the bundled config at runtime.
 
 ### Step 2: Update `validate_local_common_container.py`
 
-Replace the markdownlint section:
+Replace the markdownlint config resolution:
 
-1. Update the module docstring to reflect the new scope (all
-   repo-owned markdown via bundled config, not just `docs/site/`
-   + `README.md`).
-2. Remove `_find_markdown_files()` helper.
-3. Replace the markdownlint invocation block with:
-   - Resolve bundled config and ignore paths via `importlib.resources`.
-   - Run `markdownlint --config <config> -p <ignore> .` from repo root.
+1. Update the module docstring to note that markdownlint now uses
+   the bundled canonical config (scope is unchanged).
+2. Replace the repo-local `.markdownlint.yaml` check with
+   `importlib.resources` resolution of the bundled config.
+3. Keep `_find_markdown_files()` and the existing scope unchanged.
 4. Keep shellcheck and yamllint sections unchanged.
 
 ### Step 3: Remove `st-markdown-standards`
@@ -43,20 +44,21 @@ Replace the markdownlint section:
 
 ### Step 4: Update tests for the common container validator
 
-1. Remove `_find_markdown_files` from test imports.
-2. Remove `test_find_markdown_files_*` test functions.
-3. Add tests for the new markdownlint invocation:
-   - Verify the command includes `--config` pointing to bundled config.
-   - Verify the command includes `-p` pointing to bundled ignore file.
-   - Verify the command runs against `.` (whole repo).
-   - Verify non-zero return code propagates.
+1. Update `test_main_markdownlint_with_config` — it currently creates
+   a repo-local `.markdownlint.yaml` and checks for `--config`. Change
+   it to verify the bundled config is always used regardless of whether
+   a repo-local config exists.
+2. Add a test verifying that `--config` points to the bundled config
+   path (via `importlib.resources`).
+3. Keep `_find_markdown_files` tests and existing scope tests unchanged.
 
-### Step 5: Fix lint violations in standard-tooling itself
+### Step 5: Clean up standard-tooling itself
 
-Run the new validator against this repo's markdown. Fix any violations
-surfaced by linting all `.md` files (previously only `docs/site/` +
-`README.md` was checked). Delete the repo-local `.markdownlint.yaml`
-and `.markdownlintignore`.
+1. Delete the repo-local `.markdownlint.yaml` and `.markdownlintignore`.
+2. Delete `releases/.markdownlint.json` (stale directory-level override
+   for content outside the lint scope).
+3. Run the validator — fix any violations in `docs/site/` + `README.md`
+   surfaced by the new canonical rules.
 
 ### Step 6: Validate
 
@@ -77,8 +79,9 @@ After the PR merges:
 ## Phase 3: Fleet sweep
 
 After the release ships, sweep each repo that has a local markdownlint
-config. Order from least to most markdown-heavy to surface issues
-incrementally.
+config. The effort is modest — only published documentation
+(`docs/site/` + `README.md`) is linted, so violation fixes are limited
+to that scope. The main work is deleting stale configs.
 
 **Per repo:**
 
@@ -86,8 +89,8 @@ incrementally.
    `standard-tooling.toml` (and `pyproject.toml` if Python).
 2. Delete `.markdownlint.yaml` / `.markdownlint.json`.
 3. Delete `.markdownlintignore`.
-4. Delete `releases/.markdownlint.json` if present.
-5. Run validation; fix any violations.
+4. Delete `releases/.markdownlint.json` if present (stale override).
+5. Run validation; fix any violations in `docs/site/` + `README.md`.
 6. Submit PR via `st-submit-pr`.
 
 **Suggested sweep order:**

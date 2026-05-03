@@ -16,15 +16,20 @@ entire repo, while all other repos scope to `docs/site/**/*.md` +
 
 ## Decision
 
-**Approach A: validator-owns-everything.**
+**Validator-owns-config, scope unchanged.**
 
 The `st-validate-local-common` validator bundles the canonical config
-as package data. It runs `markdownlint .` against the whole repo using
-only the bundled config. Repos delete their local markdownlint configs
-entirely.
+as package data and uses it for all repos. The lint scope stays at
+`docs/site/**/*.md` + `README.md` — published, user-facing
+documentation. Repos delete their local markdownlint configs entirely.
 
-If a repo genuinely cannot conform, we fall back to Approach B
-(repo-local override) for that repo only, with documented justification.
+Rejected alternative: running `markdownlint .` against the entire repo.
+This was explored and rejected during pushback review — it introduces
+vendored-path exclusions, generator-compliance questions, and
+fleet-wide violation cleanup for internal working documents (specs,
+plans, design docs) with no user-facing benefit. The config
+standardization delivers the real value; the scope expansion is where
+the cost lives.
 
 ## Canonical Config
 
@@ -41,24 +46,9 @@ MD013:
 MD060: false
 ```
 
-Bundled at `src/standard_tooling/configs/markdownlintignore`:
-
-```
-# Vendored / build / duplicate paths — these contain third-party or
-# duplicated markdown that cannot conform and is not repo-owned content.
-.venv/
-.venv-host/
-node_modules/
-.worktrees/
-```
-
-**Philosophy: global by default, shrink back as needed.** The ignore
-file excludes only paths that are structurally non-repo-owned (vendored
-dependencies, build artifacts, worktree duplicates). Generated content
-like `CHANGELOG.md` and `releases/` stays in scope — if the generators
-produce non-compliant markdown, fix the generators. Exceptions are
-added only when a specific path proves non-conformable after reasonable
-effort.
+No ignore file is bundled. The scoped file discovery
+(`docs/site/**/*.md` + `README.md`) avoids vendored, generated, and
+internal content by construction.
 
 ### Rule Rationale
 
@@ -75,20 +65,19 @@ effort.
 
 File: `src/standard_tooling/bin/validate_local_common_container.py`
 
-1. **Scope**: Replace `_find_markdown_files()` (which scopes to
-   `docs/site/**/*.md` + `README.md`) with `markdownlint .` — lint
-   the entire repo.
+1. **Scope unchanged**: Keep `_find_markdown_files()` — it discovers
+   `docs/site/**/*.md` + `README.md`, which is the correct scope.
 2. **Config resolution**: Use `importlib.resources` to resolve the
-   bundled config and ignore file paths.
-3. **No repo-local fallback**: Always use bundled config. Ignore any
-   repo-local `.markdownlint.yaml` or `.markdownlintignore`.
-4. **Remove `st-markdown-standards`**: The standalone
+   bundled config path. Replace the repo-local `.markdownlint.yaml`
+   check with the bundled config — always use it, ignore any
+   repo-local config.
+3. **Remove `st-markdown-standards`**: The standalone
    `markdown_standards.py` entry point is redundant — remove the
    console script and module. This is an internal tool (not consumed
    by other repos), so no deprecation cycle is needed.
-5. **Other validators unchanged**: shellcheck and yamllint invocations
-   in the same file remain as-is. Only the markdownlint section
-   changes.
+4. **Other validators unchanged**: shellcheck and yamllint invocations
+   in the same file remain as-is. Only the markdownlint config
+   resolution changes.
 
 Invocation:
 
@@ -96,49 +85,36 @@ Invocation:
 from importlib.resources import files
 
 config = files("standard_tooling.configs") / "markdownlint.yaml"
-ignore = files("standard_tooling.configs") / "markdownlintignore"
-cmd = ["markdownlint", "--config", str(config), "-p", str(ignore), "."]
+md_files = _find_markdown_files(repo_root)
+cmd = ["markdownlint", "--config", str(config), *md_files]
 ```
 
 ## Fleet Cleanup
 
-**Blast radius note.** Switching from `docs/site/**/*.md` + `README.md`
-to `markdownlint .` is a fundamental change in lint scope. Every `.md`
-file in every repo — specs, plans, design docs, `CLAUDE.md`, etc. —
-will now be linted for the first time. The cleanup effort is
-proportional to how much unlinted markdown exists across the fleet,
-not just config file deletion.
+Since the lint scope is unchanged (`docs/site/**/*.md` + `README.md`),
+the cleanup effort is modest — the new bundled config may surface
+violations where per-repo configs were more permissive, but only in
+published documentation that was already being linted.
 
-Order the sweep from least to most markdown-heavy repos to surface
-issues incrementally and refine the bundled config before hitting the
-repos with the most content.
+The main work is hygiene: deleting stale per-repo markdownlint configs
+that are no longer consulted, including directory-level overrides that
+applied to content outside the lint scope.
 
 Order of operations:
 
 1. Ship the validator change in a standard-tooling release.
 2. Sweep the fleet — each repo updates its `standard-tooling` pin,
-   deletes local markdownlint configs, and fixes any violations
-   surfaced by the new config.
+   deletes all local markdownlint configs, and fixes any violations
+   surfaced by the new canonical rules.
 3. Remove the standalone `markdownlint .` CI job from
    `standard-tooling-docker`'s `ci.yml`.
 
 Per-repo cleanup:
 - Delete `.markdownlint.yaml` / `.markdownlint.json`
 - Delete `.markdownlintignore`
-- Delete `releases/.markdownlint.json` (directory-level override)
-- Fix lint violations (use `markdownlint --fix .` where possible,
-  manual fixes for the rest)
-
-## Fallback Path (Approach B)
-
-Not implemented unless forced. If a repo proves it cannot conform:
-
-1. The validator gains a check: if a repo-local `.markdownlint.yaml`
-   exists, use it instead of the bundled config. Same for
-   `.markdownlintignore`.
-2. The repo-local config must include a comment explaining why the
-   override is necessary.
-3. This escape hatch is documented but not shipped until needed.
+- Delete `releases/.markdownlint.json` (stale directory-level override)
+- Fix lint violations in `docs/site/` + `README.md` (use
+  `markdownlint --fix` where possible, manual fixes for the rest)
 
 ## Affected Repos
 

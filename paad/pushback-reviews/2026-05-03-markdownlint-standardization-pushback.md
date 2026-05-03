@@ -87,9 +87,30 @@ small; fleet sweep is mechanical. Reasonable as one spec.
   when users arrive) but execution can skip deprecation cycles and
   transition windows in the interest of moving fast.
 
+### [5] Global linting scope is not worth the complexity (post-merge re-evaluation)
+
+- **Category:** scope imbalance
+- **Severity:** serious
+- **Issue:** After merging the initial spec, the author questioned
+  whether linting all markdown files delivers any real return on
+  investment. The config standardization (bundled canonical rules,
+  delete per-repo configs) solves the original problem — config drift
+  causing identical content to pass in one repo and fail in another.
+  The scope expansion from `docs/site/ + README.md` to `markdownlint .`
+  was responsible for nearly every complication addressed in issues
+  1-3: vendored-path exclusions, generator compliance, blast radius,
+  directory-level override migration. Internal working documents
+  (specs, plans, design docs) are not user-facing and gain no value
+  from markdownlint enforcement.
+- **Resolution:** Reverted scope to the original `docs/site/**/*.md`
+  + `README.md`. The ignore file, "global by default" philosophy,
+  blast radius note, and generator compliance concerns were all
+  removed. Config standardization and stale config hygiene remain.
+  Spec and plan updated.
+
 ## Summary
 
-- **Issues found:** 4
-- **Issues resolved:** 4 (1 withdrawn)
+- **Issues found:** 5
+- **Issues resolved:** 5 (1 withdrawn)
 - **Unresolved:** 0
-- **Spec status:** ready for implementation (spec updated with resolutions)
+- **Spec status:** ready for implementation (scope narrowed, spec and plan updated)
